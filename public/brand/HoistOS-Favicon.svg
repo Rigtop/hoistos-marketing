@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <title>HoistOS favicon</title>
+  <desc>Simplified I-beam mark for 16 and 32 pixel rendering. Fillets removed, proportions thickened for small size legibility.</desc>
+  <rect x="4" y="5" width="8" height="2" fill="#111827"/>
+  <rect x="7" y="7" width="2" height="18" fill="#111827"/>
+  <rect x="4" y="25" width="8" height="2" fill="#111827"/>
+  <rect x="20" y="5" width="8" height="2" fill="#111827"/>
+  <rect x="23" y="7" width="2" height="18" fill="#111827"/>
+  <rect x="20" y="25" width="8" height="2" fill="#111827"/>
+  <rect x="9" y="15" width="14" height="2" fill="#F25A00"/>
+</svg>

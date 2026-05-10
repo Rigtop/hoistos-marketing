@@ -1,0 +1,10 @@
+<svg viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg">
+  <title>HoistOS horizontal lockup, inverse</title>
+  <desc>Mark plus wordmark for dark backgrounds. Paper fill on structure, Signal crossbar preserved, Paper wordmark.</desc>
+  <g>
+    <path d="M 18 22 L 42 22 L 42 27 L 36 27 Q 33 27 33 30 L 33 90 Q 33 93 36 93 L 42 93 L 42 98 L 18 98 L 18 93 L 24 93 Q 27 93 27 90 L 27 30 Q 27 27 24 27 L 18 27 Z" fill="#F2F4F7"/>
+    <path d="M 102 22 L 78 22 L 78 27 L 84 27 Q 87 27 87 30 L 87 90 Q 87 93 84 93 L 78 93 L 78 98 L 102 98 L 102 93 L 96 93 Q 93 93 93 90 L 93 30 Q 93 27 96 27 L 102 27 Z" fill="#F2F4F7"/>
+    <rect x="33" y="54" width="54" height="6" fill="#F25A00"/>
+  </g>
+  <text x="140" y="88" font-family="Space Grotesk, Inter, Helvetica Neue, Arial, sans-serif" font-size="84" font-weight="500" fill="#F2F4F7" letter-spacing="-3">HoistOS</text>
+</svg>

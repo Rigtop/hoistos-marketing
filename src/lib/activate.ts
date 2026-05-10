@@ -1,0 +1,263 @@
+/**
+ * Empire Wireframe V4 / H6 Activate-in-Claude flow.
+ *
+ * Replaces the broken `.zip` download path with a 3-tier activation:
+ *
+ *   Tier A (Desktop with claude:// installed): claude:// deep link, 1 click
+ *   Tier B (Web fallback, default):            clipboard + open new tab + toast
+ *   Tier C (Mobile):                           universal link + advisory banner
+ *
+ * Spec: v4/artifacts/H4/download-launch-ux.md Sections 2-3.
+ *
+ * Tier B (the most common path) fetches the pack markdown, copies the full
+ * SKILL.md to clipboard, opens claude.ai/new in a new tab, then shows a toast
+ * telling the VP to paste with Cmd-V. This eliminates the file-system
+ * round-trip that the legacy `.zip` (broken) and `.md` (download-only) paths
+ * forced on the VP.
+ *
+ * Hard Rule #11: no em dashes. Hard Rule #31: react-hot-toast is already a
+ * dependency in package.json (no new external import).
+ */
+
+import { toast } from 'react-hot-toast'
+import { trackFunnel, type PackTier } from './funnel'
+
+export type ActivationTier = 'desktop_deeplink' | 'web_clipboard' | 'mobile_deeplink' | 'fallback_download'
+
+export interface ActivateOptions {
+  /** pack slug, e.g. 'beg-01-chat-to-projects' */
+  slug: string
+  /** absolute or relative URL where the .md is served */
+  packUrl: string
+  /** beg | mid | adv | pow */
+  tier?: PackTier
+  /** the live origin where SKILL.md is hosted, used for desktop deep-link seed */
+  publicOrigin?: string
+}
+
+/**
+ * Detect mobile via UA sniffing. Reasonable enough for the iOS/Android split
+ * the H4 spec requires. Not used for security gates.
+ */
+export function isMobile(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
+/**
+ * Probe whether claude:// scheme is registered. Best-effort: we attempt the
+ * navigation and detect the document blur. If no blur fires within timeoutMs
+ * the scheme is presumed unhandled and the fallback flow runs.
+ *
+ * For Phase 1 we keep this conservative and DEFAULT to the web flow unless
+ * the user explicitly opts into desktop on a return visit (localStorage flag
+ * `claude.preferDesktop`). This avoids false-positive scheme failures (which
+ * leave the user on a broken page) at the cost of one extra click for
+ * Desktop-installed VPs.
+ */
+export function preferDesktopDeepLink(): boolean {
+  try {
+    return localStorage.getItem('claude.preferDesktop') === '1'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Mark this device as preferring desktop deep links from this point forward.
+ * Surfaced via a small toggle in the toast follow-up flow (defer to V5 UI).
+ */
+export function setPreferDesktopDeepLink(value: boolean): void {
+  try {
+    localStorage.setItem('claude.preferDesktop', value ? '1' : '0')
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/**
+ * Mark a slug as activated, persisted in localStorage, drives the progress
+ * meter ("X of 15 packs activated").
+ */
+export function markActivated(slug: string): void {
+  try {
+    const raw = localStorage.getItem('scrolophyte.activated') ?? '[]'
+    const arr: string[] = JSON.parse(raw)
+    if (!arr.includes(slug)) {
+      arr.push(slug)
+      localStorage.setItem('scrolophyte.activated', JSON.stringify(arr))
+    }
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+export function listActivated(): string[] {
+  try {
+    const raw = localStorage.getItem('scrolophyte.activated') ?? '[]'
+    return JSON.parse(raw) as string[]
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Subscribe to activation changes (storage event + custom event).
+ * Returns an unsubscribe function.
+ */
+export function onActivatedChange(cb: () => void): () => void {
+  const handler = () => cb()
+  window.addEventListener('storage', handler)
+  window.addEventListener('scrolophyte:activated', handler)
+  return () => {
+    window.removeEventListener('storage', handler)
+    window.removeEventListener('scrolophyte:activated', handler)
+  }
+}
+
+/**
+ * Fetch the pack markdown body. Used to seed the clipboard with the actual
+ * SKILL.md content so the VP can paste it directly into claude.ai / a new
+ * Project Knowledge file.
+ */
+async function fetchPackBody(packUrl: string): Promise<string> {
+  const res = await fetch(packUrl, { method: 'GET' })
+  if (!res.ok) {
+    throw new Error(`pack fetch failed ${res.status}`)
+  }
+  return await res.text()
+}
+
+/**
+ * Copy text to clipboard with fallback to a hidden textarea. The
+ * navigator.clipboard API requires HTTPS + a user gesture (both satisfied
+ * when this runs from an onClick handler on a button).
+ */
+async function writeClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    /* fall through to textarea fallback */
+  }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.focus()
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch {
+    return false
+  }
+}
+
+/**
+ * The main entry point. Wired to the Activate button in EmpireTimeline-d.tsx
+ * and BottomIndexedTable.tsx.
+ */
+export async function activateSkill(opts: ActivateOptions): Promise<ActivationTier> {
+  const { slug, packUrl, tier } = opts
+  trackFunnel('activate_clicked', { slug, tier, path_taken: 'web_clipboard' })
+
+  const mobile = isMobile()
+
+  // Tier C: mobile fallback. Mobile Claude only routes to Code today, so we
+  // open the universal link with a seed prompt and let the user know.
+  if (mobile) {
+    try {
+      const seed = `I want to install the Perennial Empire pack at ${packUrl}. Open it for me, summarize what it does, and walk me through the setup.`
+      const url = `https://claude.ai/code/new?q=${encodeURIComponent(seed)}`
+      window.open(url, '_blank', 'noopener')
+      toast.success('Mobile activation is limited. Open this on desktop for the full pack experience.', {
+        duration: 6000,
+      })
+      trackFunnel('toast_shown', { slug, tier, path_taken: 'mobile_deeplink' })
+      markActivated(slug)
+      window.dispatchEvent(new Event('scrolophyte:activated'))
+      return 'mobile_deeplink'
+    } catch {
+      /* fall through to clipboard path on mobile too */
+    }
+  }
+
+  // Try to fetch the pack body so the clipboard carries the full SKILL.md.
+  let body: string
+  try {
+    body = await fetchPackBody(packUrl)
+  } catch {
+    // If the fetch fails, fall back to a public-URL-fetch seed prompt.
+    body = `Fetch the file at ${packUrl} and install it as a skill in this project. Then walk me through activation.`
+  }
+
+  // Tier A: Desktop deep link (only if the user has explicitly opted in).
+  // The 14k-char URL cap means we cannot carry the full SKILL.md. We send a
+  // seed that tells Claude to fetch the public URL.
+  if (preferDesktopDeepLink() && !mobile) {
+    try {
+      const seed = `Fetch ${packUrl} and install it as a skill in this project. Then activate it and walk me through the setup.`
+      const desktopUrl = `claude://claude.ai/new?q=${encodeURIComponent(seed)}`
+      trackFunnel('desktop_deeplink_fired', { slug, tier })
+      window.location.href = desktopUrl
+      // Optimistic: also copy the full body so the user can paste if the
+      // scheme is unhandled and Claude does not fetch the URL.
+      await writeClipboard(body)
+      markActivated(slug)
+      window.dispatchEvent(new Event('scrolophyte:activated'))
+      return 'desktop_deeplink'
+    } catch {
+      /* fall through to clipboard */
+    }
+  }
+
+  // Tier B (default): clipboard + new tab + toast.
+  const copied = await writeClipboard(body)
+  if (copied) {
+    trackFunnel('clipboard_copied', {
+      slug,
+      tier,
+      prompt_size_bytes: body.length,
+    })
+  } else {
+    trackFunnel('clipboard_failed', { slug, tier })
+  }
+
+  let opened: Window | null = null
+  try {
+    opened = window.open('https://claude.ai/new', '_blank', 'noopener')
+    if (opened) {
+      trackFunnel('claude_tab_opened', { slug, tier })
+    }
+  } catch {
+    /* popup blocked: still show the toast so the user can act */
+  }
+
+  if (copied) {
+    toast.success(
+      'Prompt copied. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
+      { duration: 7000 },
+    )
+  } else if (opened) {
+    toast(
+      'Claude opened in a new tab. Copy the pack from the page below and paste it in.',
+      { duration: 7000 },
+    )
+  } else {
+    toast.error(
+      'Activation blocked. Allow popups and clipboard access, then try again.',
+      { duration: 7000 },
+    )
+  }
+  trackFunnel('toast_shown', { slug, tier, path_taken: 'web_clipboard' })
+
+  markActivated(slug)
+  window.dispatchEvent(new Event('scrolophyte:activated'))
+
+  return copied ? 'web_clipboard' : 'fallback_download'
+}

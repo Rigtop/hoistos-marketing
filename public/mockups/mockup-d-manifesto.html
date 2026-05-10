@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HoistOS | Mockup D | Manifesto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #FAF8F3;
+    --paper-deep: #F2EEE6;
+    --ink: #1A1815;
+    --ink-2: #3A352F;
+    --ink-3: #6E665C;
+    --signal: #C85C1F;
+    --signal-deep: #A14914;
+    --rule: rgba(26, 24, 21, 0.12);
+    --rule-soft: rgba(26, 24, 21, 0.06);
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'Inter', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--serif);
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .halo { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .halo::before {
+    content: '';
+    position: absolute;
+    top: -28vw; right: -22vw;
+    width: 90vw; height: 90vw;
+    background: radial-gradient(circle at center,
+      rgba(200, 92, 31, 0.18) 0%,
+      rgba(200, 92, 31, 0.06) 35%,
+      rgba(200, 92, 31, 0) 70%);
+    filter: blur(8px);
+  }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    mix-blend-mode: multiply; opacity: 0.05;
+  }
+  main { position: relative; z-index: 2; }
+
+  /* Vertical wordmark in margin */
+  .marginword {
+    position: fixed;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    z-index: 3;
+  }
+
+  /* Top bar: minimal */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 56px 28px 88px;
+  }
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .lockup-mark {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--signal);
+    letter-spacing: -0.02em;
+  }
+  .countdown {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .countdown b { color: var(--signal); font-weight: 500; }
+
+  /* Hero */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 96px 32px 64px;
+  }
+  .dateline {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 48px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h1.headline {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(36px, 5vw, 60px);
+    line-height: 1.1;
+    letter-spacing: -0.018em;
+    margin: 0 0 48px;
+    max-width: 22ch;
+  }
+  h1 em { font-style: italic; color: var(--signal); font-weight: 400; }
+  h1 .number {
+    font-family: var(--mono);
+    font-style: normal;
+    font-weight: 500;
+    color: var(--ink);
+    background: rgba(200, 92, 31, 0.10);
+    padding: 0 8px;
+    border-radius: 4px;
+    font-size: 0.7em;
+  }
+  .body-text {
+    font-size: 19px;
+    line-height: 1.7;
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .body-text p {
+    margin: 0 0 28px;
+  }
+  .body-text p:first-of-type::first-letter {
+    font-family: var(--serif);
+    font-weight: 600;
+    float: left;
+    font-size: 64px;
+    line-height: 0.85;
+    margin: 6px 14px 0 0;
+    color: var(--signal);
+  }
+  .body-text strong {
+    font-weight: 600;
+    color: var(--ink);
+    background: rgba(200, 92, 31, 0.10);
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+  .body-text .num {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 0.92em;
+    color: var(--ink);
+  }
+
+  /* Two outlined CTAs at bottom */
+  .cta-section {
+    max-width: 760px;
+    margin: 56px auto 32px;
+    padding: 40px 32px 32px;
+    border-top: 1px solid var(--rule);
+  }
+  .cta-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+  }
+  .cta-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 28px;
+    border: 1.5px solid var(--ink);
+    border-radius: 10px;
+    background: transparent;
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    font-family: var(--serif);
+  }
+  .cta-button:hover {
+    background: var(--ink);
+    color: var(--paper);
+    transform: translateY(-1px);
+  }
+  .cta-button.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .cta-button.primary:hover {
+    background: var(--signal);
+    border-color: var(--signal);
+  }
+  .cta-button-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cta-button-label {
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .cta-button-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+  .cta-arrow {
+    font-family: var(--mono);
+    font-size: 22px;
+    transition: transform 0.18s ease;
+  }
+  .cta-button:hover .cta-arrow { transform: translateX(6px); }
+
+  footer {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  footer .sig {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 16px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+  <div class="halo"></div>
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg">
+    <filter id="g">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#g)" />
+  </svg>
+
+  <div class="marginword">HoistOS · A note from the operator</div>
+
+  <main>
+    <header class="topbar">
+      <div class="lockup">
+        <span class="lockup-mark">H</span>
+        <span>HoistOS</span>
+      </div>
+      <div class="countdown"><b>Public launch</b> 06D 18H 53M</div>
+    </header>
+
+    <section class="hero">
+      <div class="dateline">May 2026 · New York · A note from the operator</div>
+      <h1 class="headline">
+        We were a <em>construction company</em>. Then we built our own <em>AI layer</em>. Now we are both.
+      </h1>
+      <div class="body-text">
+        <p>
+          A year ago Perennial Empire ran like every other 90-employee general contractor in New York. Estimating in spreadsheets. RFIs in Outlook. Compliance in PDFs. Every clause re-typed three times across <span class="num">11</span> active projects.
+        </p>
+        <p>
+          We tried tools. They each solved a slice. None solved the layer underneath. So we built it ourselves. <strong>HoistOS is the operating layer.</strong> Estimating, RFIs, AR/AP, payroll, org changes, project economics. One stack, real data, audit-ready, on a single source of truth Claude can read end to end.
+        </p>
+        <p>
+          Now we are productizing it. Two surfaces below. The first is the public scrolophyte: every hard-won AI lesson we banked, packaged so you can install them in your own Claude in eight minutes of scroll. The second is the read-only org dashboard, gated to the team. <strong>We did not buy a tool. We built a layer. We are giving you the keys.</strong>
+        </p>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="cta-eyebrow">Two doors · Live now</div>
+      <div class="cta-stack">
+        <a href="/empireworksreconstruction" class="cta-button primary">
+          <div class="cta-button-content">
+            <div class="cta-button-label">Open the EmpireWorks reconstruction</div>
+            <div class="cta-button-meta">30 moments · 16 packs · 8 min scroll · public</div>
+          </div>
+          <span class="cta-arrow">&rarr;</span>
+        </a>
+        <a href="/perennialempiredashboard" class="cta-button">
+          <div class="cta-button-content">
+            <div class="cta-button-label">View the Perennial Empire dashboard</div>
+            <div class="cta-button-meta">Org · Projects · AR/AP · Internal · Password-gated</div>
+          </div>
+          <span class="cta-arrow">&rarr;</span>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <div>HoistOS · 2026 · hoistos.com</div>
+      <div class="sig">Eugeen Bernan, Chief Operating Officer, Perennial Empire LLC</div>
+    </footer>
+  </main>
+</body>
+</html>

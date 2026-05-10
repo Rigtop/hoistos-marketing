@@ -1,0 +1,46 @@
+/**
+ * EmpireTimelinePage. Renders the C-v2 timeline rebuild as the canonical
+ * /empire/timeline (and /empireworksreconstruction/timeline) view.
+ *
+ * S199 Empire Wireframe v6 close: rebuilt EmpireTimeline-d in C-v2 design
+ * language (parchment + Newsreader serif + click-to-expand with foundation
+ * packs first). Direct import; component is self-contained and small enough
+ * not to need Suspense+lazy.
+ *
+ * Hard Rule #11: no em dashes anywhere in this module.
+ * Hard Rule #31: react-hot-toast@2.6.0 Toaster named export with position
+ * + toastOptions.style + toastOptions.success.iconTheme. Verified via
+ * context7 query 2026-05-08.
+ */
+
+import { Toaster } from 'react-hot-toast'
+import { EmpireTimelineD } from '../components/EmpireTimeline-d'
+import { TIMELINE_D_REAL } from './content/timeline-d-real'
+
+export function EmpireTimelinePage() {
+  return (
+    <div style={{ background: '#f5f4ed', color: '#141413' }}>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: 'rgba(20,20,19,0.95)',
+            color: '#f5f4ed',
+            borderRadius: '12px',
+            fontSize: '14px',
+            border: '1px solid rgba(204,110,46,0.4)',
+            padding: '14px 18px',
+            boxShadow: '0 18px 40px rgba(204,110,46,0.18)',
+            fontFamily: "'Newsreader', serif",
+          },
+          success: {
+            iconTheme: { primary: '#cc6e2e', secondary: '#f5f4ed' },
+          },
+        }}
+      />
+      <EmpireTimelineD moments={TIMELINE_D_REAL} />
+    </div>
+  )
+}
+
+export default EmpireTimelinePage

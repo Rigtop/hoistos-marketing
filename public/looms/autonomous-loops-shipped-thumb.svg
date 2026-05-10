@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Loom poster: autonomous loops shipped">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#FAF8F3"/>
+      <stop offset="100%" stop-color="#F1ECE0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="rgba(247,114,52,0.50)"/>
+      <stop offset="60%" stop-color="rgba(247,114,52,0.10)"/>
+      <stop offset="100%" stop-color="rgba(247,114,52,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g>
+    <rect x="780" y="160" width="380" height="22" rx="11" fill="#1A1612" opacity="0.06"/>
+    <rect x="780" y="160" width="320" height="22" rx="11" fill="#F77234"/>
+    <rect x="780" y="220" width="380" height="22" rx="11" fill="#1A1612" opacity="0.06"/>
+    <rect x="780" y="220" width="280" height="22" rx="11" fill="#F77234"/>
+    <rect x="780" y="280" width="380" height="22" rx="11" fill="#1A1612" opacity="0.06"/>
+    <rect x="780" y="280" width="360" height="22" rx="11" fill="#F77234"/>
+    <rect x="780" y="340" width="380" height="22" rx="11" fill="#1A1612" opacity="0.06"/>
+    <rect x="780" y="340" width="200" height="22" rx="11" fill="#F77234"/>
+    <rect x="780" y="400" width="380" height="22" rx="11" fill="#1A1612" opacity="0.06"/>
+    <rect x="780" y="400" width="380" height="22" rx="11" fill="#F77234"/>
+  </g>
+  <text x="80" y="120" font-family="Inter, system-ui, sans-serif" font-size="22" letter-spacing="6" fill="#F77234" font-weight="700">CHAPTER 06B . 90 SEC</text>
+  <text x="80" y="250" font-family="Source Serif Pro, Georgia, serif" font-size="84" font-weight="400" fill="#1A1612">Autonomous</text>
+  <text x="80" y="340" font-family="Source Serif Pro, Georgia, serif" font-size="84" font-weight="400" fill="#1A1612">loops shipped.</text>
+  <text x="80" y="420" font-family="Source Serif Pro, Georgia, serif" font-size="32" font-style="italic" fill="#574E40">15 ships overnight, 1 to 2 attended.</text>
+  <circle cx="640" cy="600" r="56" fill="#F77234"/>
+  <polygon points="620,575 620,625 670,600" fill="#FAF8F3"/>
+  <text x="80" y="680" font-family="Inter, system-ui, sans-serif" font-size="16" letter-spacing="3" fill="#574E40" font-weight="600">EUGEEN ON TAPE . SCROLOPHYTE . S198</text>
+</svg>

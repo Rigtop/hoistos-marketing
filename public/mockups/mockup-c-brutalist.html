@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HoistOS | Mockup C | Brutalist Construction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --ink: #000000;
+    --ink-2: #1A1A1A;
+    --ink-3: #555555;
+    --signal: #F25A00;
+    --rule: rgba(0, 0, 0, 0.18);
+    --rule-soft: rgba(0, 0, 0, 0.08);
+    --display: 'Archivo', 'Inter', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--mono);
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .halo { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .halo::before {
+    content: '';
+    position: absolute;
+    top: -28vw; right: -22vw;
+    width: 90vw; height: 90vw;
+    background: radial-gradient(circle at center,
+      rgba(242, 90, 0, 0.18) 0%,
+      rgba(242, 90, 0, 0.06) 38%,
+      rgba(242, 90, 0, 0) 70%);
+    filter: blur(8px);
+  }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    mix-blend-mode: multiply; opacity: 0.05;
+  }
+  main { position: relative; z-index: 2; }
+
+  /* Top bar with hard rule below */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .lockup-mark {
+    width: 26px; height: 26px;
+    background: var(--ink);
+    color: var(--paper);
+    display: grid; place-items: center;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .meta-row {
+    display: flex;
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .meta-row b { color: var(--signal); font-weight: 500; }
+
+  /* Hero with section number */
+  .hero {
+    padding: 0 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-tag {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 16px 0 64px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .section-tag b {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }
+  h1.headline {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(56px, 9vw, 132px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    margin: 0 0 48px;
+    max-width: 14ch;
+  }
+  h1 .accent { color: var(--signal); }
+  .body-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 24px 0 96px;
+    max-width: 880px;
+  }
+  .lede {
+    font-family: var(--mono);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .lede b { color: var(--signal); font-weight: 600; }
+  .factbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .factbar > div {
+    border-left: 3px solid var(--signal);
+    padding-left: 12px;
+  }
+  .factbar b {
+    display: block;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .factbar span { color: var(--ink-3); }
+
+  /* CTA section */
+  .cta-section {
+    padding: 0 32px;
+  }
+  .cta-section-tag {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 24px 0 32px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cta-section-tag b {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }
+  .cta-block {
+    display: block;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.18s ease;
+  }
+  .cta-block:hover { background: rgba(242, 90, 0, 0.04); }
+  .cta-block-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 0 4px;
+  }
+  .cta-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--signal);
+    min-width: 60px;
+  }
+  .cta-content { flex: 1; }
+  .cta-title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(28px, 3.6vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+  .cta-meta {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin: 0 0 16px;
+  }
+  .cta-bottom {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cta-bottom b { color: var(--signal); font-weight: 500; }
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: background 0.18s ease, gap 0.18s ease;
+  }
+  .cta-block:hover .cta-button {
+    background: var(--signal);
+    gap: 18px;
+  }
+
+  footer {
+    padding: 32px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+  <div class="halo"></div>
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg">
+    <filter id="g">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#g)" />
+  </svg>
+
+  <main>
+    <header class="topbar">
+      <div class="lockup">
+        <span class="lockup-mark">H</span>
+        <span>HoistOS</span>
+      </div>
+      <div class="meta-row">
+        <span>Build no. 198</span>
+        <span><b>Pre-launch</b> 06d 18h 53m</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="section-tag">
+        <b>00 / Index</b>
+        <span>An AI-native OS for construction</span>
+      </div>
+      <h1 class="headline">
+        We did<br />
+        not buy<br />
+        a tool. <span class="accent">We built</span><br />
+        a <span class="accent">layer.</span>
+      </h1>
+      <div class="body-grid">
+        <p class="lede">
+          HoistOS is the operating layer Perennial Empire ships through every day.
+          Estimating, RFIs, AR/AP, payroll, org changes, project economics. One stack.
+          Real data. Audit-ready. <b>No agencies, no consultants, no SaaS bolt-ons.</b>
+        </p>
+        <div class="factbar">
+          <div><b>90+</b><span>Employees</span></div>
+          <div><b>11</b><span>Active projects</span></div>
+          <div><b>2</b><span>Divisions</span></div>
+          <div><b>$140M</b><span>Active value</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="cta-section-tag">
+        <b>01 / Surfaces</b>
+        <span>Two doors · Live now</span>
+      </div>
+
+      <a href="/empireworksreconstruction" class="cta-block">
+        <div class="cta-block-row">
+          <div class="cta-num">01.A</div>
+          <div class="cta-content">
+            <h3 class="cta-title">EmpireWorks Reconstruction</h3>
+            <p class="cta-meta">30 chronological aha moments. 16 installable Claude capability packs. 8 minutes of scroll. Take what you want.</p>
+            <div class="cta-bottom">
+              <span><b>For VPs</b></span>
+              <span>Public</span>
+              <span>30 moments · 16 packs</span>
+            </div>
+          </div>
+          <button class="cta-button">Open &rarr;</button>
+        </div>
+      </a>
+
+      <a href="/perennialempiredashboard" class="cta-block">
+        <div class="cta-block-row">
+          <div class="cta-num">01.B</div>
+          <div class="cta-content">
+            <h3 class="cta-title">Perennial Empire Dashboard</h3>
+            <p class="cta-meta">Live org chart, project economics, AR/AP, financial trajectory. Read-only, password-gated, division-view.</p>
+            <div class="cta-bottom">
+              <span><b>For Perennial team</b></span>
+              <span>Internal</span>
+              <span>11 projects · Real-time</span>
+            </div>
+          </div>
+          <button class="cta-button">Enter &rarr;</button>
+        </div>
+      </a>
+    </section>
+
+    <footer>
+      <div>HoistOS · 2026</div>
+      <div>Eugeen Bernan, COO Perennial Empire LLC</div>
+      <div>Proud Section 3 Company</div>
+    </footer>
+  </main>
+</body>
+</html>

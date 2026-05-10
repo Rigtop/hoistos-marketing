@@ -1,0 +1,51 @@
+{
+  "headers": [
+    {
+      "source": "/(packs-v2|bonus-extras)/(.*)\\.md",
+      "headers": [
+        { "key": "Content-Disposition", "value": "attachment" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/perennialempiredashboard",
+      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/"
+    },
+    {
+      "source": "/perennialempiredashboard/",
+      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/"
+    },
+    {
+      "source": "/perennialempiredashboard/:path*",
+      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/:path*"
+    },
+    {
+      "source": "/((?!packs/|packs-v2/|assets/|favicon|icons|looms/|brand/|mockups/|perennialempiredashboard|.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/EmpireWorksReconstruction",
+      "destination": "/empireworksreconstruction",
+      "permanent": true
+    },
+    {
+      "source": "/EmpireWorksReconstruction/:path*",
+      "destination": "/empireworksreconstruction/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/PerennialEmpireDashboard",
+      "destination": "/perennialempiredashboard",
+      "permanent": true
+    },
+    {
+      "source": "/PerennialEmpireDashboard/:path*",
+      "destination": "/perennialempiredashboard/:path*",
+      "permanent": true
+    }
+  ]
+}

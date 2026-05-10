@@ -1,0 +1,911 @@
+{
+  "version": "2.0.0",
+  "generated_at": "2026-05-08",
+  "base_url": "https://hoistos.com/packs-v2",
+  "tiers": {
+    "foundations": [
+      "foundation-01-constitution",
+      "foundation-02-facts-registry",
+      "foundation-03-cold-start-protocol",
+      "foundation-04-decision-log",
+      "foundation-05-skill-builder",
+      "foundation-06-routing-rules",
+      "foundation-07-memory-architecture",
+      "foundation-08-source-sweep",
+      "foundation-09-output-validator",
+      "foundation-10-email-playbook",
+      "foundation-11-notion-write-gate"
+    ],
+    "business": [
+      "biz-01-notion-mcp-setup",
+      "biz-02-email-to-notion-intel",
+      "biz-03-email-triage-responder",
+      "biz-04-team-ai-enablement",
+      "biz-05-document-prep-engine",
+      "biz-06-proposal-heavy",
+      "biz-07-proposal-light",
+      "mid-01-email-playbook-tier-aware",
+      "mid-02-expense-automation",
+      "mid-03-daily-briefing",
+      "mid-04-knowledge-search",
+      "pow-01-cold-start-protocol",
+      "pow-02-rag-knowledge-search",
+      "pow-04-multi-model-jury"
+    ],
+    "chronological": [
+      "adv-01-proposal-builder",
+      "adv-02-meeting-to-tasks",
+      "adv-03-contract-review",
+      "adv-04-skill-creator-meta",
+      "beg-01-chat-to-projects",
+      "beg-02-desktop-organizer",
+      "beg-03-voice-to-task",
+      "beg-04-first-skill-bootstrap"
+    ],
+    "install_options": {
+      "1": {
+        "label": "Foundations only",
+        "buckets": [
+          "foundations"
+        ],
+        "pack_count": 11
+      },
+      "2": {
+        "label": "Foundations + business",
+        "buckets": [
+          "foundations",
+          "business"
+        ],
+        "pack_count": 25
+      },
+      "3": {
+        "label": "Everything (recommended)",
+        "buckets": [
+          "foundations",
+          "business",
+          "chronological"
+        ],
+        "pack_count": 33
+      }
+    }
+  },
+  "packs": [
+    {
+      "id": "adv-01-proposal-builder",
+      "url": "https://hoistos.com/packs-v2/adv-01-proposal-builder.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Proposal Builder, branded for your division",
+      "skills": [
+        {
+          "slug": "proposal-builder",
+          "raw_name": "[VP_NAME_LOWER]-[DIVISION_SLUG]-proposal-builder",
+          "index": 1
+        },
+        {
+          "slug": "gc-quirk-library",
+          "raw_name": "gc-quirk-library",
+          "index": 2
+        },
+        {
+          "slug": "cover-letter-drafter",
+          "raw_name": "cover-letter-drafter",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "adv-02-meeting-to-tasks",
+      "url": "https://hoistos.com/packs-v2/adv-02-meeting-to-tasks.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Meeting Transcript -> Action Items in Notion",
+      "skills": [
+        {
+          "slug": "meeting-to-tasks",
+          "raw_name": "[VP_NAME_LOWER]-meeting-to-tasks",
+          "index": 1
+        },
+        {
+          "slug": "attendee-roster-resolver",
+          "raw_name": "attendee-roster-resolver",
+          "index": 2
+        },
+        {
+          "slug": "notion-task-writer",
+          "raw_name": "notion-task-writer",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "adv-03-contract-review",
+      "url": "https://hoistos.com/packs-v2/adv-03-contract-review.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Contract Risks in Plain English. Cited.",
+      "skills": [
+        {
+          "slug": "contract-review",
+          "raw_name": "[VP_NAME_LOWER]-contract-review",
+          "index": 1
+        },
+        {
+          "slug": "state-statute-flagger",
+          "raw_name": "state-statute-flagger",
+          "index": 2
+        },
+        {
+          "slug": "redline-drafter",
+          "raw_name": "redline-drafter",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "adv-04-skill-creator-meta",
+      "url": "https://hoistos.com/packs-v2/adv-04-skill-creator-meta.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Build Your Own Skills. From a Workflow.",
+      "skills": [
+        {
+          "slug": "skill-creator-meta",
+          "raw_name": "[VP_NAME_LOWER]-[WORKFLOW_NAME_SLUG]",
+          "index": 1
+        },
+        {
+          "slug": "workflow-validator",
+          "raw_name": "workflow-validator",
+          "index": 2
+        },
+        {
+          "slug": "voice-enforcer",
+          "raw_name": "voice-enforcer",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "beg-01-chat-to-projects",
+      "url": "https://hoistos.com/packs-v2/beg-01-chat-to-projects.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro",
+      "display_name": "From Chat to Projects: Claude Remembers You Now",
+      "skills": [
+        {
+          "slug": "personal-cos",
+          "raw_name": "{{DIVISION_SLUG}}-personal-cos",
+          "index": 1
+        },
+        {
+          "slug": "email-drafter",
+          "raw_name": "{{DIVISION_SLUG}}-email-drafter",
+          "index": 2
+        },
+        {
+          "slug": "meeting-summarizer",
+          "raw_name": "{{DIVISION_SLUG}}-meeting-summarizer",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "beg-02-desktop-organizer",
+      "url": "https://hoistos.com/packs-v2/beg-02-desktop-organizer.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro",
+      "display_name": "Cowork Organized My Desktop in 12 Minutes",
+      "skills": [
+        {
+          "slug": "desktop-organizer",
+          "raw_name": "{{DIVISION_SLUG}}-desktop-organizer",
+          "index": 1
+        },
+        {
+          "slug": "file-search",
+          "raw_name": "{{DIVISION_SLUG}}-file-search",
+          "index": 2
+        },
+        {
+          "slug": "jobsite-photo-router",
+          "raw_name": "{{DIVISION_SLUG}}-jobsite-photo-router",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "beg-03-voice-to-task",
+      "url": "https://hoistos.com/packs-v2/beg-03-voice-to-task.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro",
+      "display_name": "Talk to Claude. Tasks Appear in Your List.",
+      "skills": [
+        {
+          "slug": "voice-to-task",
+          "raw_name": "{{DIVISION_SLUG}}-voice-to-task",
+          "index": 1
+        },
+        {
+          "slug": "task-search",
+          "raw_name": "{{DIVISION_SLUG}}-task-search",
+          "index": 2
+        },
+        {
+          "slug": "daily-priority-roller",
+          "raw_name": "{{DIVISION_SLUG}}-daily-priority-roller",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "beg-04-first-skill-bootstrap",
+      "url": "https://hoistos.com/packs-v2/beg-04-first-skill-bootstrap.md",
+      "tier_bucket": "chronological",
+      "tier_required": "pro",
+      "display_name": "Your First Custom Skill (in 8 Minutes)",
+      "skills": [
+        {
+          "slug": "first-custom-skill",
+          "raw_name": "{{DIVISION_SLUG}}-{{SKILL_SLUG}}",
+          "index": 1
+        },
+        {
+          "slug": "skill-tester",
+          "raw_name": "{{DIVISION_SLUG}}-skill-tester",
+          "index": 2
+        },
+        {
+          "slug": "skill-versioner",
+          "raw_name": "{{DIVISION_SLUG}}-skill-versioner",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "biz-01-notion-mcp-setup",
+      "url": "https://hoistos.com/packs-v2/biz-01-notion-mcp-setup.md",
+      "tier_bucket": "business",
+      "tier_required": "code-preferred-pro-max-supported",
+      "display_name": "BIZ-01: Notion + MCP Setup. Three Tools Become One.",
+      "skills": [
+        {
+          "slug": "notion-mcp-bootstrap",
+          "raw_name": "notion-mcp-bootstrap",
+          "index": 1
+        },
+        {
+          "slug": "notion-rollup-explain",
+          "raw_name": "notion-rollup-explain",
+          "index": 2
+        },
+        {
+          "slug": "notion-database-suggest",
+          "raw_name": "notion-database-suggest",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "biz-02-email-to-notion-intel",
+      "url": "https://hoistos.com/packs-v2/biz-02-email-to-notion-intel.md",
+      "tier_bucket": "business",
+      "tier_required": "code-preferred-pro-max-supported",
+      "display_name": "BIZ-02: Email-to-Notion Intelligence Pipeline. Inbox to Synthesis.",
+      "skills": [
+        {
+          "slug": "email-classify",
+          "raw_name": "email-classify",
+          "index": 1
+        },
+        {
+          "slug": "email-to-notion-write",
+          "raw_name": "email-to-notion-write",
+          "index": 2
+        },
+        {
+          "slug": "synthesis-rollup",
+          "raw_name": "synthesis-rollup",
+          "index": 3
+        },
+        {
+          "slug": "weekly-intelligence-brief",
+          "raw_name": "weekly-intelligence-brief",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "biz-03-email-triage-responder",
+      "url": "https://hoistos.com/packs-v2/biz-03-email-triage-responder.md",
+      "tier_bucket": "business",
+      "tier_required": "code",
+      "display_name": "BIZ 03: Email Triage and Responder. The 15-minute morning email routine, productized.",
+      "skills": [
+        {
+          "slug": "email-scan",
+          "raw_name": "email-scan",
+          "index": 1
+        },
+        {
+          "slug": "email-triage-rank",
+          "raw_name": "email-triage-rank",
+          "index": 2
+        },
+        {
+          "slug": "email-draft",
+          "raw_name": "email-draft",
+          "index": 3
+        },
+        {
+          "slug": "morning-email-routine",
+          "raw_name": "morning-email-routine",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "biz-04-team-ai-enablement",
+      "url": "https://hoistos.com/packs-v2/biz-04-team-ai-enablement.md",
+      "tier_bucket": "business",
+      "tier_required": "code",
+      "display_name": "BIZ 04: Team AI Enablement. The pack that makes the VP the AI champion of their division.",
+      "skills": [
+        {
+          "slug": "rollout-projects",
+          "raw_name": "rollout-projects",
+          "index": 1
+        },
+        {
+          "slug": "starter-skill-kit",
+          "raw_name": "starter-skill-kit",
+          "index": 2
+        },
+        {
+          "slug": "skill-share",
+          "raw_name": "skill-share",
+          "index": 3
+        },
+        {
+          "slug": "adoption-metrics",
+          "raw_name": "adoption-metrics",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "biz-05-document-prep-engine",
+      "url": "https://hoistos.com/packs-v2/biz-05-document-prep-engine.md",
+      "tier_bucket": "business",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Business 05: Document Prep Engine. The Perennial Standard, packaged.",
+      "skills": [
+        {
+          "slug": "build-perennial-doc",
+          "raw_name": "build-perennial-doc",
+          "index": 1
+        },
+        {
+          "slug": "doc-review-perennial-standard",
+          "raw_name": "doc-review-perennial-standard",
+          "index": 2
+        },
+        {
+          "slug": "kpi-card-builder",
+          "raw_name": "kpi-card-builder",
+          "index": 3
+        },
+        {
+          "slug": "doc-bluf",
+          "raw_name": "doc-bluf",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "biz-06-proposal-heavy",
+      "url": "https://hoistos.com/packs-v2/biz-06-proposal-heavy.md",
+      "tier_bucket": "business",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Business 06: Proposal Heavy. The full multi-section research-backed client proposal builder.",
+      "skills": [
+        {
+          "slug": "build-proposal-heavy",
+          "raw_name": "build-proposal-heavy",
+          "index": 1
+        },
+        {
+          "slug": "proposal-section-research",
+          "raw_name": "proposal-section-research",
+          "index": 2
+        },
+        {
+          "slug": "pricing-engine",
+          "raw_name": "pricing-engine",
+          "index": 3
+        },
+        {
+          "slug": "proposal-review-jury",
+          "raw_name": "proposal-review-jury",
+          "index": 4
+        },
+        {
+          "slug": "proposal-finalize",
+          "raw_name": "proposal-finalize",
+          "index": 5
+        }
+      ]
+    },
+    {
+      "id": "biz-07-proposal-light",
+      "url": "https://hoistos.com/packs-v2/biz-07-proposal-light.md",
+      "tier_bucket": "business",
+      "tier_required": "pro-or-max-or-code",
+      "display_name": "Light Proposal and Change Order Builder",
+      "skills": [
+        {
+          "slug": "build-proposal-light",
+          "raw_name": "[VP_NAME_LOWER]-[DIVISION_SLUG]-build-proposal-light",
+          "index": 1
+        },
+        {
+          "slug": "change-order-draft",
+          "raw_name": "[VP_NAME_LOWER]-[DIVISION_SLUG]-change-order-draft",
+          "index": 2
+        },
+        {
+          "slug": "pricing-quick",
+          "raw_name": "[VP_NAME_LOWER]-[DIVISION_SLUG]-pricing-quick",
+          "index": 3
+        },
+        {
+          "slug": "proposal-light-send",
+          "raw_name": "[VP_NAME_LOWER]-[DIVISION_SLUG]-proposal-light-send",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "foundation-01-constitution",
+      "url": "https://hoistos.com/packs-v2/foundation-01-constitution.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 01: Operating Constitution. The rules every reply respects.",
+      "skills": [
+        {
+          "slug": "constitution-loader",
+          "raw_name": "constitution-loader",
+          "index": 1
+        },
+        {
+          "slug": "voice-guard",
+          "raw_name": "voice-guard",
+          "index": 2
+        },
+        {
+          "slug": "banned-pattern-sweep",
+          "raw_name": "banned-pattern-sweep",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-02-facts-registry",
+      "url": "https://hoistos.com/packs-v2/foundation-02-facts-registry.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 02: Facts Registry. The canonical you. Claude never guesses again.",
+      "skills": [
+        {
+          "slug": "facts-registry-loader",
+          "raw_name": "facts-registry-loader",
+          "index": 1
+        },
+        {
+          "slug": "facts-query",
+          "raw_name": "facts-query",
+          "index": 2
+        },
+        {
+          "slug": "facts-staleness-checker",
+          "raw_name": "facts-staleness-checker",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-03-cold-start-protocol",
+      "url": "https://hoistos.com/packs-v2/foundation-03-cold-start-protocol.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 03: Cold Start Protocol. The 30-second ritual every session runs at open.",
+      "skills": [
+        {
+          "slug": "cold-start-verify",
+          "raw_name": "cold-start-verify",
+          "index": 1
+        },
+        {
+          "slug": "session-briefing-builder",
+          "raw_name": "session-briefing-builder",
+          "index": 2
+        },
+        {
+          "slug": "cold-start-stamp",
+          "raw_name": "cold-start-stamp",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-04-decision-log",
+      "url": "https://hoistos.com/packs-v2/foundation-04-decision-log.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 04: Decision Log",
+      "skills": [
+        {
+          "slug": "log-decision",
+          "raw_name": "log-decision",
+          "index": 1
+        },
+        {
+          "slug": "recall-decisions",
+          "raw_name": "recall-decisions",
+          "index": 2
+        },
+        {
+          "slug": "decisions-by-quarter",
+          "raw_name": "decisions-by-quarter",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-05-skill-builder",
+      "url": "https://hoistos.com/packs-v2/foundation-05-skill-builder.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 05: Skill Builder",
+      "skills": [
+        {
+          "slug": "build-skill",
+          "raw_name": "build-skill",
+          "index": 2
+        },
+        {
+          "slug": "validate-skill",
+          "raw_name": "validate-skill",
+          "index": 3
+        },
+        {
+          "slug": "list-my-skills",
+          "raw_name": "list-my-skills",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "foundation-06-routing-rules",
+      "url": "https://hoistos.com/packs-v2/foundation-06-routing-rules.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro-max-code",
+      "display_name": "Claude Knew Where Every File Belongs",
+      "skills": [
+        {
+          "slug": "route-deliverable",
+          "raw_name": "route-deliverable",
+          "index": 1
+        },
+        {
+          "slug": "routing-audit",
+          "raw_name": "routing-audit",
+          "index": 2
+        },
+        {
+          "slug": "routing-suggest",
+          "raw_name": "routing-suggest",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-07-memory-architecture",
+      "url": "https://hoistos.com/packs-v2/foundation-07-memory-architecture.md",
+      "tier_bucket": "foundations",
+      "tier_required": "code-preferred-pro-max-fallback",
+      "display_name": "Memory Architecture: Claude Learns Over Time",
+      "skills": [
+        {
+          "slug": "capture-memory",
+          "raw_name": "capture-memory",
+          "index": 2
+        },
+        {
+          "slug": "recall-memory",
+          "raw_name": "recall-memory",
+          "index": 3
+        },
+        {
+          "slug": "memory-audit",
+          "raw_name": "memory-audit",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "foundation-08-source-sweep",
+      "url": "https://hoistos.com/packs-v2/foundation-08-source-sweep.md",
+      "tier_bucket": "foundations",
+      "tier_required": "code-preferred-pro-max-supported",
+      "display_name": "Foundation 08: Pre-Answer Source Sweep. Claude Stops Guessing.",
+      "skills": [
+        {
+          "slug": "source-sweep",
+          "raw_name": "source-sweep",
+          "index": 1
+        },
+        {
+          "slug": "stamp-sources",
+          "raw_name": "stamp-sources",
+          "index": 2
+        },
+        {
+          "slug": "tier-down-sources",
+          "raw_name": "tier-down-sources",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-09-output-validator",
+      "url": "https://hoistos.com/packs-v2/foundation-09-output-validator.md",
+      "tier_bucket": "foundations",
+      "tier_required": "code",
+      "display_name": "Foundation 09: Output Validator. The pre-delivery quality gate that catches mistakes before your client does.",
+      "skills": [
+        {
+          "slug": "validate-output",
+          "raw_name": "validate-output",
+          "index": 1
+        },
+        {
+          "slug": "self-rate",
+          "raw_name": "self-rate",
+          "index": 2
+        },
+        {
+          "slug": "pre-send-email-gate",
+          "raw_name": "pre-send-email-gate",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "foundation-10-email-playbook",
+      "url": "https://hoistos.com/packs-v2/foundation-10-email-playbook.md",
+      "tier_bucket": "foundations",
+      "tier_required": "pro",
+      "display_name": "Foundation 10: Email Playbook (Tier-Aware)",
+      "skills": [
+        {
+          "slug": "classify-audience",
+          "raw_name": "classify-audience",
+          "index": 1
+        },
+        {
+          "slug": "draft-email",
+          "raw_name": "draft-email",
+          "index": 2
+        },
+        {
+          "slug": "email-pre-send-gate",
+          "raw_name": "email-pre-send-gate",
+          "index": 3
+        },
+        {
+          "slug": "thread-summarize",
+          "raw_name": "thread-summarize",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "foundation-11-notion-write-gate",
+      "url": "https://hoistos.com/packs-v2/foundation-11-notion-write-gate.md",
+      "tier_bucket": "foundations",
+      "tier_required": "code-preferred-pro-max-supported",
+      "display_name": "Foundation 11: Notion Write Gate. Claude Polices Its Own Notion Writes.",
+      "skills": [
+        {
+          "slug": "notion-write-with-verify",
+          "raw_name": "notion-write-with-verify",
+          "index": 1
+        },
+        {
+          "slug": "declare-expected-state",
+          "raw_name": "declare-expected-state",
+          "index": 2
+        },
+        {
+          "slug": "notion-state-diff",
+          "raw_name": "notion-state-diff",
+          "index": 3
+        },
+        {
+          "slug": "notion-auto-remediate",
+          "raw_name": "notion-auto-remediate",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "mid-01-email-playbook-tier-aware",
+      "url": "https://hoistos.com/packs-v2/mid-01-email-playbook-tier-aware.md",
+      "tier_bucket": "business",
+      "tier_required": "{{CLAUDE_TIER}}",
+      "display_name": "Email Playbook (Tier-Aware, Multi-Skill)",
+      "skills": [
+        {
+          "slug": "email-playbook",
+          "raw_name": "email-playbook-{{VP_NAME_SLUG}}",
+          "index": 1
+        },
+        {
+          "slug": "email-classifier",
+          "raw_name": "email-classifier-{{VP_NAME_SLUG}}",
+          "index": 2
+        },
+        {
+          "slug": "email-followup-tracker",
+          "raw_name": "email-followup-tracker-{{VP_NAME_SLUG}}",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "mid-02-expense-automation",
+      "url": "https://hoistos.com/packs-v2/mid-02-expense-automation.md",
+      "tier_bucket": "business",
+      "tier_required": "{{CLAUDE_TIER}}",
+      "display_name": "Corporate Card Expense Automation (Multi-Skill)",
+      "skills": [
+        {
+          "slug": "expense-automation",
+          "raw_name": "expense-automation-{{VP_NAME_SLUG}}",
+          "index": 1
+        },
+        {
+          "slug": "receipt-finder",
+          "raw_name": "receipt-finder-{{VP_NAME_SLUG}}",
+          "index": 2
+        },
+        {
+          "slug": "gl-coder",
+          "raw_name": "gl-coder-{{VP_NAME_SLUG}}",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "mid-03-daily-briefing",
+      "url": "https://hoistos.com/packs-v2/mid-03-daily-briefing.md",
+      "tier_bucket": "business",
+      "tier_required": "{{CLAUDE_TIER}}",
+      "display_name": "Morning Briefing (auto at wake time on Code, on-demand on Pro/Max)",
+      "skills": [
+        {
+          "slug": "daily-briefing",
+          "raw_name": "daily-briefing-{{VP_NAME_SLUG}}",
+          "index": 1
+        },
+        {
+          "slug": "evening-wrap-up",
+          "raw_name": "evening-wrap-up-{{VP_NAME_SLUG}}",
+          "index": 2
+        },
+        {
+          "slug": "context-loader",
+          "raw_name": "context-loader-{{VP_NAME_SLUG}}",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "mid-04-knowledge-search",
+      "url": "https://hoistos.com/packs-v2/mid-04-knowledge-search.md",
+      "tier_bucket": "business",
+      "tier_required": "{{CLAUDE_TIER}}",
+      "display_name": "Knowledge Search Across Notion + Google Drive (Multi-Skill)",
+      "skills": [
+        {
+          "slug": "knowledge-search",
+          "raw_name": "knowledge-search-{{VP_NAME_SLUG}}",
+          "index": 1
+        },
+        {
+          "slug": "decision-recall",
+          "raw_name": "decision-recall-{{VP_NAME_SLUG}}",
+          "index": 2
+        },
+        {
+          "slug": "cross-source-search",
+          "raw_name": "cross-source-search-{{VP_NAME_SLUG}}",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "pow-01-cold-start-protocol",
+      "url": "https://hoistos.com/packs-v2/pow-01-cold-start-protocol.md",
+      "tier_bucket": "business",
+      "tier_required": "code-or-max",
+      "display_name": "Cold-Start Protocol: Every Session Starts With the Same 4 Files",
+      "skills": [
+        {
+          "slug": "cold-start-verify",
+          "raw_name": "cold-start-verify",
+          "index": 1
+        },
+        {
+          "slug": "identity-stamp",
+          "raw_name": "identity-stamp",
+          "index": 2
+        },
+        {
+          "slug": "rules-enforcer",
+          "raw_name": "rules-enforcer",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "pow-02-rag-knowledge-search",
+      "url": "https://hoistos.com/packs-v2/pow-02-rag-knowledge-search.md",
+      "tier_bucket": "business",
+      "tier_required": "code",
+      "display_name": "RAG Knowledge Search: Claude Searches All Your Files",
+      "skills": [
+        {
+          "slug": "knowledge-search",
+          "raw_name": "knowledge-search",
+          "index": 1
+        },
+        {
+          "slug": "corpus-reindex",
+          "raw_name": "corpus-reindex",
+          "index": 2
+        },
+        {
+          "slug": "citation-formatter",
+          "raw_name": "citation-formatter",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "pow-04-multi-model-jury",
+      "url": "https://hoistos.com/packs-v2/pow-04-multi-model-jury.md",
+      "tier_bucket": "business",
+      "tier_required": "code-or-max",
+      "display_name": "Multi-Model Jury: Have GPT-5 Adversarially Review Claude's Work",
+      "skills": [
+        {
+          "slug": "multi-model-jury",
+          "raw_name": "multi-model-jury",
+          "index": 1
+        },
+        {
+          "slug": "critic-router",
+          "raw_name": "critic-router",
+          "index": 2
+        },
+        {
+          "slug": "verdict-handler",
+          "raw_name": "verdict-handler",
+          "index": 3
+        }
+      ]
+    }
+  ]
+}
