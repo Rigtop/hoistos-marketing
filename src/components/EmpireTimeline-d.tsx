@@ -34,7 +34,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion, type Variants } from 'motion/react'
 import toast from 'react-hot-toast'
 import type { TimelineDMoment } from '../empire/content/timeline-d-real'
-import { EmpirePreflight } from '../empire/EmpirePreflight'
+// EmpirePreflight import removed 2026-05-11 PM: preflight section killed
+// per Eugeen feedback after Danny clicked the "Upgrade to Pro" CTA trap.
+// Component file kept on disk for future revert; no longer rendered.
 import {
   buildCodeCliInstallCommand,
   // buildDeepLinkForPack removed S200 (Danny test fail). Kept the import
@@ -458,60 +460,153 @@ async function fetchPack(packId: string): Promise<string> {
   }
 }
 
-// Browser-tab install. Copies the full pack body to clipboard, opens
-// claude.ai/new in a new tab, user pastes with Cmd+V. Works on any
-// browser, no desktop app required.
-async function copyPackToClipboard(packId: string, label: string): Promise<void> {
-  const text = await fetchPack(packId)
+// DUAL-PATH INSTALL with gesture-trust-safe clipboard sequencing.
+//
+// Two install paths, both safe (no claude:// URL carries instructions,
+// pack arrives via clipboard paste):
+//   - copyPackAndOpenClaude   → browser path  → opens claude.ai/new tab
+//   - copyPackAndOpenDesktop  → desktop path  → fires claude://claude.ai/new
+//
+// Gesture-trust order (per S199 install-button-state lesson + Eugeen
+// reproduction 2026-05-11 PM where async fetch BEFORE clipboard write
+// burned the user-gesture window and triggered "clipboard blocked" on
+// first click, success on second click after cache warmed):
+//
+//   1. Open the destination (claude.ai tab OR claude:// URL fire)
+//      SYNCHRONOUSLY first inside the user-gesture frame.
+//   2. Check pack cache. If cached, write clipboard inside the same
+//      gesture frame (no async wait). Hover-warm fills the cache so
+//      most actual clicks are cache hits.
+//   3. If not cached, async-fetch then write. Browsers vary on whether
+//      they accept this within their gesture-extension window; if they
+//      reject, user sees a clear "click again, second click works" toast.
+//   4. Fire onModalOpen so the parent renders the InstallSuccessModal.
+
+// Hover-warmer. Triggered on the install button mouseenter; warms the
+// PACK_CACHE so the click handler's clipboard write is a cache hit.
+function warmPack(packId: string): void {
+  if (PACK_CACHE.has(packId)) return
+  void fetchPack(packId)
+}
+
+// Browser-tab install. Opens claude.ai/new in a new tab first (gesture-
+// safe), then writes clipboard. User pastes into the browser-tab chat.
+async function copyPackAndOpenClaude(
+  packId: string,
+  label: string,
+  onModalOpen?: (label: string) => void,
+): Promise<void> {
+  const newTab = window.open('https://claude.ai/new', '_blank', 'noopener,noreferrer')
+
+  const cached = PACK_CACHE.get(packId)
+  if (cached && navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      void navigator.clipboard.writeText(cached)
+      if (onModalOpen) onModalOpen(label)
+      else toast.success(`${label} copied. Switch to the Claude tab. Press Cmd+V. Hit Return.`)
+      return
+    } catch {
+      // Fall through to async fetch + clipboard.
+    }
+  }
+
+  const text = cached ?? (await fetchPack(packId))
   if (!text) {
     toast.error('Could not load pack. Try again in a moment.')
+    if (newTab) newTab.close()
     return
   }
   try {
     await navigator.clipboard.writeText(text)
-    toast.success(`${label} copied. Opening claude.ai in a new tab. Press Cmd+V (Ctrl+V on Windows) and hit Return.`)
-    window.open('https://claude.ai/new', '_blank', 'noopener,noreferrer')
+    if (onModalOpen) onModalOpen(label)
+    else toast.success(`${label} copied. Switch to the Claude tab. Press Cmd+V. Hit Return.`)
   } catch {
-    toast.error('Clipboard blocked. Allow clipboard access in your browser settings and try again.')
+    toast.error(
+      'Clipboard blocked. Click the install button again. The pack is now cached and the second click usually works.',
+      { duration: 8000 },
+    )
   }
 }
 
-// Desktop-app install. Copies the full pack body to clipboard, fires the
-// `claude://claude.ai/new` URL scheme to open the Claude desktop app with
-// a blank new chat, user pastes with Cmd+V into the desktop composer.
+// Desktop-app install. Fires claude://claude.ai/new (no q= param, no
+// instructions in URL) to open the Claude desktop app with a blank new
+// chat. User pastes (Cmd+V) into the desktop composer. Same clipboard
+// mechanic, different surface than the browser path.
 //
-// Critical distinction from the OLD broken openClaudeDesktop (removed
-// 2026-05-11 after Danny Bangiyev safety-refusal test):
-//   - OLD: claude://cowork/new?q=<bootstrap-that-asks-Claude-to-fetch-URL>
-//     Claude refused this as indirect prompt injection. Hard line.
-//   - NEW: claude://claude.ai/new (no q= parameter, no instructions in URL)
-//     Opens blank chat in Claude desktop. Pack arrives via clipboard paste.
-//     Same trusted-paste mechanic as the browser path, just into the
-//     desktop app surface instead of a browser tab.
+// Why dual-path: Max users who run Cowork in the desktop app get a
+// materially different experience there (persistent threads, native
+// app feel) than claude.ai web. The desktop path preserves that.
 //
-// Falls back gracefully if the desktop app is not installed: the OS
-// no-ops the URL handoff and the pack is still on clipboard. Toast
-// nudges the user to paste manually if Claude desktop did not pop.
+// Falls back gracefully if desktop app not installed: OS silently no-ops
+// the URL handoff, clipboard is still populated, modal still pops with
+// instructions, user can paste into any Claude surface.
 //
-// Anthropic Help Center canonical: 14,000 char cap on the claude:// URL,
-// but we never put pack content in the URL (cap irrelevant for us).
+// Anthropic Help Center canonical URL scheme reference:
 // https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
-async function copyPackAndOpenClaudeDesktop(packId: string, label: string): Promise<void> {
-  const text = await fetchPack(packId)
+async function copyPackAndOpenDesktop(
+  packId: string,
+  label: string,
+  onModalOpen?: (label: string) => void,
+): Promise<void> {
+  // Fire the claude:// URL synchronously inside the gesture frame.
+  window.location.href = 'claude://claude.ai/new'
+
+  const cached = PACK_CACHE.get(packId)
+  if (cached && navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      void navigator.clipboard.writeText(cached)
+      if (onModalOpen) onModalOpen(label)
+      else toast.success(`${label} copied. Switch to Claude desktop. Press Cmd+V. Hit Return.`)
+      return
+    } catch {
+      // Fall through to async fetch.
+    }
+  }
+
+  const text = cached ?? (await fetchPack(packId))
   if (!text) {
     toast.error('Could not load pack. Try again in a moment.')
     return
   }
   try {
     await navigator.clipboard.writeText(text)
-    toast.success(`${label} copied. Opening Claude desktop now. Press Cmd+V in the chat composer, then Return. If Claude desktop is not installed, the pack is still on your clipboard; use the browser button instead.`)
-    // Fire the claude:// URL scheme. The OS hands off to the Claude
-    // desktop app if registered; silent no-op otherwise (pack is still
-    // on clipboard, so the user is not stranded).
-    window.location.href = 'claude://claude.ai/new'
+    if (onModalOpen) onModalOpen(label)
+    else toast.success(`${label} copied. Switch to Claude desktop. Press Cmd+V. Hit Return.`)
   } catch {
-    toast.error('Clipboard blocked. Allow clipboard access in your browser settings and try again.')
+    toast.error(
+      'Clipboard blocked. Click the install button again. The pack is now cached and the second click usually works.',
+      { duration: 8000 },
+    )
   }
+}
+
+// Download the pack .md file as a Blob. Premium-content feel; works
+// offline; users who prefer "save first, paste later" get a real file.
+function downloadPackMarkdown(packId: string, label: string): void {
+  const cached = PACK_CACHE.get(packId)
+  const writeAndDownload = (text: string): void => {
+    const blob = new Blob([text], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${packId}.md`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => {
+      if (a.parentNode) document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }, 200)
+    toast.success(`${label} downloaded as ${packId}.md.`)
+  }
+  if (cached) {
+    writeAndDownload(cached)
+    return
+  }
+  void fetchPack(packId).then((text) => {
+    if (text) writeAndDownload(text)
+    else toast.error('Could not load pack. Try again in a moment.')
+  })
 }
 
 // Copies the one-line install command for Code-tier users.
@@ -537,6 +632,250 @@ const expandVariants: Variants = {
 // ---------------------------------------------------------------------------
 // Subcomponents.
 // ---------------------------------------------------------------------------
+
+/**
+ * InstallSuccessModal. Pops center-screen after a successful install
+ * click. The pack is on the user's clipboard and claude.ai/new is open
+ * in a new background tab; this modal is the unmissable instruction for
+ * what to do next.
+ *
+ * Why this exists (Eugeen feedback 2026-05-11 PM): the toast was too
+ * easy to miss, and users were not switching to the Claude tab. Danny
+ * walked through the install with Eugeen on the phone and the paste
+ * step was the friction point. A persistent center-screen modal with
+ * three numbered steps makes the next action unmissable.
+ *
+ * Dismissal: backdrop click, Done button, or 30-second auto-timeout.
+ * No close (X) icon on purpose; the bottom Done button is the primary
+ * dismiss target.
+ */
+function InstallSuccessModal({
+  label,
+  onClose,
+}: {
+  label: string | null
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!label) return
+    const t = setTimeout(onClose, 30000)
+    return () => clearTimeout(t)
+  }, [label, onClose])
+
+  return (
+    <AnimatePresence>
+      {label ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(20,20,19,0.55)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '6vw',
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.96, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#f8f6ee',
+              borderRadius: 20,
+              padding: '36px 40px',
+              maxWidth: 520,
+              width: '100%',
+              boxShadow:
+                '0 24px 80px rgba(20,20,19,0.25), 0 4px 16px rgba(204,110,46,0.18)',
+              border: '1px solid rgba(204,110,46,0.3)',
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="install-modal-title"
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#1f7a3a',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 20,
+                }}
+                aria-hidden="true"
+              >
+                ✓
+              </div>
+              <h3
+                id="install-modal-title"
+                style={{
+                  fontFamily: "'Newsreader', serif",
+                  fontSize: 26,
+                  fontWeight: 600,
+                  color: BRAND.ink,
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                Pack copied to your clipboard.
+              </h3>
+            </div>
+
+            <p
+              style={{
+                fontSize: 15,
+                color: BRAND.ink2,
+                lineHeight: 1.55,
+                marginBottom: 24,
+              }}
+            >
+              <strong style={{ color: BRAND.ink }}>{label}</strong> is on your
+              clipboard. A new tab just opened at claude.ai. Three quick steps
+              to finish:
+            </p>
+
+            <ol
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: '0 0 28px 0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+              }}
+            >
+              {[
+                {
+                  n: 1,
+                  text: 'Switch to the Claude tab',
+                  hint: 'It opened in the background. Cmd+click the tab or look for the new claude.ai tab in your browser bar.',
+                },
+                {
+                  n: 2,
+                  text: 'Press Cmd+V to paste',
+                  hint: 'On Windows: Ctrl+V. The full pack drops into the chat input.',
+                },
+                {
+                  n: 3,
+                  text: 'Hit Return',
+                  hint: 'Claude reads the pack and walks you through the install. 5 to 10 minutes.',
+                },
+              ].map((step) => (
+                <li
+                  key={step.n}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: '0 0 28px',
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: BRAND.signal,
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {step.n}
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: BRAND.ink,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {step.text}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: BRAND.ink2,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {step.hint}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  color: BRAND.ink3,
+                  fontStyle: 'italic',
+                }}
+              >
+                Tip: Cmd+V works in either the Claude desktop app or the
+                browser tab. Pick your preference.
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  background: BRAND.ink,
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: '10px 22px',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Got it
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  )
+}
 
 // V7.5 restored: DetailBlock, CompanionChips, ActivationZone were unused
 // stubs in the original strip but call sites at FoundationCard + ChronoRow
@@ -616,106 +955,89 @@ function ActivationZone({
   estimatedMinutes: number
   tier: ClaudeTier
 }) {
-  // Dual-path install model after S200 Danny-test 2026-05-11 + desktop
-  // path restore 2026-05-11 PM. Both buttons share the same clipboard
-  // mechanism (full pack body copied client-side), differing only in
-  // WHERE Claude opens:
-  //   - Desktop button: fires claude://claude.ai/new (no q= param, no
-  //     instructions in URL, opens blank desktop chat). User pastes
-  //     into Claude desktop composer.
-  //   - Browser button: fires window.open('https://claude.ai/new').
-  //     User pastes into browser tab.
+  // Dual-button install model (restored 2026-05-11 PM per Eugeen): the
+  // desktop button matters because Cowork on the Claude desktop app is
+  // a materially different surface than claude.ai web (persistent
+  // threads, native app feel). Browser button preserved for users
+  // without the desktop app + Linux + locked-down corporate machines.
+  // Clipboard-gesture bug fixed by sequencing the destination open
+  // SYNCHRONOUSLY first inside the click handler, and warming the pack
+  // cache on hover so most clicks hit a cache-warm path.
   //
-  // The OLD broken claude:// path put a bootstrap WITH a fetch instruction
-  // in the q= param, which Claude refused as indirect prompt injection.
-  // The new desktop path has no q= param at all; pack content arrives
-  // exclusively via clipboard paste (trusted by Claude as direct user
-  // message). Same safety property as the browser path.
-  //
-  // Code CLI stays separate: terminal curl is unaffected by Claude's
-  // safety boundary because no Claude instance is involved in the
-  // fetch step.
+  // Download .md is a small side button on the right that ships the
+  // .md as a real file. Premium content feel + works offline + serves
+  // users who want to save the pack first and paste later.
   const showCode = tier === 'code'
+  const [modalLabel, setModalLabel] = useState<string | null>(null)
+  const handleDesktop = (): void => {
+    void copyPackAndOpenDesktop(packId, label, (l) => setModalLabel(l))
+  }
+  const handleBrowser = (): void => {
+    void copyPackAndOpenClaude(packId, label, (l) => setModalLabel(l))
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
-        <button
-          type="button"
-          onClick={() => void copyPackAndOpenClaudeDesktop(packId, label)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '14px 22px',
-            borderRadius: 12,
-            background: BRAND.signal,
-            color: '#FFFFFF',
-            border: 'none',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: 15,
-            boxShadow: `0 6px 20px ${BRAND.signalGlow}`,
-            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)'
-            e.currentTarget.style.boxShadow = `0 10px 28px ${BRAND.signalGlow}`
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = `0 6px 20px ${BRAND.signalGlow}`
-          }}
-          data-install-path="desktop-paste"
-          title="Copies the full pack to your clipboard, opens Claude desktop app. Paste with Cmd+V into the desktop chat."
-        >
-          <span>Install in Claude desktop</span>
-          <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
-            copy + paste, ~{estimatedMinutes} min
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => void copyPackToClipboard(packId, label)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '14px 22px',
-            borderRadius: 12,
-            background: '#FFFFFF',
-            color: BRAND.ink,
-            border: `1px solid ${BRAND.rule2}`,
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: 15,
-            boxShadow: '0 1px 3px rgba(20,20,19,0.06)',
-            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-          }}
-          data-install-path="browser-paste"
-          title="Copies the full pack to your clipboard, opens claude.ai in a new browser tab. Paste with Cmd+V."
-        >
-          <span>Use browser instead</span>
-          <span style={{ opacity: 0.65, fontSize: 13, fontWeight: 500 }}>
-            no desktop app needed
-          </span>
-        </button>
-
-        {showCode ? (
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: 12,
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
           <button
             type="button"
-            onClick={() => void copyCodeCliInstall(packId)}
+            onClick={handleDesktop}
+            onMouseEnter={(e) => {
+              warmPack(packId)
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = `0 10px 28px ${BRAND.signalGlow}`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = `0 6px 20px ${BRAND.signalGlow}`
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 12,
+              padding: '14px 22px',
+              borderRadius: 12,
+              background: BRAND.signal,
+              color: '#FFFFFF',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 15,
+              boxShadow: `0 6px 20px ${BRAND.signalGlow}`,
+              transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+            }}
+            data-install-path="desktop-paste"
+            title="Copies the full pack to your clipboard, opens the Claude desktop app. Paste with Cmd+V."
+          >
+            <span>Install in Claude desktop</span>
+            <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
+              ~{estimatedMinutes} min
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBrowser}
+            onMouseEnter={(e) => {
+              warmPack(packId)
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
               padding: '14px 22px',
               borderRadius: 12,
               background: '#FFFFFF',
@@ -727,22 +1049,82 @@ function ActivationZone({
               boxShadow: '0 1px 3px rgba(20,20,19,0.06)',
               transition: 'transform 0.18s ease, box-shadow 0.18s ease',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-            }}
-            data-install-path="code-cli"
-            title="Copies a one-line shell install for Claude Code CLI"
+            data-install-path="browser-paste"
+            title="Copies the full pack to your clipboard, opens claude.ai in a new browser tab. Paste with Cmd+V."
           >
-            <span>Code CLI install</span>
-            <span style={{ opacity: 0.65, fontSize: 13, fontWeight: 500 }}>
-              one-line shell
-            </span>
+            <span>Use browser</span>
           </button>
-        ) : null}
+
+          {showCode ? (
+            <button
+              type="button"
+              onClick={() => void copyCodeCliInstall(packId)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '14px 22px',
+                borderRadius: 12,
+                background: '#FFFFFF',
+                color: BRAND.ink,
+                border: `1px solid ${BRAND.rule2}`,
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 15,
+                boxShadow: '0 1px 3px rgba(20,20,19,0.06)',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+              }}
+              data-install-path="code-cli"
+              title="Copies a one-line shell install for Claude Code CLI"
+            >
+              <span>Code CLI</span>
+            </button>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => downloadPackMarkdown(packId, label)}
+          onMouseEnter={(e) => {
+            warmPack(packId)
+            e.currentTarget.style.opacity = '1'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.72'
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 10,
+            background: 'transparent',
+            color: BRAND.ink2,
+            border: `1px solid ${BRAND.rule2}`,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: 13,
+            opacity: 0.72,
+            transition: 'opacity 0.18s ease',
+          }}
+          data-install-path="download-md"
+          title={`Download ${packId}.md to your machine`}
+        >
+          <span aria-hidden="true">↓</span>
+          <span>.md</span>
+        </button>
       </div>
+
+      <InstallSuccessModal
+        label={modalLabel}
+        onClose={() => setModalLabel(null)}
+      />
 
       <span
         style={{
@@ -755,7 +1137,7 @@ function ActivationZone({
         }}
       >
         <Dot />
-        Either button copies the full pack to your clipboard. Desktop opens the Claude app, Browser opens claude.ai in a new tab. Paste with Cmd+V (Ctrl+V on Windows) and Return.
+        Either button copies the full pack to your clipboard. Desktop opens the Claude app, Browser opens claude.ai in a new tab. Paste with Cmd+V (Ctrl+V on Windows) and hit Return. Download .md saves a copy for later.
       </span>
     </div>
   )
@@ -1584,17 +1966,9 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
             fontWeight: 400,
           }}
         >
-          Every row is a thing I figured out the hard way running Perennial Empire. Click any
-          card to open it. The Activate buttons hand you the upgrade ready to drop into your
-          own Claude. Five to ten minutes each. Stays in your Claude forever.
-        </p>
-        {/* Tier picker removed 2026-05-11 per Steve live install feedback.
-            Choice paralysis killed dropoff. Install path always defaults to
-            Desktop (Cowork prefill works on Pro, Max, Team, Enterprise; only
-            developers passing ?tier=code see the CLI flow). The picker
-            component is retained behind the dev URL param for future revert. */}
-        <p style={{ marginTop: 28, fontSize: 14, color: BRAND.ink3, fontStyle: 'italic' }}>
-          One click opens Claude with the install prompt pre-filled. Works on any paid Claude plan.
+          Three months of corrections, voice rules, and routing decisions running Perennial
+          Empire, distilled into ten installable packs. Drop them into your Claude. Stays
+          forever.
         </p>
       </section>
 
@@ -1641,26 +2015,10 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
           gap: 26,
         }}
       >
-        <p
-          style={{
-            fontSize: 18,
-            lineHeight: 1.6,
-            color: BRAND.ink2,
-            margin: 0,
-            fontFamily: 'Newsreader, Georgia, serif',
-            textAlign: 'center',
-          }}
-        >
-          Ten foundation packs. Install them in a day. From then on, every correction sticks,
-          every source check holds, every voice rule compounds. Your Claude becomes a learning
-          intelligence that grows with your division, forever.
-        </p>
-
-        {/* Step-1-2-3 strip on Foundation page. Desktop: horizontal row with
-            arrow connectors so the three steps read as a sequence. Mobile:
-            stacks vertically with the arrow rotated 90 degrees so the sequence
-            still reads top-to-bottom. Prior fixed-row layout crammed the text
-            into ~115px-wide columns on a 375px phone, making labels unreadable. */}
+        {/* Step-1-2-3 strip on Foundation page. Compressed copy after
+            S200 Eugeen feedback: prior version had a redundant explainer
+            paragraph + stale "Click Open in Cowork" step copy. Trimmed
+            to the steps themselves with corrected install action label. */}
         <div
           style={{
             display: 'flex',
@@ -1679,8 +2037,8 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
             },
             {
               n: 2,
-              title: 'Click Open in Cowork',
-              sub: '5 to 10 min per pack',
+              title: 'Click Install in Claude',
+              sub: 'Pack copies, Claude opens, you paste',
             },
             {
               n: 3,
@@ -1769,27 +2127,13 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
         </div>
       </section>
 
-      {/* Preflight checklist (5 steps: paid plan, download Claude desktop,
-          sign in, pick tier, click install). Moved here from Advanced page
-          2026-05-11 per Eugeen: Foundation is where new operators land
-          first, so the precondition checks belong on this page. */}
-      <div
-        style={{
-          padding: '0 6vw',
-          maxWidth: 1280,
-          margin: '0 auto 32px',
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <EmpirePreflight
-          tier={tier}
-          onScrollToPicker={() => {
-            const picker = document.querySelector('[data-tier-picker]') as HTMLElement | null
-            if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }}
-        />
-      </div>
+      {/* Preflight checklist REMOVED 2026-05-11 PM per Eugeen feedback
+          (Danny test fail). The orange "Upgrade to Pro" CTA inside the
+          preflight drew Danny's eye, he clicked it despite already
+          having Pro, ended up on the Anthropic upgrade page. Friction
+          trap. We now assume every user has a paid plan; if they do
+          not, they discover the paywall in claude.ai itself when they
+          paste. No more preflight gating. */}
 
       <section
         id="foundation-cards"

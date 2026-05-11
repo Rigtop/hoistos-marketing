@@ -153,8 +153,8 @@ export function EmpireLanding() {
             },
             {
               n: 2,
-              title: 'Click Install in Claude desktop',
-              sub: 'Or use the browser button. Pack copies to your clipboard, Claude opens fresh.',
+              title: 'Click Install in Claude',
+              sub: 'Pack copies, Claude opens, you paste',
             },
             {
               n: 3,
