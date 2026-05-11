@@ -336,24 +336,26 @@ function oneClickInstall(b: BonusBlueprint, tier: ClaudeTier): void {
     return
   }
 
-  // Desktop (Pro / Max / Team / Enterprise): clipboard-paste path.
+  // Desktop (Pro / Max / Team / Enterprise): clipboard + open Claude
+  // desktop app via claude://claude.ai/new (no q= parameter).
   //
   // SUPERSESSION 2026-05-11 S200 (Danny Bangiyev test fail): the prior
-  // claude://cowork/new?q=<bootstrap> path is structurally broken across
-  // Claude model variants. The bootstrap told Claude to fetch the pack URL
-  // and install the result as governance rules, which is textbook indirect
-  // prompt injection and Claude is trained to refuse. Danny's Claude
-  // refused cleanly with the canonical "I won't fetch and execute external
-  // URLs" safety response. The clipboard-paste pattern is the only install
-  // path that survives the safety boundary across every Claude tier and
-  // model variant, because the pack body arrives at Claude as a direct
-  // user-pasted message (trusted), not as a fetched URL (untrusted).
+  // claude://cowork/new?q=<bootstrap> path was structurally broken. The
+  // bootstrap in the q= param told Claude to fetch the pack URL and
+  // install the result as governance rules, which is textbook indirect
+  // prompt injection. Claude is trained to refuse this across every
+  // model variant. Danny's Claude refused cleanly.
   //
-  // Delegated to browserFallbackInstall which already implements the
-  // correct flow (open Claude.ai new tab, copy full pack body to
-  // clipboard, instruct user to Cmd+V).
+  // SUPERSESSION 2 (2026-05-11 PM, restored desktop path safely): the
+  // claude:// URL scheme itself is fine. It was the FETCH INSTRUCTION
+  // inside the q= param that triggered the safety refusal. Fix: fire
+  // claude://claude.ai/new with NO q= parameter. Opens the desktop app
+  // with a blank new chat. Pack content arrives via clipboard paste
+  // (trusted by Claude as direct user message, same as the browser
+  // path). Anthropic Help Center canonical URL scheme reference:
+  // https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
   if (tier === 'desktop') {
-    browserFallbackInstall(b)
+    desktopAppInstall(b)
     return
   }
 
@@ -423,8 +425,56 @@ function browserFallbackInstall(b: BonusBlueprint): void {
   }
 }
 // Reference kept to prevent unused-function lint warning. browserFallbackInstall
-// is now the canonical desktop install path (S200 Danny test fail supersession).
+// powers the secondary "Use browser instead" button below the primary
+// desktop CTA, and is also the default for unknown/unsupported tiers.
 void browserFallbackInstall
+
+// DESKTOP APP INSTALL.
+// Copies the full blueprint markdown to clipboard, then fires the
+// claude://claude.ai/new URL scheme to open the Claude desktop app with
+// a blank new chat. User pastes (Cmd+V) into the desktop composer.
+//
+// Critical: no q= parameter. The OLD broken path put a fetch-and-install
+// bootstrap in q= which Claude refused as indirect prompt injection.
+// Without q=, the URL just opens a blank chat. The pack arrives via
+// clipboard paste, which Claude reads as a trusted user message.
+//
+// Falls back gracefully if Claude desktop is not installed: OS silently
+// no-ops the URL handoff, but the clipboard write already succeeded, so
+// the user can manually open Claude desktop or click the browser button
+// next. The toast nudges this fallback.
+//
+// Companion: oneClickInstall (top-level dispatcher), browserFallbackInstall
+// (secondary path that uses claude.ai web instead of desktop).
+function desktopAppInstall(b: BonusBlueprint): void {
+  const cached = BONUS_CACHE.get(b.id)
+  if (!cached) {
+    // Async fetch first to populate cache, then re-fire. Pattern mirrors
+    // browserFallbackInstall to preserve user-gesture trust.
+    fetchBonusMarkdown(b).then(() => desktopAppInstall(b))
+    toast(`Loading ${b.title}, opening Claude desktop in a moment…`, { duration: 2500 })
+    return
+  }
+  // Fire claude:// URL scheme FIRST while user-gesture trust is fresh,
+  // then write the clipboard. Order matters on Safari.
+  window.location.href = 'claude://claude.ai/new'
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(cached).then(
+      () => {
+        toast.success(
+          `${b.title} copied. Claude desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude desktop is not installed, use the browser button instead - the pack is still on your clipboard.`,
+          { duration: 10000 },
+        )
+      },
+      () => {
+        showFallbackTextarea(cached, b.title)
+      },
+    )
+  } else {
+    showFallbackTextarea(cached, b.title)
+  }
+}
+void desktopAppInstall
 
 // USER-DRIVEN INSTALL MODAL.
 // Architecture decision (S199 after 4 install-button bug reports):
@@ -1062,18 +1112,15 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         </div>
       ) : null}
 
-      {/* Install action buttons. Label + icon + title shift by tier so the
-          user sees what is about to happen before clicking. The actual fork
-          lives in oneClickInstall(blueprint, tier). After the install fires,
-          we open the PostInstallPanel so the user gets the "what now" follow
-          up + a way to mark the pack complete + troubleshooting if needed. */}
+      {/* Install action buttons. Dual-button on desktop tier (Claude
+          desktop app + browser fallback), single button on Code (curl).
+          After the primary install fires, opens PostInstallPanel for
+          "what now" follow up + mark-complete + troubleshooting. */}
       <div className="flex flex-wrap gap-3 items-center">
         <button
           type="button"
           onClick={() => {
             oneClickInstall(blueprint, tier)
-            // Map tier to post-install path label. Unknown tier just nudges
-            // the user to pick first, so we do not open the panel for it.
             if (tier === 'desktop') onPostInstall(blueprint, 'cowork')
             else if (tier === 'code') onPostInstall(blueprint, 'clipboard-curl')
           }}
@@ -1087,7 +1134,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           }}
           title={
             tier === 'desktop'
-              ? 'Copies the full blueprint to your clipboard, opens claude.ai in a new tab. Paste with Cmd+V and hit Return.'
+              ? 'Copies the full blueprint to your clipboard, opens the Claude desktop app. Paste with Cmd+V in the chat composer and hit Return.'
               : tier === 'code'
               ? 'Copy a one-line curl command. Paste in Terminal.'
               : 'Pick Desktop or Code above so the install button matches your setup.'
@@ -1096,12 +1143,37 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           <ExternalLink className="w-4 h-4" aria-hidden="true" />
           <span>
             {tier === 'desktop'
-              ? 'Install in Claude'
+              ? 'Install in Claude desktop'
               : tier === 'code'
               ? 'Copy install command'
               : 'Install in my Claude'}
           </span>
         </button>
+
+        {/* Secondary "Use browser instead" button on desktop tier. Calls
+            browserFallbackInstall which uses claude.ai web. Same paste
+            mechanic, different surface. Hidden on code tier (where curl
+            is the only path) and unknown tier (nudge first). */}
+        {tier === 'desktop' ? (
+          <button
+            type="button"
+            onClick={() => {
+              browserFallbackInstall(blueprint)
+              onPostInstall(blueprint, 'cowork')
+            }}
+            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
+            style={{
+              background: '#FFFFFF',
+              color: 'rgb(var(--color-fg))',
+              border: '1px solid rgba(20,20,19,0.18)',
+              cursor: 'pointer',
+            }}
+            title="Copies the full blueprint to your clipboard, opens claude.ai in a new browser tab. Use this if the Claude desktop app is not installed."
+          >
+            <ExternalLink className="w-4 h-4" aria-hidden="true" />
+            <span>Use browser instead</span>
+          </button>
+        ) : null}
 
         <button
           type="button"

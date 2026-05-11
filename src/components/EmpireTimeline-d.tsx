@@ -458,6 +458,9 @@ async function fetchPack(packId: string): Promise<string> {
   }
 }
 
+// Browser-tab install. Copies the full pack body to clipboard, opens
+// claude.ai/new in a new tab, user pastes with Cmd+V. Works on any
+// browser, no desktop app required.
 async function copyPackToClipboard(packId: string, label: string): Promise<void> {
   const text = await fetchPack(packId)
   if (!text) {
@@ -466,27 +469,50 @@ async function copyPackToClipboard(packId: string, label: string): Promise<void>
   }
   try {
     await navigator.clipboard.writeText(text)
-    // Two-line toast so the user sees both the success and the next step.
-    // "Press Cmd+V" matters: without that instruction, users open Claude.ai
-    // and stare at the empty input box wondering what happened. Per Danny
-    // Bangiyev test fail S200 2026-05-11: the deep-link path is dead because
-    // Claude correctly refuses fetch-as-install. Paste is the only path that
-    // survives Claude's safety boundary.
-    toast.success(`${label} copied. Opening Claude.ai now. Press Cmd+V (or Ctrl+V on Windows) in the chat to paste, then hit Return.`)
+    toast.success(`${label} copied. Opening claude.ai in a new tab. Press Cmd+V (Ctrl+V on Windows) and hit Return.`)
     window.open('https://claude.ai/new', '_blank', 'noopener,noreferrer')
   } catch {
     toast.error('Clipboard blocked. Allow clipboard access in your browser settings and try again.')
   }
 }
 
-// REMOVED 2026-05-11 S200: openClaudeDesktop used the claude:// deep-link
-// scheme to ship a bootstrap prompt that asked Claude to fetch the pack URL
-// and install the result as governance rules. Danny Bangiyev test fail:
-// Claude correctly refused as indirect prompt injection. Safety boundary,
-// not a bug. The clipboard-paste path in copyPackToClipboard is the only
-// install path that survives Claude's safety boundary across model variants.
-// claude-deep-link.ts kept for the Code CLI shell-install command and the
-// fragmentation planner; the desktop-URL builders are no longer called.
+// Desktop-app install. Copies the full pack body to clipboard, fires the
+// `claude://claude.ai/new` URL scheme to open the Claude desktop app with
+// a blank new chat, user pastes with Cmd+V into the desktop composer.
+//
+// Critical distinction from the OLD broken openClaudeDesktop (removed
+// 2026-05-11 after Danny Bangiyev safety-refusal test):
+//   - OLD: claude://cowork/new?q=<bootstrap-that-asks-Claude-to-fetch-URL>
+//     Claude refused this as indirect prompt injection. Hard line.
+//   - NEW: claude://claude.ai/new (no q= parameter, no instructions in URL)
+//     Opens blank chat in Claude desktop. Pack arrives via clipboard paste.
+//     Same trusted-paste mechanic as the browser path, just into the
+//     desktop app surface instead of a browser tab.
+//
+// Falls back gracefully if the desktop app is not installed: the OS
+// no-ops the URL handoff and the pack is still on clipboard. Toast
+// nudges the user to paste manually if Claude desktop did not pop.
+//
+// Anthropic Help Center canonical: 14,000 char cap on the claude:// URL,
+// but we never put pack content in the URL (cap irrelevant for us).
+// https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
+async function copyPackAndOpenClaudeDesktop(packId: string, label: string): Promise<void> {
+  const text = await fetchPack(packId)
+  if (!text) {
+    toast.error('Could not load pack. Try again in a moment.')
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.success(`${label} copied. Opening Claude desktop now. Press Cmd+V in the chat composer, then Return. If Claude desktop is not installed, the pack is still on your clipboard; use the browser button instead.`)
+    // Fire the claude:// URL scheme. The OS hands off to the Claude
+    // desktop app if registered; silent no-op otherwise (pack is still
+    // on clipboard, so the user is not stranded).
+    window.location.href = 'claude://claude.ai/new'
+  } catch {
+    toast.error('Clipboard blocked. Allow clipboard access in your browser settings and try again.')
+  }
+}
 
 // Copies the one-line install command for Code-tier users.
 async function copyCodeCliInstall(packId: string): Promise<void> {
@@ -590,13 +616,21 @@ function ActivationZone({
   estimatedMinutes: number
   tier: ClaudeTier
 }) {
-  // Single-path install model after S200 Danny-test 2026-05-11. The
-  // claude:// deep-link path is DEAD: it shipped a bootstrap that told
-  // Claude to fetch the pack URL and install the result as governance
-  // rules, which is textbook indirect-prompt-injection and Claude is
-  // trained to refuse. Danny Bangiyev's Claude refused cleanly. Paste
-  // is the only path that survives the safety boundary across every
-  // Claude model variant. See claude-deep-link.ts header note.
+  // Dual-path install model after S200 Danny-test 2026-05-11 + desktop
+  // path restore 2026-05-11 PM. Both buttons share the same clipboard
+  // mechanism (full pack body copied client-side), differing only in
+  // WHERE Claude opens:
+  //   - Desktop button: fires claude://claude.ai/new (no q= param, no
+  //     instructions in URL, opens blank desktop chat). User pastes
+  //     into Claude desktop composer.
+  //   - Browser button: fires window.open('https://claude.ai/new').
+  //     User pastes into browser tab.
+  //
+  // The OLD broken claude:// path put a bootstrap WITH a fetch instruction
+  // in the q= param, which Claude refused as indirect prompt injection.
+  // The new desktop path has no q= param at all; pack content arrives
+  // exclusively via clipboard paste (trusted by Claude as direct user
+  // message). Same safety property as the browser path.
   //
   // Code CLI stays separate: terminal curl is unaffected by Claude's
   // safety boundary because no Claude instance is involved in the
@@ -608,7 +642,7 @@ function ActivationZone({
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
         <button
           type="button"
-          onClick={() => void copyPackToClipboard(packId, label)}
+          onClick={() => void copyPackAndOpenClaudeDesktop(packId, label)}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -632,12 +666,45 @@ function ActivationZone({
             e.currentTarget.style.transform = 'translateY(0)'
             e.currentTarget.style.boxShadow = `0 6px 20px ${BRAND.signalGlow}`
           }}
-          data-install-path="paste"
-          title="Copies the full pack to your clipboard, opens claude.ai. Paste with Cmd+V."
+          data-install-path="desktop-paste"
+          title="Copies the full pack to your clipboard, opens Claude desktop app. Paste with Cmd+V into the desktop chat."
         >
-          <span>Install in Claude</span>
+          <span>Install in Claude desktop</span>
           <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
             copy + paste, ~{estimatedMinutes} min
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void copyPackToClipboard(packId, label)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '14px 22px',
+            borderRadius: 12,
+            background: '#FFFFFF',
+            color: BRAND.ink,
+            border: `1px solid ${BRAND.rule2}`,
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: 15,
+            boxShadow: '0 1px 3px rgba(20,20,19,0.06)',
+            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+          }}
+          data-install-path="browser-paste"
+          title="Copies the full pack to your clipboard, opens claude.ai in a new browser tab. Paste with Cmd+V."
+        >
+          <span>Use browser instead</span>
+          <span style={{ opacity: 0.65, fontSize: 13, fontWeight: 500 }}>
+            no desktop app needed
           </span>
         </button>
 
@@ -688,7 +755,7 @@ function ActivationZone({
         }}
       >
         <Dot />
-        Click Install. The full pack copies to your clipboard. Claude.ai opens in a new tab. Press Cmd+V (Ctrl+V on Windows) and Return.
+        Either button copies the full pack to your clipboard. Desktop opens the Claude app, Browser opens claude.ai in a new tab. Paste with Cmd+V (Ctrl+V on Windows) and Return.
       </span>
     </div>
   )
