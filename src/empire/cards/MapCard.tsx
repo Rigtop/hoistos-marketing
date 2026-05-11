@@ -151,9 +151,9 @@ export function MapCard() {
           Perennial Empire's AI-native journey
         </h3>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          Every moment that turned a construction company into an AI-native operation, in order. Some are just the
-          story. The ones with a glowing dot are upgrades you can drop into your own Claude in five minutes. Scroll
-          the timeline. Click anything that glows.
+          Every moment that turned Perennial Empire from a construction company into an AI-native operation, in order.
+          Most rows are the story of how I got here. The signal-orange ones are upgrades you can drop into your own
+          Claude in five to ten minutes. Scroll the timeline. Click any orange row.
         </p>
       </div>
     </motion.div>

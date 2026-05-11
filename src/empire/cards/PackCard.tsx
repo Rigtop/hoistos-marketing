@@ -172,13 +172,14 @@ export function PackCard() {
           The pack
         </div>
         <h3 className="font-display text-[1.75rem] leading-tight mb-4" style={{ color: 'rgb(var(--color-fg))' }}>
-          A drop-in upgrade for your Claude
+          A drop-in upgrade, cut for your division
         </h3>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          An activation pack is one block of text. Click "Upgrade my Claude," it copies to your clipboard. Open
-          Claude.ai, start a new chat, paste, hit enter. Claude reads the pack, asks you three to seven questions
-          about your role and division, then writes a custom skill you can use right away. No setup. No engineering.
-          Five minutes from click to working.
+          Each pack is one block of text. Click Install, Claude opens with the prompt prefilled. Claude asks you
+          three to seven questions about your role, your trade, your team, your projects, then writes custom skills
+          you can use right away. The packs started as templates I built for myself running Perennial Empire. By
+          the end you have something nobody else has: a Claude that knows your work, not mine. Five to ten minutes
+          from click to working.
         </p>
       </div>
     </motion.div>

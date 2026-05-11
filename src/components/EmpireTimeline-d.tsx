@@ -82,7 +82,7 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     id: 'foundation-01-constitution',
     title: 'Operating Constitution. The rules every reply respects.',
     explanation:
-      'A single document Claude reads at the start of every chat that locks your voice, your identity, and the hard rules you do not want to repeat. Em dashes stay out. Banned openers stay out. Your title and company stay correct. Five minutes to install, then every reply for the rest of the year already respects the rules without you policing them.',
+      'A single document Claude reads at the start of every chat that locks your voice, your identity, and the hard rules you do not want to repeat. Em dashes stay out. Banned openers stay out. Your title and company stay correct. Five minutes to install. Every reply respects the rules from there forward, automatically.',
     why:
       'Most VPs assume rules are restrictive. Wrong. Rules are the cost-cutter. Without them, every reply needs a 30-second review for what slipped. With them, you read once and send.',
     helps:
@@ -96,7 +96,7 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     id: 'foundation-02-facts-registry',
     title: 'Facts Registry. The canonical you. Claude never guesses again.',
     explanation:
-      'A small pinned file that holds the canonical version of who you are. Your title, your division, your top three priorities this quarter, the people you work with most. Claude reads it on every cold start so you never have to retype any of it. It is also the anchor every other pack points back to when it needs a fact about you.',
+      'A small pinned file that holds the canonical version of who you are. Your title, your division, the three priorities driving your week, the people you work with most. Claude reads it at the start of every chat so you never have to retype any of it. It is also the anchor every other pack points back to when it needs a fact about you.',
     why:
       'Identity drift is the most expensive bug in personal AI. Hallucinated names, wrong titles, wrong company shape. The registry is the canonical anchor every other surface points to.',
     helps:
@@ -108,13 +108,13 @@ const FOUNDATION_PACKS: FoundationPack[] = [
   },
   {
     id: 'foundation-03-cold-start-protocol',
-    title: 'Cold Start Protocol. The 30-second ritual every session runs at open.',
+    title: 'Cold Start Protocol. The 30-second sweep every chat runs at open.',
     explanation:
       'Every new chat starts with the same 30-second sweep. Claude reads your Constitution, pulls your Facts Registry, and surfaces what was open from your last session. By the time you type your first real prompt, the assistant already knows who you are, what rules apply, and what was unresolved last time. No more cold opens that feel like talking to a stranger.',
     why:
       'Without a cold-start ritual, every session is a fresh paste of context. With one, every chat lands warm. The protocol is the difference between an assistant and a co-worker.',
     helps:
-      'Open a new chat, type one word, get a 5-line briefing pulled from your registry, your Constitution, and last session\'s open items. Replies pick up where you left off.',
+      'Open a new chat, type one word, get a 5-line briefing pulled from your registry, your Constitution, and your last session\'s open items. Replies pick up where you left off, every time.',
     activate:
       'A cold-start skill plus a session-briefing template. 5 minutes to install. Fires automatically on every new chat.',
     companions: ['cold-start-verify', 'session-briefing', 'session-resume'],
@@ -138,7 +138,7 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     id: 'foundation-05-skill-builder',
     title: 'Skill Builder. The recipe that turns prompts into permanent tools.',
     explanation:
-      'A meta-skill that turns any prompt you type more than twice into a permanent saved tool. Six questions about the task and you have a named skill in your Claude that you can call by trigger phrase forever. This is the pack that makes every later upgrade easier, because you stop re-typing context and start composing skills the way a developer composes functions.',
+      'A meta-skill that turns any prompt you type more than twice into a permanent saved tool. Six questions about the task and you have a named skill in your Claude that you can call by trigger phrase, forever. This pack makes every later upgrade easier because you stop re-typing context and start composing skills the way a developer composes functions.',
     why:
       'Prompts are tuition. Skills are equity. Every time you teach Claude the same trick from scratch, you are paying tuition again. The Skill Builder turns lessons into infrastructure.',
     helps:
@@ -150,13 +150,13 @@ const FOUNDATION_PACKS: FoundationPack[] = [
   },
   {
     id: 'foundation-06-routing-rules',
-    title: 'Routing Rules. Claude knew where every file belongs.',
+    title: 'Routing Rules. Every file lands where it belongs.',
     explanation:
-      'Hooks that block bad file writes at the operating-system layer, not in the prompt. You define where each kind of deliverable belongs. A pre-write hook checks every save against the routing matrix. Anything that misses gets renamed with a marker so you find drift instantly instead of three weeks later. This is the difference between asking Claude nicely to file things correctly and structurally preventing it from filing things incorrectly.',
+      'A matrix Claude reads on every save plus hooks on the OS layer for users on Claude Code. You define where each kind of deliverable belongs once. From then on, the matrix routes every file to the right folder, and on Code, the hooks block any miss before it lands. This is the difference between asking Claude nicely to file things correctly and structurally preventing it from filing things incorrectly.',
     why:
       'For weeks you keep finding deliverables in the wrong folder. The instructions are right there and Claude still misses. The fix is structural, not advisory.',
     helps:
-      'Pre-hooks block bad paths. Post-hooks rename any miss with a marker. Outputs land where you expect, not where the LLM guessed. Your filesystem stops drifting.',
+      'Outputs land where you expect, not where the LLM guessed. Your filesystem stops drifting. On Code, hooks block any miss before it lands. On Pro and Max, the matrix routes every save behaviorally.',
     activate:
       'A routing-rules.md template plus three hook scripts plus an allowlist. Five minutes to install, zero tolerance for misses after that.',
     companions: ['routing-gate', 'routing-hygiene-scan', 'allowlist-loader'],
@@ -166,11 +166,11 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     id: 'foundation-07-memory-architecture',
     title: 'Memory Architecture. Claude learns over time.',
     explanation:
-      'A folder layout, an index file, and an auto-loader. Every correction you give Claude lands as a topic file in your memory folder. The index keeps a one-line pointer to each. Cold start reads the index and pulls the relevant files into context. Tell Claude something on Tuesday, on Wednesday morning the lesson is already loaded. Multiply that by 200 corrections over twelve months and your Claude is sharper than any teammate who has been on the job that long.',
+      'A folder layout, an index file, and an auto-loader on Code. Every correction you give Claude lands as a topic file in your memory folder. The index keeps a one-line pointer to each. Every session reads the index and pulls the relevant files into context. Tell Claude something on Tuesday. Wednesday morning, the lesson is already loaded. Multiply that by 200 corrections and your Claude is sharper than any teammate who has been on the job that long.',
     why:
       'Corrections that do not get captured evaporate. The memory architecture turns every correction into a structural lesson Claude reads on the next cold start.',
     helps:
-      'Tell Claude something once. Wednesday morning, fresh chat, the lesson holds. Multiply by 200 corrections over 12 months and Claude is sharper than your second-most-senior teammate.',
+      'Tell Claude something once. Wednesday morning, fresh chat, the lesson holds. Every correction compounds. By correction 200, your Claude is sharper than your second-most-senior teammate.',
     activate:
       'A topic-file index plus an auto-memory skill plus a cold-start replay. 8 minutes to install. Compounds forever.',
     companions: ['memory-architect', 'topic-writer', 'memory-replay'],
@@ -194,7 +194,7 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     id: 'foundation-09-output-validator',
     title: 'Output Validator. The pre-delivery quality gate.',
     explanation:
-      'A 12-point pre-delivery check that fires on every output Claude is about to surface. Em dashes, banned openers, your identity, every person name verified against your roster, tone-tier match, formatting. If anything fails the check, Claude holds the deliverable and tells you what missed. The validator is the safety net that catches the one in twenty cases where everything else slipped, before the deliverable lands in your inbox or your client thread.',
+      'A 9-point pre-delivery check that fires on every output Claude is about to surface. Em dashes, banned openers, your identity, every person name verified against your roster, tone-tier match, formatting. If anything fails the check, Claude holds the deliverable and tells you what missed. The validator is the safety net that catches the one-in-twenty cases where everything else slipped, before the deliverable lands in your inbox or your client thread.',
     why:
       'The "I caught it before sending" workflow is fragile. The validator runs the same checks every time, automatically, before the deliverable surfaces.',
     helps:
@@ -1351,9 +1351,9 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
             fontWeight: 400,
           }}
         >
-          Every row is a thing I figured out the hard way. Click any card to open
-          it. The Activate buttons hand you the upgrade ready to drop into your
-          own Claude. Five minutes each. No setup. No engineering.
+          Every row is a thing I figured out the hard way running Perennial Empire. Click any
+          card to open it. The Activate buttons hand you the upgrade ready to drop into your
+          own Claude. Five to ten minutes each. Stays in your Claude forever.
         </p>
         <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <TierPicker tier={tier} onPick={handleTierPick} />
@@ -1402,60 +1402,132 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
         style={{
           padding: '0 6vw',
           maxWidth: 880,
-          margin: '0 auto 28px',
+          margin: '0 auto 36px',
           position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          gap: 18,
+          gap: 26,
         }}
       >
         <p
           style={{
-            fontSize: 17,
-            lineHeight: 1.65,
+            fontSize: 18,
+            lineHeight: 1.6,
             color: BRAND.ink2,
             margin: 0,
             fontFamily: 'Newsreader, Georgia, serif',
+            textAlign: 'center',
           }}
         >
-          The Foundation is the AI infrastructure layer most people skip. The voice rules,
-          identity facts, cold-start ritual, decision log, memory architecture, hooks, validators.
-          It is not the flashy part. It is the part that makes everything else stop drifting. Each
-          pack is small enough to install in a coffee break and structural enough that, once it is
-          in, every later upgrade compounds on top of it.
+          Ten foundation packs. Install them in a day. From then on, every correction sticks,
+          every source check holds, every voice rule compounds. Your Claude becomes a learning
+          intelligence that grows with your division, forever.
         </p>
-        <p
+
+        {/* Step-1-2-3 strip on Foundation page. Single horizontal row with
+            arrow connectors between steps to read as a sequence. Each step
+            uses flex: 1 so all three share the row evenly. Prior version
+            used a grid auto-fit which wrapped to a second row at narrower
+            widths and broke the sequence feel. */}
+        <div
           style={{
-            fontSize: 17,
-            lineHeight: 1.65,
-            color: BRAND.ink2,
-            margin: 0,
-            fontFamily: 'Newsreader, Georgia, serif',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'stretch',
+            gap: 6,
+            marginTop: 4,
+            flexWrap: 'nowrap',
           }}
         >
-          Install all ten and your Claude knows who you are at the start of every chat, holds
-          the corrections you have already made, refuses to ship deliverables that miss your voice,
-          checks your sources before answering anything factual, and gets sharper week over week
-          on its own. Install three of ten and you get roughly thirty percent of the value. The
-          packs interlock by design.
-        </p>
-        <p
-          style={{
-            fontSize: 17,
-            lineHeight: 1.65,
-            color: BRAND.ink2,
-            margin: 0,
-            fontFamily: 'Newsreader, Georgia, serif',
-            fontStyle: 'italic',
-          }}
-        >
-          The compounding is the whole point. Pack one is a small win. Pack four is when the
-          friction in your day starts to drop visibly. Pack ten is when people who use your same
-          ChatGPT plan ask why yours feels different. Twelve weeks of installs is the difference
-          between a Claude that helps you draft an email and a Claude that runs the parts of your
-          job you used to dread.
-        </p>
+          {[
+            {
+              n: 1,
+              title: 'Pick any pack',
+              sub: 'Install order does not matter',
+            },
+            {
+              n: 2,
+              title: 'Click Open in Cowork',
+              sub: '5 to 10 min per pack',
+            },
+            {
+              n: 3,
+              title: 'Stays forever',
+              sub: 'Every later chat carries the upgrade',
+            },
+          ].map((step, i, arr) => (
+            <span key={step.n} style={{ display: 'contents' }}>
+              <div
+                style={{
+                  flex: '1 1 0',
+                  minWidth: 0,
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'flex-start',
+                  padding: 14,
+                  borderRadius: 12,
+                  background: 'rgba(20,20,19,0.03)',
+                  border: '1px solid rgba(20,20,19,0.08)',
+                }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 26,
+                    height: 26,
+                    borderRadius: '50%',
+                    background: BRAND.signal,
+                    color: BRAND.paper,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    fontFamily: 'Newsreader, Georgia, serif',
+                  }}
+                >
+                  {step.n}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: BRAND.ink,
+                      marginBottom: 2,
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    {step.title}
+                  </div>
+                  <div style={{ fontSize: 11, color: BRAND.ink4, lineHeight: 1.4 }}>
+                    {step.sub}
+                  </div>
+                </div>
+              </div>
+              {i < arr.length - 1 ? (
+                <div
+                  aria-hidden="true"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: BRAND.signal,
+                    fontSize: 22,
+                    fontWeight: 300,
+                    flexShrink: 0,
+                    width: 18,
+                    opacity: 0.7,
+                  }}
+                >
+                  →
+                </div>
+              ) : null}
+            </span>
+          ))}
+        </div>
       </section>
 
       <section
@@ -1484,6 +1556,93 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
           />
         ))}
       </section>
+
+      {/* Next-step banner: Foundation done? Continue to Bonus Extras.
+          Standard SaaS onboarding pattern. The user lands here from
+          Overview, scrolls through the 10 foundation cards, then sees
+          a clear "what's next" prompt instead of running into an
+          unrelated chronological table or dead end. */}
+      <div
+        style={{
+          padding: '24px 6vw 8px',
+          maxWidth: 1100,
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 2,
+        }}
+      >
+        <a
+          href="/empireworksreconstruction/bonus-extras"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 20,
+            padding: '20px 28px',
+            borderRadius: 18,
+            background: 'rgba(204,110,46,0.06)',
+            border: '1px solid rgba(204,110,46,0.22)',
+            textDecoration: 'none',
+            color: BRAND.ink,
+            transition: 'transform 200ms, box-shadow 200ms',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 14px 36px rgba(204,110,46,0.18)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                color: BRAND.signal,
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                fontWeight: 600,
+                marginBottom: 4,
+                fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+              }}
+            >
+              Next, eight more
+            </div>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: BRAND.ink,
+                fontFamily: 'Newsreader, Georgia, serif',
+                lineHeight: 1.25,
+              }}
+            >
+              Advanced: construction-fitted plumbing on top of the Foundation.
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: BRAND.ink3,
+                marginTop: 6,
+              }}
+            >
+              Notion wired up, search across your knowledge, Telegram bot, Code CLI, memory,
+              hooks. Each one is a self-contained system. Install when ready.
+            </div>
+          </div>
+          <span
+            aria-hidden="true"
+            style={{
+              fontSize: 24,
+              color: BRAND.signal,
+              flexShrink: 0,
+            }}
+          >
+            →
+          </span>
+        </a>
+      </div>
 
       <div
         style={{

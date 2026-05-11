@@ -132,8 +132,8 @@ const BLUEPRINTS: BonusBlueprint[] = [
     slug: 'bonus-06-auto-memory-architecture',
     number: 'B-06',
     title: 'Auto-Memory Architecture',
-    oneLine: 'The pattern that turns ad-hoc corrections into structural lessons Claude carries across every chat. A memory folder layout, an index file the cold start reads automatically, and a propagator skill that fires on phrases like "remember", "from now on", and "correction." Tell Claude something on Tuesday. Wednesday morning, fresh chat, the correction holds. Multiply that by 200 corrections over twelve months and your Claude is sharper than the second-most-senior teammate on your bench.',
-    scope: 'You correct Claude on Tuesday. Wednesday morning, fresh chat, the correction holds. Multiply that by 200 corrections over a year and Claude is sharper than your second-most-senior teammate.',
+    oneLine: 'The pattern that turns ad-hoc corrections into structural lessons Claude carries across every chat. A memory folder layout, an index file Claude reads automatically when a session starts, and a propagator skill that fires on phrases like "remember", "from now on", and "correction." Tell Claude something on Tuesday. Wednesday morning, fresh chat, the correction holds. Every correction compounds. By correction 200 your Claude is sharper than the second-most-senior teammate on your bench.',
+    scope: 'You correct Claude on Tuesday. Wednesday morning, fresh chat, the correction holds. Every correction compounds. By correction 200, Claude is sharper than your second-most-senior teammate.',
     installMinutes: 45,
     installDisplay: '45 min',
     artifact: 'A memory folder layout, an index file Claude loads when a session starts, and a skill that fires on "remember" and writes to the right place.',
@@ -751,9 +751,9 @@ export function EmpireBonusExtras() {
         >
           <span>HoistOS</span>
           <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
-          <span>Bonus Extras</span>
+          <span>Advanced</span>
           <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
-          <span>Wireframe Blueprints</span>
+          <span>For operators who installed the Foundation</span>
         </motion.div>
 
         <motion.h1
@@ -762,8 +762,8 @@ export function EmpireBonusExtras() {
           transition={{ duration: 0.7, delay: 0.05 }}
           className="font-display text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] mb-8"
         >
-          Seven blueprints. <br />
-          <span style={{ color: 'rgb(var(--color-accent))' }}>Yours</span> in seven afternoons.
+          Eight blueprints. <br />
+          <span style={{ color: 'rgb(var(--color-accent))' }}>Yours</span> in a day.
         </motion.h1>
 
         <motion.p
@@ -774,10 +774,10 @@ export function EmpireBonusExtras() {
           style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
           The upgrades on the timeline are the workflow skills. These blueprints are the plumbing underneath. Notion
-          wired up. Search across your knowledge. A Telegram bot you can text from a jobsite. Code CLI installed.
+          wired up. Search across your own knowledge. A Telegram bot you can text from a jobsite. Code CLI installed.
           Memory that sticks. Voice rules held by hooks at the OS layer, not the prompt. Each blueprint asks you two
-          or three questions and picks reasonable defaults for the rest. Install one a week. By week eight you have
-          what took six months to figure out.
+          or three questions and picks reasonable defaults for the rest. Install one at a time. The stack compounds
+          as you go.
         </motion.p>
 
         <motion.p

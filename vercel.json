@@ -11,15 +11,15 @@
   "rewrites": [
     {
       "source": "/perennialempiredashboard",
-      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/"
+      "destination": "https://perennial-org-structure.vercel.app/"
     },
     {
       "source": "/perennialempiredashboard/",
-      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/"
+      "destination": "https://perennial-org-structure.vercel.app/"
     },
     {
       "source": "/perennialempiredashboard/:path*",
-      "destination": "https://perennial-org-structure.vercel.app/perennialempiredashboard/:path*"
+      "destination": "https://perennial-org-structure.vercel.app/:path*"
     },
     {
       "source": "/((?!packs/|packs-v2/|assets/|favicon|icons|looms/|brand/|mockups/|perennialempiredashboard|.*\\.).*)",

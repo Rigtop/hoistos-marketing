@@ -53,20 +53,39 @@ export function EmpireLayout() {
           className="flex items-center gap-5 group"
           style={{ paddingLeft: 8, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          <img
-            src="/brand/empireworks-lockup.png"
-            alt="EmpireWorks Reconstruction"
+          {/* EmpireWorks lockup. Triple defense against the clipping
+              perception that plagued prior attempts:
+              1. v3 filename forces CDN edge cache to refetch (prior versions
+                 were sitting in Vercel edge cache age 558s, so even after
+                 the PNG was repadded the served bytes were stale).
+              2. PNG has 25% transparent padding baked in (2035x780 with
+                 artwork inset 339px each side, 130px top/bottom = 16.7%
+                 visible margin on every side at render).
+              3. Wrapper span adds 8px additional CSS padding so even if the
+                 PNG perception is off, the visible image area has guaranteed
+                 breathing room independent of the PNG content. */}
+          <span
             style={{
-              height: 72,
-              width: 'auto',
-              display: 'block',
-              objectFit: 'contain',
-              objectPosition: 'left center',
-              imageRendering: 'auto',
-              padding: '2px 0',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 12px 4px 4px',
               flexShrink: 0,
             }}
-          />
+          >
+            <img
+              src="/brand/empireworks-lockup-v3.png"
+              alt="EmpireWorks Reconstruction"
+              style={{
+                height: 56,
+                width: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+                objectPosition: 'left center',
+                imageRendering: 'auto',
+                flexShrink: 0,
+              }}
+            />
+          </span>
           <span
             aria-hidden="true"
             className="h-7 w-px"
@@ -105,20 +124,31 @@ export function EmpireLayout() {
             to="/empire/timeline"
             style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
           >
-            Timeline
+            Foundation
           </Link>
           <Link
             to="/empire/bonus-extras"
             style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
           >
-            Bonus Extras
+            Advanced
           </Link>
-          <Link
-            to="/empire/pack/proposal-builder"
-            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+          <a
+            href="https://calendly.com/eugeenbernan"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: '#fbfaf3',
+              fontWeight: 600,
+              fontSize: 14,
+              background: '#cc6e2e',
+              padding: '6px 14px',
+              borderRadius: 999,
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
+            }}
           >
-            The upgrades
-          </Link>
+            Book a walkthrough
+          </a>
           {!onAuthSurface && hasSession() ? (
             <button
               type="button"
@@ -161,14 +191,55 @@ export function EmpireLayout() {
         </div>
         <div
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
             fontSize: 12,
             color: '#9c9b97',
-            textAlign: 'right',
             fontVariant: 'small-caps',
             letterSpacing: '0.1em',
           }}
         >
-          Created by Eugeen Bernan
+          <span>Created by Eugeen Bernan</span>
+          <a
+            href="https://www.linkedin.com/in/eugeenbernan/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Eugeen Bernan on LinkedIn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: '1px solid rgba(20,20,19,0.18)',
+              color: '#5e5d59',
+              textDecoration: 'none',
+              transition: 'color 200ms, background 200ms, border-color 200ms',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#cc6e2e'
+              e.currentTarget.style.background = 'rgba(204,110,46,0.08)'
+              e.currentTarget.style.borderColor = 'rgba(204,110,46,0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#5e5d59'
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.borderColor = 'rgba(20,20,19,0.18)'
+            }}
+          >
+            {/* Inline LinkedIn glyph. lucide-react v1.14 does not ship a
+                LinkedIn icon, so the SVG path is hand-rolled. Stable. */}
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              style={{ width: 14, height: 14 }}
+              aria-hidden="true"
+            >
+              <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 11.01-4.13 2.07 2.07 0 010 4.13zm1.78 13.02H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.22.79 24 1.77 24h20.45C23.2 24 24 23.22 24 22.27V1.72C24 .77 23.2 0 22.22 0z" />
+            </svg>
+          </a>
         </div>
       </footer>
     </div>

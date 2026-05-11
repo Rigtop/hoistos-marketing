@@ -48,7 +48,7 @@ function buildPlaceholder(packId: string): PackPlaceholder {
     ],
     delivers: [
       'A custom skill tuned for your role, not mine.',
-      'The same prompt saved so you can rerun it next quarter to refresh.',
+      'The same prompt saved so you can rerun it any time the inputs change.',
       'A short check so you can grade the skill against your own work.',
     ],
     bootstrapPrompt: `# Empire activation pack: ${prettifyId(packId)}\n\nLoad the full pack from /packs/${packId}.md if you can reach it. If not, follow this short bootstrap.\n\nWhat happens next:\n1. Three to seven questions about your role and the task you want to automate.\n2. A custom skill written to fit your answers.\n3. Saved to ~/.claude/skills/ if you're on Code, or paste instructions for the Claude.ai web app.\n4. A quick test run so you see it works before you walk away.`,
