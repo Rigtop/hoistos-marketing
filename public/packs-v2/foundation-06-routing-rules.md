@@ -429,22 +429,62 @@ Generated from: hoistos-foundation-06-routing-rules v2.0.0
 
 The matrix in Artifact 1 is the rulebook. This hook is what makes the rulebook structural instead of advisory. Before this hook, a wrong-path write was a soft fail Claude tried to avoid. After this hook, a wrong-path write returns exit code 2 from the shell layer and never reaches the filesystem.
 
-Save this as `~/.claude/hooks/pre_tool_use_routing.sh` and `chmod +x` it.
+### One-line install (recommended)
+
+This is the fastest path. The installer does four things: downloads the hook to `~/.claude/hooks/`, chmods it, merges the `PreToolUse` entry into your `settings.json` without clobbering anything else (backup written), and runs an end-to-end verification.
 
 ```bash
-#!/bin/bash
-# PreToolUse hook for Routing Rules F-06
-# Blocks writes to Claude Workspace/ outside allowlisted Global/ and Skills/ subdirs.
-INPUT=$(cat)
-TARGET=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.target // ""')
-if [[ "$TARGET" == *"/Claude Workspace/"* && "$TARGET" != *"/Claude Workspace/Global/"* && "$TARGET" != *"/Claude Workspace/Skills/"* ]]; then
-  echo "Routing gate: $TARGET is not allowlisted under Claude Workspace/. Route to ~/Desktop/Outputs/ per matrix." >&2
-  exit 2
-fi
-exit 0
+curl -fsSL https://hoistos.com/install-routing-hook.sh | bash
 ```
 
-Then wire it into Claude Code by adding this to `~/.claude/settings.json`:
+Expected output (success path):
+
+```
+HoistOS Routing Hook installer
+  ✓ OS detected: macos
+  ✓ Claude Code found at /Users/<you>/.claude
+
+Downloading hook
+  ✓ Downloaded to /Users/<you>/.claude/hooks/pre_tool_use_routing.sh
+  ✓ Made executable
+
+Merging settings.json
+  ✓ Backed up existing settings.json
+  added PreToolUse entry for /Users/<you>/.claude/hooks/pre_tool_use_routing.sh
+  ✓ settings.json updated
+
+Verifying hook
+  ✓ Hook correctly blocked disallowed path (exit 2)
+  ✓ Hook correctly allowed allowlisted path (exit 0)
+
+Install complete
+```
+
+Prerequisites the installer checks for: macOS or Linux, Claude Code installed at `~/.claude/`, `python3` available (for JSON merge), `curl` (you already used it), and `jq` at runtime when the hook fires. If `jq` is missing, the hook fails open (returns 0 instead of blocking) and prints a warning, so a missing dependency does not silently break your write surface.
+
+Restart your Claude Code session after the installer finishes for the hook to load.
+
+### Manual install (if you want to read the code before running)
+
+If piping a script from the internet is not your style, do this instead.
+
+**Step 1.** Read and download the hook script:
+
+```bash
+curl -fsSL https://hoistos.com/hooks/pre_tool_use_routing.sh
+```
+
+Inspect the file. It is 70 lines of bash, no network calls, no shell expansions outside the path-match.
+
+**Step 2.** Save to `~/.claude/hooks/pre_tool_use_routing.sh` and `chmod +x` it:
+
+```bash
+mkdir -p ~/.claude/hooks
+curl -fsSL https://hoistos.com/hooks/pre_tool_use_routing.sh -o ~/.claude/hooks/pre_tool_use_routing.sh
+chmod +x ~/.claude/hooks/pre_tool_use_routing.sh
+```
+
+**Step 3.** Wire it into Claude Code. Add this to `~/.claude/settings.json` (merge with existing hooks if any):
 
 ```json
 {
@@ -459,13 +499,32 @@ Then wire it into Claude Code by adding this to `~/.claude/settings.json`:
 }
 ```
 
-If `settings.json` already exists, merge the `PreToolUse` array. Do not overwrite other hook entries.
+**Step 4.** Verify the hook works. Feed it a fake disallowed path and confirm exit 2:
+
+```bash
+echo '{"tool_input": {"file_path": "/tmp/fake/Claude Workspace/wrong-lane/test.txt"}}' | ~/.claude/hooks/pre_tool_use_routing.sh
+echo "exit=$?"
+```
+
+Expected: the block message prints to stderr and `exit=2`. If you see `exit=0`, the hook is not catching the target path. Check that `jq` is installed (`brew install jq` on macOS).
 
 ### What changes on Code
 
 Before this hook, the routing matrix was a suggestion Claude tried to follow. After this hook, bad-path writes get exit-code 2 from the hook before Claude can save them. Same matrix, structural enforcement instead of advisory.
 
-Verify by attempting an off-matrix write: ask Claude to `Write file at ~/Desktop/Outputs/wrong-lane/test.txt`. The hook fires, returns exit 2, and Claude sees the block message. The file does not land.
+Verify in a Claude Code session: ask Claude to write a file at `~/Desktop/AI Architecture/Claude Workspace/test/test.txt`. The hook fires, returns exit 2, and Claude sees the block message in the tool result. The file does not land.
+
+### Honest gap: what Pro/Max users do not get
+
+The hook is Code-only. It runs on your local machine before the file write reaches the filesystem. Pro/Max users have no equivalent surface (there is no PreToolUse hook on Claude desktop or claude.ai).
+
+For Pro/Max users, routing enforcement stays behavioral: Claude follows the matrix because Artifact 1 is loaded in Project Knowledge, and the routing disclosure line in Artifact 2 is part of its skill body. That works ~85% of the time. The 15% miss case is when a user explicitly says "save it to X" and X is off-matrix. On Pro/Max, the routing skill should push back per Hard Rule 5; on Code, the hook also blocks at the shell layer if the push-back fails.
+
+The realistic implication: a Pro/Max user can install F-06 today and get most of the value. A user who crosses into Code-tier writes (any non-trivial filesystem work) should run the one-line install above. The cost is 60 seconds. The win is exit-code-level enforcement that no prompt-injection or careless instruction can override.
+
+### To disable or uninstall
+
+Remove the `PreToolUse` entry from `~/.claude/settings.json` (or restore from the backup the installer wrote at `~/.claude/settings.json.bak.<timestamp>`). The hook script itself can stay; without the settings entry, it is dormant.
 
 
 ## How to install

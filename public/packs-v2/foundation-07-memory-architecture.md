@@ -619,6 +619,76 @@ Whenever capture-memory fires, append a one-line entry to the list above. Trim t
 
 On Pro/Max, the memory header in Project Knowledge auto-loads on every chat. The full memory file lives in `~/.claude/projects/<project>/memory/MEMORY.md` for Code. Same content, different mount. On Pro/Max, you maintain the header manually (or the capture-memory skill returns the updated header as a code block for you to paste back). On Code, the UserPromptSubmit hook handles it automatically.
 
+---
+
+## Pro/Max parity, the honest play
+
+> **Read this once.** The Code-tier auto-load is genuinely seamless: every Claude Code session reads `~/.claude/CLAUDE.md` plus the `MEMORY.md` index plus the relevant topic files at the start, with no user action. On Pro/Max, the closest equivalent is Project Knowledge auto-load. It works, but two seams remain. This section closes those seams with three rituals.
+
+**The two seams (be honest about them):**
+
+1. **The capture loop is not silent.** When you say "remember X" on Pro/Max, the capture-memory skill cannot write to your filesystem; it can only return the updated Memory header as a code block. You have to paste that block back into Project Knowledge yourself. On Code, the hook does the write. On Pro/Max, your hand does.
+2. **Project Knowledge is auto-loaded, but not auto-surfaced.** Anthropic Projects reads your Knowledge entries into context at chat open, but Claude does not always volunteer that it loaded them. If you ask "what do you know about X" and Claude says "nothing," the load may have happened silently. The verification prompt below catches that.
+
+### Ritual 1: Session-start primer (paste at the top of every fresh chat)
+
+This is the closest Pro/Max analog to the Code-tier UserPromptSubmit hook. Paste it as the first turn of any new chat where memory matters:
+
+```
+Session start. Read the Memory header in Project Knowledge before answering. List the 3 most recent memory entries inline so I can confirm you loaded them. Then wait for my actual prompt.
+```
+
+Expected response: Claude reads the Memory header, lists the top 3 entries dated and one-line summarized, then says "Memory loaded, ready for your prompt." If Claude says it does not see a Memory header, the entry in Project Knowledge is missing or unsaved, and you need to re-paste Artifact 1 plus the Memory header from Artifact at section "Pro/Max Artifact" above.
+
+### Ritual 2: Paste-back stamp (after every capture-memory fire)
+
+When you say "remember X" on Pro/Max, the capture-memory skill responds in a structured shape designed for paste-back. The skill emits two blocks:
+
+**Block A: the new topic entry.** (For Code users, this would be written to a topic file. On Pro/Max, you paste this as a new Knowledge entry titled `Memory: <topic-file-name>`.)
+
+**Block B: the updated Memory header.** Always emitted last. The full Memory header with the new entry appended at the top of the "Recent memory entries" list, trimmed to 10. Above the block, the skill prints exactly:
+
+```
+PASTE-BACK: replace your Project Knowledge "Memory header" entry with the block below. 30 seconds.
+```
+
+Your job: copy Block B, click into Project Knowledge in the right rail, click the existing "Memory header" entry, select-all-replace with the new block, save. That is the seam. 30 seconds per capture. Five captures a week = 2.5 minutes/week. Worth the compounding return.
+
+### Ritual 3: Load verification (drop this prompt when you suspect drift)
+
+If a session feels like Claude has forgotten something you taught it, paste this:
+
+```
+Verify Memory header loaded. What are the 5 most recent memory entries from Project Knowledge? List them with dates.
+```
+
+Three possible outcomes:
+
+- **Claude lists 5 dated entries from your Memory header.** Load worked. Drift is content-level (the rule was right but Claude is not applying it; fix by rewording the rule).
+- **Claude lists generic placeholder entries ("YYYY-MM-DD: [topic] one-line summary").** Memory header is the seed template, never populated. Run capture-memory once to seed it, then paste back.
+- **Claude says "no Memory header found."** Project Knowledge entry was deleted or never saved. Paste Artifact 1 + the Pro/Max Memory header artifact back into Project Knowledge.
+
+### Ritual 4: Weekly Memory-header reconcile (5 minutes, Sunday)
+
+The Pro/Max Memory header is a 10-entry rolling window. Older entries do not get auto-archived because there is no filesystem. Every Sunday, drop this prompt:
+
+```
+Memory reconcile. Audit my Memory header against my full Project Knowledge entries. Surface: entries older than 60 days that should be archived, contradictions across entries, and topic files that exist in Project Knowledge but are not pointed to from the Memory header. Do not auto-fix; surface and ask.
+```
+
+This is the Pro/Max approximation of the `memory-audit` skill's automatic sweep on Code. Same surfaces (stale, contradictions, orphans), manual fire instead of cron.
+
+### The realistic gap (do not pretend it does not exist)
+
+After all four rituals, Pro/Max parity with Code is roughly 85%. The remaining 15% is genuine:
+
+- **No filesystem search**, so `/recall <keyword>` against arbitrary topic files is not available. Workaround: ask Claude to scan Project Knowledge for the keyword. Works for the high-signal stuff.
+- **No background daemon**, so the audit cadence depends on you remembering to fire it weekly. The session-close ritual in F-03 (Cold Start Protocol) is the cleanest place to anchor it.
+- **No hook-level enforcement**, so a banned opener in a memory entry will survive until you next audit. Code has the PreToolUse hook that blocks at write time. Pro/Max does not.
+
+The 85% is enough for a VP doing real construction work. The 15% gap is what makes Code-tier installation worth the extra 30 minutes of setup if you ever cross the line into wanting your memory architecture to be invisible. Confidence: high.
+
+---
 
 ## Three-prompt verification suite
 

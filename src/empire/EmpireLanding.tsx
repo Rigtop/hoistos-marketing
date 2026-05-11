@@ -385,7 +385,7 @@ export function EmpireLanding() {
           className="flex justify-center"
         >
           <Link
-            to="/empireworksreconstruction/foundation#foundation-cards"
+            to="/empireworksreconstruction/foundation"
             className="group relative inline-flex items-center gap-3 rounded-2xl px-10 py-5 text-lg md:text-xl font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: 'rgb(var(--color-accent))',
