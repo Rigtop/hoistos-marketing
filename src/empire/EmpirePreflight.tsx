@@ -71,15 +71,15 @@ export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps
           id="preflight-heading"
           className="font-display text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.1] mb-5"
         >
-          Five small steps. <span style={{ color: 'rgb(var(--color-accent))' }}>Two minutes.</span>
+          Two small steps. <span style={{ color: 'rgb(var(--color-accent))' }}>One minute.</span>
         </h2>
         <p
           className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
           style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
-          The install button below opens Claude desktop and prefills your prompt. Make sure these
-          five things are true first. If you already have a paid plan and Claude desktop installed,
-          you can skim past in ten seconds.
+          Each blueprint below copies to your clipboard and opens claude.ai in a new tab. You
+          paste with Cmd+V (Ctrl+V on Windows) and hit Return. Two preconditions need to be true.
+          If both are already true, skim past in ten seconds.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps
         <PreflightRow
           n={1}
           title="Have a paid Claude plan."
-          subtitle="Pro is enough. Max and Team work too. The free tier does not include Cowork, which is what these blueprints land in."
+          subtitle="Pro is enough. Max, Team, and Enterprise work the same way. Free tier does not have the full skill surface these blueprints depend on."
           done={false}
           cta={{
             label: 'Upgrade to Pro',
@@ -97,21 +97,20 @@ export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps
           detail={
             <div className="flex flex-col gap-3 text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
               <p>
-                Pro is $17 a month annual or $20 monthly. It includes Cowork, Claude Code, and the
-                higher rate limits you need to walk through these install conversations without
-                hitting a wall.
+                Pro is $17 a month annual or $20 monthly. Includes Project Knowledge (where the
+                packs install), Claude Code, and the higher rate limits you need to walk through
+                each install conversation without hitting a wall.
               </p>
               <p>
-                Max ($100 to $200 a month) is the same software with five to twenty times the rate
-                limits. Useful if you plan to live in Cowork all day. Not required to install these
-                blueprints.
+                Max ($100 to $200 a month) is the same software with five to twenty times the
+                rate limits. Useful if you plan to live in Claude all day. Not required.
               </p>
               <p>
-                Team and Enterprise also include Cowork. Same install path.
+                Team and Enterprise work the same way. Same install path.
               </p>
               <p style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}>
-                Free tier does not have Cowork. Upgrade first or use the browser-only path at the
-                bottom of this page.
+                Free tier does not include Project Knowledge. Upgrade first or expect the install
+                to land but not persist.
               </p>
             </div>
           }
@@ -119,87 +118,29 @@ export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps
 
         <PreflightRow
           n={2}
-          title="Download the Claude desktop app."
-          subtitle="Free. macOS or Windows. The desktop app is what registers the install button so it can talk to Claude on your machine."
-          done={false}
-          cta={{
-            label: 'Get the desktop app',
-            sub: 'opens claude.ai/download',
-            href: 'https://claude.ai/download',
-          }}
-          detail={
-            <div className="flex flex-col gap-3 text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-              <p>
-                <strong>macOS:</strong> requires macOS 11 (Big Sur) or higher. Open the .dmg, drag
-                Claude into Applications, then launch it.
-              </p>
-              <p>
-                <strong>Windows:</strong> requires Windows 10 or higher. Run the installer, then
-                launch Claude from your Start menu.
-              </p>
-              <p>
-                <strong>Linux:</strong> not officially supported by Anthropic. Use the browser-only
-                path at the bottom of this page or run Claude Code on a sidecar Mac mini.
-              </p>
-              <p style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}>
-                Already have the desktop app? Skip ahead.
-              </p>
-            </div>
-          }
-        />
-
-        <PreflightRow
-          n={3}
-          title="Open the desktop app once and sign in."
-          subtitle="This is the step that wakes up the install button. The first launch registers a small URL handler with your operating system, which is what lets the button on this page open Claude on your machine."
+          title="Click an install button below. Paste into Claude. Hit Return."
+          subtitle="Click Install. The full pack copies to your clipboard. A new tab opens at claude.ai. Press Cmd+V (Ctrl+V on Windows) in the chat input. Hit Return. Each blueprint asks two or three questions and handles the rest."
           done={false}
           detail={
             <div className="flex flex-col gap-3 text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
               <p>
-                After you sign in, look in the left sidebar for <strong>Cowork</strong>. Click it
-                once. That initializes the Cowork dispatcher, which is what receives your install
-                prompt when you click the button below.
+                <strong>What if nothing happens after I click?</strong> Most common cause: popup
+                blocker. Cmd+click (or Ctrl+click) the install button to force a new tab, or
+                check your browser's blocked-popup notification. The pack is still on your
+                clipboard regardless; you can manually open claude.ai/new and paste.
               </p>
               <p>
-                You only have to do this once per machine. Future sessions reuse the same handler.
-              </p>
-              <p style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}>
-                What is Cowork? Anthropic's agentic workspace inside the desktop app. It lets
-                Claude work on a persistent thread, fetch URLs, and run tools. The blueprints below
-                install through it.
-              </p>
-            </div>
-          }
-        />
-
-        {/* Step 4 (Pick your path) removed 2026-05-11 per Steve live install
-            feedback. Install path defaults to Desktop/Cowork universally;
-            developers passing ?tier=code see the CLI flow. The preflight is
-            now 4 steps instead of 5, and Step 5 below becomes Step 4. */}
-
-        <PreflightRow
-          n={4}
-          title="Pick a pack below and click the install button."
-          subtitle="That is it. The button opens Claude on your machine, prefills the install prompt, and you hit Return. Each blueprint asks two or three questions and handles the rest."
-          done={false}
-          detail={
-            <div className="flex flex-col gap-3 text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-              <p>
-                <strong>What if the button does nothing?</strong> Most common cause: Claude desktop
-                is closed. Open it once, then click the button again. Second-most-common: Cowork
-                has not been opened yet on this machine. Click Cowork in the sidebar once, then
-                retry.
+                <strong>I pasted but Claude says it cannot fetch external URLs.</strong> You
+                probably copied the URL of the pack, not the pack itself. Click the install
+                button again. It copies the full pack content (about 30 to 70 KB of markdown)
+                to your clipboard, which Claude reads as a direct message and runs without any
+                fetch step.
               </p>
               <p>
-                <strong>The prompt opened in Claude but did not autofill?</strong> Some browsers
-                (Safari, Firefox) do not bring Claude to the front automatically. Cmd+Tab to it.
-                The prompt is already in the composer.
-              </p>
-              <p>
-                <strong>Browser blocked the popup?</strong> The Code CLI path uses your clipboard
-                only and never opens a popup. If you are on Pro or Max and the popup gets blocked,
-                Cmd+click the install button to force a new tab, or scroll to the bottom of the
-                page for the manual browser-only path.
+                <strong>Clipboard blocked by my browser?</strong> Some corporate-locked-down
+                browsers block JavaScript clipboard writes. Use the Download .md button on each
+                pack to save the file, then open it in any text editor, Cmd+A select all, Cmd+C,
+                and paste into Claude.
               </p>
             </div>
           }

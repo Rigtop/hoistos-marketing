@@ -1087,7 +1087,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           }}
           title={
             tier === 'desktop'
-              ? 'Open Claude Cowork with the install prompt pre-filled.'
+              ? 'Copies the full blueprint to your clipboard, opens claude.ai in a new tab. Paste with Cmd+V and hit Return.'
               : tier === 'code'
               ? 'Copy a one-line curl command. Paste in Terminal.'
               : 'Pick Desktop or Code above so the install button matches your setup.'
@@ -1096,7 +1096,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           <ExternalLink className="w-4 h-4" aria-hidden="true" />
           <span>
             {tier === 'desktop'
-              ? 'Open in Cowork'
+              ? 'Install in Claude'
               : tier === 'code'
               ? 'Copy install command'
               : 'Install in my Claude'}
