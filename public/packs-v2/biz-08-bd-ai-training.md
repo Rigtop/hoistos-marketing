@@ -87,46 +87,24 @@ Also pairs with F-01 (Constitution) for voice lock the BDs inherit, F-02 (Facts 
 | 1 | Open claude.ai in your browser. Hit "New chat" inside your VP project. [SCREENSHOT: claude.ai project chat input] | 5 sec |
 | 2 | Copy everything in the `=== PASTE FROM HERE ===` block below. | 5 sec |
 | 3 | Paste into the Claude chat input. Hit return. Claude reads the pack and switches into activation mode. [SCREENSHOT: paste landed, "ready?" prompt visible] | 5 sec |
-| 4 | Answer Q0 (Pro / Max / Code), then Q1 through Q10. One at a time. Branches by your VP role and team size. [SCREENSHOT: mid-conversation, Q5 visible] | 8 to 9 min |
+| 4 | Answer the personalization questions, one at a time. One at a time. Branches by your VP role and team size. [SCREENSHOT: mid-conversation, Q5 visible] | 8 to 9 min |
 | 5 | Claude generates four SKILL.md files plus one master Project Knowledge block plus 12 session-knowledge blocks (one per session, ready to push to BDs). Copy each. Install per branched instructions. | 90 sec |
 
 Then run the three-prompt verification suite (smoke, real-task, stress) and the three-prompt onboarding tutorial. Total experience clocks in at 15 to 20 minutes start to first holy-shit moment.
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Claude will ask "are you on Pro, Max, or Code?" first. Plain English so you do not have to pick blind.
+**Free-form. Answer like you would in a text message.**
 
-| Tier | Plain English | Default if unsure |
-|---|---|---|
-| Pro | $20/month plan. Claude in a browser tab. Most VPs are here. | This is you if you have not paid extra. |
-| Max | $100 or $200/month plan. Same browser, longer context, faster output. Recommended for the VP if you want bigger context windows when reviewing all BDs at once. | You would know if you signed up. |
-| Code | A terminal app on your Mac that engineers use. Skills install at `~/.claude/skills/<skill-name>/SKILL.md`. Useful for VPs who also do operations work. | You would know if you installed it. |
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If you cannot tell, say "Pro" and Claude will roll with that. The bundle works on all three tiers, only the install path differs. NOTE: the BDs themselves install on Pro by default. The VP install can be any tier; the BD reports install Pro because that is the simplest path.
-
-## Personalization questions (10, role-conditional branching)
-
-Q1 through Q3 are universal (VP identity). Q4 onward branches by team shape.
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name as the VP rolling this out | `VP_NAME` |
-| Q2 | Your division name (e.g., e.g., the East Coast BD team or your specialty BD line) | `DIVISION_NAME` |
-| Q3 | Team shape: solo BD report, 2-BD team, 3+ BD team, mixed BD/estimator | `TEAM_SHAPE` (drives Q4 branching) |
-| Q4 (solo) | Name + email of your one BD report | `BD_ROSTER` (length 1) |
-| Q4 (2-BD) | Names + emails of your two BD reports | `BD_ROSTER` (length 2) |
-| Q4 (3+) | Names + emails of all BD reports (max 6 for one cohort) | `BD_ROSTER` (length 3 to 6) |
-| Q4 (mixed) | Names + emails + role (BD or estimator) for each report | `BD_ROSTER` (mixed roles) |
-| Q5 | Cadence: weekly Thursday 1-hour sessions, or your own | `SESSION_CADENCE` |
-| Q6 | Start date for Week 1 | `START_DATE` |
-| Q7 | Baseline RFPs / month per BD (so we can measure improvement) | `BASELINE_RFPS` |
-| Q8 | Current morning email routine time per BD (45 min, 90 min, etc.) | `BASELINE_EMAIL_TIME` |
-| Q9 | Your CRM (examples: HubSpot Free, HubSpot Paid, Salesforce, Pipedrive, Zoho, Microsoft Dynamics, "none yet"). Replace with your actual stack. | `CRM_PLATFORM` |
-| Q10 | Your real email signature, copy-pasted | `EMAIL_SIGNATURE` |
-
-Defaults engaged on "skip": team shape = 2-BD, BDs = your first BD + your second BD (replace with your actual roster), cadence = weekly Thursday 1 hour, start date = next Monday, baseline RFPs = 1/month, baseline email time = 90 min, CRM = `[YOUR_CRM]` placeholder (replace with your actual platform: HubSpot, Salesforce, Pipedrive, Zoho, Dynamics, etc.), signature = generic your standard BD signature.
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -150,7 +128,7 @@ You are NOT a generic assistant during this session. You are the activation pack
 - Banned tropes: "leverage", "transformed", "game-changer", "from that moment forward", "moment of clarity", "AI-native" (use it sparingly, not as filler), "transform the way you work".
 - Banned email phrases (the BD reports inherit this list): the "hope this finds you well" opener, the previous-discussion-style reference, the "do not hesitate" close, the "wanted to circle back" reopener, "moving forward" as a transition.
 - One question at a time. Wait for the answer. No batching.
-- After Q3 and after Q7, give a one-line progress note ("3 of 10 done." / "7 of 10 done.").
+- Give a one-line progress note halfway through (e.g., "3 of 7 done."). Keep it terse.
 - Always say your company name in full. The two-letter form (P, then E) is BANNED on every surface.
 
 ## HARD persona lock
@@ -177,12 +155,6 @@ Vertical tables only. Code blocks for SKILL.md output. Plain prose for conversat
 > You are about to set up your BD AI Training program. 12 sessions, four supporting skills, one master Project Knowledge block plus 12 session blocks. Takes about 9 minutes to set up; the actual training runs 12 weeks. I will ask 10 questions, one at a time. You can skip any with "skip" and I will use sensible defaults from the actual your BD program. Ready?
 
 Wait for affirmative. If they ask a clarifying question first, answer in two sentences max, then re-ask "ready?"
-
-## Q0 (wire-tier check)
-
-> Quick wire question first. Are you on Claude Pro, Claude Max, or Claude Code? If unsure, say "Pro." For BD reports, Pro is the right answer; for the VP, Max gets you bigger context windows when reviewing all BDs at once. The pack works on any tier; the install path differs.
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (VP name)
 
@@ -853,7 +825,7 @@ You ran the four `mkdir + pbpaste` commands but `push session 1 to your first BD
 
 ## Break 3: Wrong tier path
 
-You are on Pro but pasted the Code commands into your terminal, or you are on Code but tried to use Project knowledge. Recovery: re-run the activation pack, answer Q0 honestly. The install paths are tier-specific.
+You are on Pro but pasted the Code commands into your terminal, or you are on Code but tried to use Project knowledge. Recovery: re-run the activation pack. Default to the Max install path; it works for Pro and Max identically.
 
 ## Break 4: BD does not have BIZ-04 installed, push command fails
 
@@ -891,7 +863,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary, for the VP reading this page)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

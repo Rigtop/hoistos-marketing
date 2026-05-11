@@ -138,35 +138,19 @@ After install, the pipeline runs once on the last 24 hours of email as a calibra
 
 ---
 
-## Q0 explained BEFORE asked (jury fix)
+## A few questions, one at a time
 
-This pack works on Pro, Max, or Code. The difference matters in three places. First, Code can run the pipeline on a 4x-daily schedule via launchd; Pro and Max run the pipeline on demand (you ask "run the email pipeline" and it runs). Second, Code can attach the weekly-intelligence-brief to a Monday-morning launchd job that puts the brief in a file you read with coffee; Pro and Max get the brief on demand. Third, Code retains a local SQLite cache of past classifications so the pipeline gets sharper over time without re-asking; Pro and Max retain learning inside Project Knowledge, which is good but caps at the Project Instructions size limit.
+**Free-form. Answer like you would in a text message.**
 
-If unsure, say "Pro." You can upgrade to Code later without redoing this pack. The classification taxonomy and entity-resolution rules port cleanly.
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
----
-
-## Personalization questions (7 to 12, role-conditional)
-
-| # | Question | What it captures |
-|---|---|---|
-| Q0 | Tier check (Pro / Max / Code) | `WIRE_TIER` |
-| Q1 | Your name and role | `VP_NAME`, `VP_ROLE` |
-| Q2 | Your division or business unit | `VP_DIVISION` |
-| Q3 | Your top 3 active projects (so the pipeline pre-resolves them on entity extraction) | `ACTIVE_PROJECTS` |
-| Q4 | Your top 5 GCs and top 5 subs you correspond with regularly | `KEY_PEOPLE_ENTITIES` |
-| Q5 | Email senders to ALWAYS classify as high priority (your boss, your owner-side rep, your regulator) | `PRIORITY_SENDERS` |
-| Q6 | Email senders to ALWAYS classify as low priority or skip (newsletters, no-reply addresses, marketing) | `SKIP_SENDERS` |
-| Q7 (Ops/Field branch) | Project-tracking DB and the relation property used by Tasks and RFIs | `PROJECT_TRACKER_DB`, `TASK_PROJECT_RELATION` |
-| Q7 (BD branch) | Pipeline DB and the relation property used by Activities | `PIPELINE_DB`, `ACTIVITY_PIPELINE_RELATION` |
-| Q7 (Compliance branch) | Compliance DB, Article-Reference property, and audit trail DB | `COMPLIANCE_DB`, `ARTICLE_REFERENCE_PROP`, `AUDIT_TRAIL_DB` |
-| Q8 | Custom classification categories to add to the default taxonomy | `CUSTOM_CATEGORIES` |
-| Q9 | Default daily run schedule (Pro/Max: on demand; Code: 4x daily 7am/11am/3pm/7pm or your own times) | `RUN_SCHEDULE` |
-| Q10 | Weekly intelligence brief delivery time and channel (Monday 7am, in-chat or local file or email-to-self) | `BRIEF_DELIVERY` |
-| Q11 (Code tier only) | launchd schedule install confirmation | `LAUNCHD_INSTALLED` |
-| Q12 (optional) | One specific recurring synthesis question the pipeline should pre-cache (so the answer is ready when you ask) | `RECURRING_QUERY` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -217,20 +201,14 @@ Every write routes through F-11. Database map is read from BIZ-01 (canonical / j
 
 Wait for affirmative. Proceed to dependency check.
 
-## Dependency check (BEFORE Q0)
+## Dependency check (BEFORE the first question)
 
 Verify F-11 and BIZ-01 are in the Project Knowledge or skills directory. If WIRE_TIER is unknown yet, ask:
 > Quick: is F-11 Notion Write Gate installed in this Project? It's the gate that polices every Notion write. And is BIZ-01 Notion + MCP Setup installed? It's the database map.
 
 If no to either: HALT. Surface install instructions. Do not proceed.
 
-If yes to both: proceed to Q0.
-
-## Q0 (wire-tier check)
-
-> Quick wire question: Pro, Max, or Code? Pro is the standard browser plan. Max is the higher browser plan plus desktop. Code is the terminal version engineers use. Code unlocks 4x-daily scheduled runs via launchd. Pro and Max run the pipeline on demand. If unsure, say Pro.
-
-Capture as `WIRE_TIER`. Default `pro`.
+If yes to both: proceed to the personalization questions.
 
 ## Q1 (name + role)
 
@@ -701,7 +679,7 @@ NOTES: [any contradictions, decision drifts, unverified entities]
 
 ## Pre-cached recurring queries
 
-[RECURRING_QUERY from Q12]
+[RECURRING_QUERY from the install]
 
 If [VP_NAME] supplied a recurring query, this skill pre-caches it on every pipeline run. The cached result is read directly when the question is asked. Refresh on-demand if cache is stale (>6 hours).
 
@@ -983,7 +961,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surface | Trigger |
 |---|---|---|

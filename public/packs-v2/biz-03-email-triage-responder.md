@@ -114,7 +114,7 @@ Confidence on the time-saved range: moderate (median across multiple your BD use
 | [ ] Foundation 10 (Email Playbook) installed. Tier-aware tone matrix, 9 scenarios, banned-phrase canon. |
 | [ ] Gmail connected to Claude. On Pro and Max via the claude.ai Gmail connector. On Code via the Gmail MCP server. |
 | [ ] Roughly 100 sent emails available in your Sent folder for the voice fingerprint pass during install. |
-| [ ] Claude Code CLI OR Claude Max OR Claude Pro (Pro runs in a degraded chained-command mode, see Q0). |
+| [ ] Claude Code CLI OR Claude Max OR Claude Pro. |
 
 ---
 
@@ -134,13 +134,13 @@ Open a new chat in the Email Morning Routine project. Paste the entire body of t
 
 **Step 3. Answer the 10 personalization questions + 1 tier wire question (4 minutes).**
 
-Claude asks Q0 (your tier) first, then Q1 through Q10 one at a time. The questions branch by your role. If you confused on a question, type `what does this look like in practice` and Claude shows a concrete construction-VP example before re-asking.
+Claude asks the personalization questions one at a time. The questions branch by your role. If you confused on a question, type `what does this look like in practice` and Claude shows a concrete construction-VP example before re-asking.
 
 > [SCREENSHOT PLACEHOLDER: Claude asking Q1 with a your company VP example below the question prose]
 
 **Step 4. Run the voice fingerprint pass (2 minutes).**
 
-After Q10, Claude walks you through a Gmail Sent export. Pro tier: copy 30 sent emails into a single text block, paste into chat, Claude analyzes voice patterns. Max and Code: upload the .mbox file or pull from the Gmail connector directly. The fingerprint covers your greeting defaults, sentence length, signature phrases, closer style, sign-off pattern, em-dash usage (should be zero per F-01), tier shifts (how you write to GCs vs. internal team vs. compliance).
+After the questions, Claude walks you through a Gmail Sent export. Pro tier: copy 30 sent emails into a single text block, paste into chat, Claude analyzes voice patterns. Max and Code: upload the .mbox file or pull from the Gmail connector directly. The fingerprint covers your greeting defaults, sentence length, signature phrases, closer style, sign-off pattern, em-dash usage (should be zero per F-01), tier shifts (how you write to GCs vs. internal team vs. compliance).
 
 **Step 5. Save the four generated artifacts (1 minute).**
 
@@ -153,18 +153,6 @@ Claude emits one Project Knowledge block plus four SKILL.md files. Save by tier:
 | Code | Save four SKILL.md files at `~/.claude/skills/email-scan/SKILL.md`, `~/.claude/skills/email-triage-rank/SKILL.md`, `~/.claude/skills/email-draft/SKILL.md`, `~/.claude/skills/morning-email-routine/SKILL.md`. The four skills load on `claude` startup. The chain skill auto-fires on `run my morning routine` or `morning email`. |
 
 > [SCREENSHOT PLACEHOLDER: Four open Finder windows with the four SKILL.md files saved into their canonical paths]
-
----
-
-## Q0: Which Claude tier are you on?
-
-| Tier | What it looks like | What you get from this pack |
-|---|---|---|
-| Pro | claude.ai in a browser, paid monthly. | Project Knowledge block + chained skill commands inside the same chat. Voice fingerprint via paste. No `run my morning routine` chain skill (Pro does not load Code skills). Manual chain via the embedded prompts. |
-| Max | claude.ai paid $100 or $200/month, optional Claude Desktop, optional Code. | Project Knowledge block + four installable skills + Gmail connector + voice fingerprint via .mbox upload. Chain skill works via Project Instructions reference. |
-| Code | `claude` CLI in a terminal. | Full version. Four skills auto-load. Gmail MCP connector. `run my morning routine` triggers the chain. Voice fingerprint via .mbox upload + corpus search. |
-
-Answer with one word: **pro**, **max**, or **code**.
 
 ---
 
@@ -780,11 +768,9 @@ Append `{ "ts_start": ..., "ts_end": ..., "skill": "morning-email-routine", "sca
 
 ## Tier-aware install paths
 
-| Tier | Install path |
-|---|---|
-| Pro | Project Knowledge block goes into Project Instructions text box. Four SKILL.md files paste-stack inside the same Project Instructions under headings (Pro does not load Code skills, so the chain runs as embedded prompt logic). The chain is triggered by the user typing the embedded morning routine prompt verbatim from Artifact 5. |
-| Max | Project Knowledge block in Project Instructions. Four SKILL.md files paste-stack into Project Knowledge under headings `## Skill: email-scan`, `## Skill: email-triage-rank`, `## Skill: email-draft`, `## Skill: morning-email-routine`. The Claude desktop app does not currently load custom skills from the filesystem. If the user also runs Claude Code, do the Code install in parallel for the auto-fire chain. |
-| Code | Save four SKILL.md files at `~/.claude/skills/email-scan/SKILL.md`, `~/.claude/skills/email-triage-rank/SKILL.md`, `~/.claude/skills/email-draft/SKILL.md`, `~/.claude/skills/morning-email-routine/SKILL.md`. The four skills load on `claude` startup. The chain skill auto-fires on `run my morning routine` or any of the 10 listed trigger phrases. |
+Open your Project in Claude. Click into Project knowledge. Paste the artifacts in order: Artifact 1 (the main block) first, then each companion skill as an additional section in the same Project knowledge panel. Click Save.
+
+If you also run Claude Code on this machine, the companion skills can additionally save to `~/.claude/skills/<skill-name>/SKILL.md` for filesystem-level install. Project knowledge plus filesystem skills coexist; the filesystem version auto-registers on Code session restart.
 
 Per C3 jury install path fix: canonical Code skill location is `~/.claude/skills/<skill-name>/SKILL.md`. Never `~/Documents/...`. Never `~/Library/Application Support/Claude/...` (that is the Claude desktop app path, different loader).
 
@@ -887,7 +873,7 @@ Type: `summarize my role, top 3 audience tiers, and my email signature standard`
 
 | What you see | What to look for |
 |---|---|
-| Claude pulls your role from F-02, the audience tiers from this pack, the signature block from Q1, and renders all three in plain text without you having to retype anything. | If Claude says `I do not know your role`, F-02 is not loaded; install F-02 first. If Claude renders the signature with any office phone line, the cell-only signature discipline is broken; the validator did not fire on the install. |
+| Claude pulls your role from F-02, the audience tiers from this pack, the signature block from the install, and renders all three in plain text without you having to retype anything. | If Claude says `I do not know your role`, F-02 is not loaded; install F-02 first. If Claude renders the signature with any office phone line, the cell-only signature discipline is broken; the validator did not fire on the install. |
 
 ---
 

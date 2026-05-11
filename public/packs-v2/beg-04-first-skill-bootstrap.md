@@ -127,68 +127,19 @@ Click "New chat" inside the Project. Type your trigger phrase, with one line of 
 Send. Claude should respond with a 3-line email in your voice, with no em dashes, signed as you, on point.
 
 If Claude responds with a generic email or asks "what do you mean by follow-up", the SKILL.md did not save. Re-paste in step 3.
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+## A few questions, one at a time
 
-Before we ask: Claude Pro is the $20/month plan. Skills as Project Knowledge text work on Pro. Claude Max is the premium plan ($100 or $200 per month), same Project Knowledge mechanism, longer context window so larger skills work cleaner. Claude Code stores skills as files at `~/.claude/skills/<skill-name>/SKILL.md` instead of in Project Knowledge. If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0:** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| If you answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Default. Append the SKILL artifacts to Project Knowledge. |
-| Max | Same flow as Pro. The desktop app does not currently support filesystem skill install, so all artifacts live inside Project Knowledge. If you also run Claude Code on the same machine, follow the Code branch to wire the standalone-file install at `~/.claude/skills/`. |
-| Code | Save each artifact to `~/.claude/skills/<skill-name>/SKILL.md`. Restart Claude Code. The skill auto-registers as a slash command. |
-| I do not know | Treat as Pro. |
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## 8 personalization questions, role-conditional
-
-Each answer is free-form. Hard cap: 500 characters per field.
-
-**Q1.** What is your role / title? Variable: `{{VP_ROLE}}`
-
-**Q2.** Which your company division do you run? Variable: `{{DIVISION_NAME}}`
-
-### Branching by role on Q3 through Q6
-
-**If your Q1 contains "BD" or "Business Development":**
-
-- **Q3 (BD).** What recurring BD task do you do over and over? (example: "Draft a re-engage note to a GC pursuit that has gone cold for 3+ weeks", "Summarize the latest your largest GC pursuit thread into a 3-bullet status for the partner sync") Variable: `{{ACTION_DESCRIPTION}}`
-- **Q4 (BD).** Trigger phrase you want? (example: "re-engage cold pursuit", "BD status pull") Variable: `{{TRIGGER_PHRASE}}`
-- **Q5 (BD).** Output format: email, list, table, paragraph, code block? Variable: `{{OUTPUT_FORMAT}}`
-- **Q6 (BD).** Skill name slug (lowercase, hyphens). (example: `bd-cold-reengage`, `major-pursuit-status`) Variable: `{{SKILL_SLUG}}`
-
-**If your Q1 contains "Ops", "Field", "Superintendent", or "Project Executive":**
-
-- **Q3 (Ops).** What recurring Ops task do you do over and over? (example: "Draft a 3-line follow-up to the GC PM after a coordination meeting, in my voice", "Pull all RFIs older than 7 days on your interior renovation and list them by age", "Summarize the daily report from a foreman into a 3-bullet status for the morning brief") Variable: `{{ACTION_DESCRIPTION}}`
-- **Q4 (Ops).** Trigger phrase? (example: "draft a follow-up", "RFI aging check", "morning DR roll-up") Variable: `{{TRIGGER_PHRASE}}`
-- **Q5 (Ops).** Output format: email, list, table, paragraph, code block? Variable: `{{OUTPUT_FORMAT}}`
-- **Q6 (Ops).** Skill name slug. (example: `gc-pm-followup`, `gc-rfi-aging`, `daily-report-rollup`) Variable: `{{SKILL_SLUG}}`
-
-**If your Q1 contains "Compliance":**
-
-- **Q3 (Compliance).** What recurring Compliance task do you do over and over? (example: "Draft the certified-payroll-mismatch reply to a GC compliance manager in plain language, no DOL jargon", "Summarize an OSHA cert-expiration list into next-30-day actions", "Generate a Section 3 hours-status snapshot for the partner sync") Variable: `{{ACTION_DESCRIPTION}}`
-- **Q4 (Compliance).** Trigger phrase? (example: "CP mismatch reply", "OSHA expiry brief", "Section 3 status") Variable: `{{TRIGGER_PHRASE}}`
-- **Q5 (Compliance).** Output format: email, list, table, paragraph, code block? Variable: `{{OUTPUT_FORMAT}}`
-- **Q6 (Compliance).** Skill name slug. (example: `cp-mismatch-reply`, `osha-expiry-brief`) Variable: `{{SKILL_SLUG}}`
-
-**If your Q1 does not match any of the above:**
-
-- **Q3 (default).** What recurring task do you do over and over? Variable: `{{ACTION_DESCRIPTION}}`
-- **Q4 (default).** Trigger phrase? Variable: `{{TRIGGER_PHRASE}}`
-- **Q5 (default).** Output format? Variable: `{{OUTPUT_FORMAT}}`
-- **Q6 (default).** Skill name slug. Variable: `{{SKILL_SLUG}}`
-
-**Q7 (all branches).** Should the skill ask one clarifying question if input is unclear, or always proceed with a best-guess? (one-question / best-guess) Variable: `{{CLARIFY_BEHAVIOR}}`
-
-**Q8 (all branches).** Should this skill log every invocation to a personal log so you can see how often you trigger it and tune it? (yes / no. yes saves a one-line entry per invocation to your Project Knowledge as `## Invocation log`.) Variable: `{{LOG_INVOCATIONS}}`
-
-**Prompt-injection guard:** Q3 (action description) is the highest-risk field because it goes into the SKILL.md verbatim and Claude reads it as instructions on every trigger. We:
-
-1. Cap Q3 at 500 chars (anything longer gets truncated).
-2. Strip the phrases "ignore previous instructions", "from now on you are", and "act as a [different role]" if they appear in Q3.
-3. Refuse Q3 values that ask Claude to perform out-of-scope actions (write phishing emails, generate creds, exfiltrate data). The action must be a legitimate workflow.
-
-Confidence: high.
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## Generated artifacts: 3 companion Skills
 
@@ -307,13 +258,11 @@ created: 2026-05-08
 Will not delete a snapshot. Will not bulk-roll-back across multiple skills. One skill at a time, append-only on snapshots.
 ```
 
-## How to install (tier-aware)
+## How to install
 
-| Tier | Install path |
-|---|---|
-| Pro | Append Artifacts 1, 2, 3 to your Project Knowledge in your existing Project from BEG-01. Click Save. The trigger phrase activates the skill in any chat inside that Project. |
-| Max | Same as Pro. The desktop app does not currently support filesystem skill install, so the artifacts live inside Project Knowledge. If you also run Claude Code on the same machine, follow the Code branch for standalone-file loading at `~/.claude/skills/`. |
-| Code | Save Artifact 1 to `~/.claude/skills/{{DIVISION_SLUG}}-{{SKILL_SLUG}}/SKILL.md`. Save Artifact 2 to `~/.claude/skills/{{DIVISION_SLUG}}-skill-tester/SKILL.md`. Save Artifact 3 to `~/.claude/skills/{{DIVISION_SLUG}}-skill-versioner/SKILL.md`. Restart Claude Code. Skills register as `/{{DIVISION_SLUG}}-{{SKILL_SLUG}}`, `/{{DIVISION_SLUG}}-skill-tester`, `/{{DIVISION_SLUG}}-skill-versioner`. |
+Open your Project in Claude. Click into Project knowledge. Paste the artifacts in order: Artifact 1 (the main block) first, then each companion skill as an additional section in the same Project knowledge panel. Click Save.
+
+If you also run Claude Code on this machine, the companion skills can additionally save to `~/.claude/skills/<skill-name>/SKILL.md` for filesystem-level install. Project knowledge plus filesystem skills coexist; the filesystem version auto-registers on Code session restart.
 
 The Code-tier path is `~/.claude/skills/<skill-name>/SKILL.md` per Anthropic's published Claude Code docs (May 2026). Do NOT use `~/Documents/Claude/skills/`. Do NOT use `~/Library/Application Support/Claude/skills/`.
 

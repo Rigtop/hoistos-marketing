@@ -207,62 +207,23 @@ Claude executes. You will see file rename activity in Finder if you have it open
 
 When Claude says "done", open Finder and check. The Desktop should look like the AFTER tree from step 4. Confidence: high.
 
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+## A few questions, one at a time
 
-Before we ask which tier you are on: Claude Pro is the $20/month plan, default for most VPs. Claude Max is the premium plan ($100 or $200 per month) and unlocks a longer "thinking budget" which helps Claude scan more files faster. Claude Code is the command-line tool that already runs on your filesystem. If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0:** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| If you answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Default. Pack works. Scan caps at 500 files per pass to fit the Pro context window. |
-| Max | Same flow. Scan limit raises to 2000 files per pass. Faster on big Desktops. |
-| Code | Path B. Use the file-based skill install at `~/.claude/skills/<skill-name>/SKILL.md`. |
-| I do not know | Treat as Pro. |
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## 8 personalization questions, role-conditional
-
-Each answer is free-form. Hard cap: 500 characters per field.
-
-**Q1.** What is your role / title? (example: VP of Mechanical, Director of Field Operations, Compliance Manager, VP of Business Development) Variable: `{{VP_ROLE}}`
-
-**Q2.** Which your company division do you run? (example: Mechanical, Plumbing, Carpentry, Painting, BD, Field, Compliance) Variable: `{{DIVISION_NAME}}`
-
-### Branching by role on Q3 through Q6
-
-**If your Q1 contains "BD" or "Business Development":**
-
-- **Q3 (BD).** Top three GCs you are pursuing right now. Folders will be named after these. (example: your largest GC, a major owner-builder, an affordable-housing owner, an HPD-portfolio owner, another mid-market GC, your prevailing-wage project) Variable: `{{ACTIVE_GCS}}` (used as `{{ACTIVE_PROJECTS}}` in the starter prompt)
-- **Q4 (BD).** File types you care about most for proposals and pursuits. (example: PDF proposals, Excel takeoffs, MWBE certifications, references) Variable: `{{FILE_TYPES}}`
-
-**If your Q1 contains "Ops", "Field", "Superintendent", or "Project Executive":**
-
-- **Q3 (Ops).** Top three active projects (folders will be named after these). (example: your largest active project's interior renovation, your prevailing-wage project, your second active project, your interior renovation, an occupied-building owner) Variable: `{{ACTIVE_PROJECTS}}`
-- **Q4 (Ops).** File types you care about most for execution. (example: submittals, RFIs, daily reports, jobsite photos, schedules, change orders) Variable: `{{FILE_TYPES}}`
-
-**If your Q1 contains "Compliance":**
-
-- **Q3 (Compliance).** Top three compliance frameworks (folders will be named after these). (example: NYCHA Section 3, Davis-Bacon (federal prevailing wage; your jurisdiction may differ) prevailing wage, NYC DOB Site Safety, NJ DOL certified payroll, MWBE) Variable: `{{COMPLIANCE_FRAMEWORKS}}` (used as `{{ACTIVE_PROJECTS}}` in the starter prompt)
-- **Q4 (Compliance).** File types you care about most for compliance. (example: certified payroll PDFs, OSHA certs, MWBE letters, audit reports) Variable: `{{FILE_TYPES}}`
-
-**If your Q1 does not match any of the above (default branch):**
-
-- **Q3 (default).** Top three active work areas or projects (folders will be named after these). (example: your largest GC's interior renovation, your prevailing-wage project, Internal your company ops) Variable: `{{ACTIVE_PROJECTS}}`
-- **Q4 (default).** File types you care about most. (example: PDFs, Excel workbooks, jobsite photos, .docx) Variable: `{{FILE_TYPES}}`
-
-**Q5 (all branches).** Naming convention preference: date-prefix (`2026-05-08-name`), project-prefix (`<your-renovation-project>-name`), or role-prefix (`VP-Ops-name`)? Variable: `{{NAMING_CONVENTION}}`
-
-**Q6 (all branches).** Which folders or files must Claude NEVER touch? (paste full paths, one per line, max 10 entries. Example: `~/Desktop/litigation-XXX/`, `~/Desktop/TaxReturn2025/`, `~/Desktop/personal-medical/`) Variable: `{{NEVER_TOUCH}}`
-
-**Q7 (all branches).** Should jobsite photos auto-route by project? (yes / no. yes routes any file matching jobsite photo patterns into `jobsite-photos/[project-name]/` keyed off Q3) Variable: `{{JOBSITE_PHOTO_ROUTING}}`
-
-**Q8 (all branches).** Quarterly re-run: do you want the skill to re-run itself on its own quarterly, or only when you trigger it? (auto / manual) Variable: `{{RUN_CADENCE}}`
-
-**Prompt-injection guard:** Q6 (NEVER_TOUCH) is the highest-risk field because we use it to build the never-touch path list. If any line contains "ignore", "delete instead", "move all", or any verb other than a path: we reject the line and ask you to repaste. Free-form text never becomes shell arguments. Confidence: high.
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## Generated artifacts: Project Knowledge block + 3 companion Skills
 
-After Q0 through Q8, Claude assembles four artifacts.
+After the personalization questions, Claude assembles four artifacts.
 
 ### Artifact 1: Project Knowledge block (paste into your existing Project from BEG-01, append at bottom)
 
@@ -389,7 +350,7 @@ created: 2026-05-08
 Read-and-rename only. Never uploads photos to any cloud or external service. Refuses any request that involves sending photos beyond the local filesystem.
 ```
 
-## How to install (tier-aware, path-aware)
+## How to install
 
 | Tier | Path | Install location |
 |---|---|---|
@@ -456,7 +417,7 @@ Recovery: Run the dry-run in Test 1 above. Read the BEFORE-AFTER tree carefully.
 
 Symptom: Artifact 1 has only 2 of your 7 NEVER_TOUCH paths. Two folders that should be protected are eligible to move.
 
-Recovery: Open the Project Knowledge box. Scroll to NEVER_TOUCH list. Count entries vs your original Q6 answer. If short, re-paste Artifact 1 in two chunks: identity through file types in chunk 1, NEVER_TOUCH list through soft-persona-note in chunk 2. Save after each. Re-run dry-run before executing. Confidence: high.
+Recovery: Open the Project Knowledge box. Scroll to NEVER_TOUCH list. Count entries vs your install answer. If short, re-paste Artifact 1 in two chunks: identity through file types in chunk 1, NEVER_TOUCH list through soft-persona-note in chunk 2. Save after each. Re-run dry-run before executing. Confidence: high.
 
 ## Three-prompt onboarding tutorial
 

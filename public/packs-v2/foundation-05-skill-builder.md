@@ -116,69 +116,23 @@ If Claude walks you through the build flow (capture intent, draft SKILL.md, vali
 
 > [SCREENSHOT PLACEHOLDER: chat showing the build-skill flow in action, capture intent step visible]
 
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+## A few questions, one at a time
 
-Before we ask: Claude Pro stores skills as Project Knowledge text. Claude Max same. Claude Code stores skills as files at `~/.claude/skills/<skill-name>/SKILL.md` and they auto-register as slash commands. If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0:** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| If you answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Default. Append discipline + 3 SKILL.md blocks to Project Knowledge. New skills you build also go in Project Knowledge. |
-| Max | Same as Pro. Desktop app does not currently support filesystem skill install. New skills you build also live in Project Knowledge. If you also run Claude Code, follow the Code branch for standalone-file loading. |
-| Code | Save discipline to project CLAUDE.md. Save the 3 SKILL.mds to `~/.claude/skills/<name>/SKILL.md`. Restart. New skills you build also go in `~/.claude/skills/<new-name>/SKILL.md`. |
-| I do not know | Treat as Pro. |
+| What's the one workflow you run most often that you wish Claude could fire on its own? | `{{TOP_WORKFLOW}}` |
+| What's a phrase or trigger you'd say out loud that should fire this skill? | `{{TRIGGER_PHRASE}}` |
+| What does success look like when this skill finishes? One line describing the win. | `{{SUCCESS_CRITERIA}}` |
+| Any rule the skill should never break? Voice locks, naming conventions, anything else. | `{{HARD_CONSTRAINT}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## Personalization questions (10 total, role-conditional branching)
-
-Each answer is free-form. Hard cap: 500 characters per field.
-
-### Universal questions (everyone answers)
-
-| # | Question | Variable |
-|---|---|---|
-| Q1 | What is your role title? | `{{VP_ROLE}}` |
-| Q2 | What is your division or team? | `{{VP_DIVISION}}` |
-| Q3 | What recurring task do you want your first custom skill to handle? Plain English, one sentence. | `{{VP_FIRST_SKILL_TASK}}` |
-| Q4 | What four-word-or-fewer trigger phrase do you want to fire that skill? | `{{VP_FIRST_SKILL_TRIGGER}}` |
-| Q5 | What format should the skill output in? Pick: email, list, table, paragraph, code block. | `{{VP_FIRST_SKILL_FORMAT}}` |
-
-### Role-conditional questions
-
-**If `{{VP_ROLE}}` contains "BD" or "business development":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q6-BD | Name two more skills you would build next if your first one works. (example: "draft GC follow-up", "score a new RFP") | `{{VP_NEXT_SKILLS}}` |
-| Q7-BD | What pipeline data does your first skill need? (example: "active RFPs in my Outlook folder", "GC list with last contact date", "win/loss history") | `{{VP_BD_DATA_NEED}}` |
-
-**If `{{VP_ROLE}}` contains "Ops" or "Field":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q6-Ops | Name two more skills you would build next. (example: "summarize daily report", "log a punch item") | `{{VP_NEXT_SKILLS}}` |
-| Q7-Ops | What field data does your first skill need? (example: "yesterday's daily report", "current crew on your prevailing-wage project", "open RFIs by project") | `{{VP_OPS_DATA_NEED}}` |
-
-**If `{{VP_ROLE}}` contains "Compliance":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q6-Comp | Name two more skills you would build next. (example: "classify a wage call", "draft audit response") | `{{VP_NEXT_SKILLS}}` |
-| Q7-Comp | What compliance data does your first skill need? (example: "Local 157 vs 926 jurisdiction map", "certified payroll template", "current PLA tier rules") | `{{VP_COMP_DATA_NEED}}` |
-
-### Continued universal questions
-
-| # | Question | Variable |
-|---|---|---|
-| Q8 | Do you want a validation step before each install? Yes (default) or no (skip validation). Yes is recommended for first 5 builds. | `{{VP_VALIDATE_DEFAULT}}` |
-| Q9 | What naming convention do you want for your skills? Default: `{{VP_DIVISION_SLUG}}-<verb>-<noun>` (example: `mech-draft-followup`). | `{{VP_NAMING_CONVENTION}}` |
-| Q10 | Do you want every new skill build to auto-log a Decision Log entry via F-04? Yes (default) or no. Yes builds an audit trail. | `{{VP_AUTO_LOG_BUILDS}}` |
-
-**Prompt-injection guard:** Q3, Q4, Q7 carry user-defined task descriptions and trigger phrases that go into generated SKILL.mds verbatim. We strip "ignore previous instructions", "from now on you are", "act as a", and refuse trigger phrases or task descriptions that ask Claude to perform out-of-scope actions (write phishing, generate creds, exfiltrate data). The build-skill skill includes a "Refusal scope" block that propagates this rule into every skill it generates. Confidence: high.
+**Prompt-injection guard:** same as prior foundations. Confidence: high.
 
 ## Section 8: Generated artifacts
 
-After Q0 through Q10 land, Claude assembles four blocks. The first is Project Knowledge (paste at the bottom of your existing Project Knowledge). The next three are Skills.
+After the personalization questions land, Claude assembles four blocks. The first is Project Knowledge (paste at the bottom of your existing Project Knowledge). The next three are Skills.
 
 ### Artifact 1: Project Knowledge block (Skill Builder discipline)
 
@@ -305,7 +259,7 @@ Present the draft to the user as a code block. Ask: "Want me to validate this dr
 
 Hand off to the validate-skill skill. It runs three test prompts and reports pass/fail. If any fail, surface the failure and ask whether to revise or install anyway.
 
-## Step 4: install (tier-aware)
+## Step 4: install
 
 Pro: append the SKILL.md to the bottom of Project Knowledge.
 Max: same as Pro (desktop app does not currently support filesystem skill install, so the new skill lives inside Project Knowledge).
@@ -436,7 +390,7 @@ Generated from: foundation-05-skill-builder v2.0.0
 Fingerprint: [SHA256 placeholder]
 ```
 
-## Section 9: How to install (tier-aware)
+## Section 9: How to install
 
 | Tier | Project Knowledge block | build-skill | validate-skill | list-my-skills |
 |---|---|---|---|---|

@@ -121,60 +121,19 @@ Open Notion in another tab. Open your Tasks DB. The 3 new rows should be at the 
 | Project | your interior renovation, your interior renovation, your prevailing-wage project (in order) |
 
 If all 3 rows are there with correct properties, the pack works. If they are missing or properties are wrong, the connector did not have write access. Re-authorize in step 2 and pick "all pages" or re-select the Tasks DB.
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+## A few questions, one at a time
 
-Before we ask: Claude Pro is the $20/month plan. Connectors live on Pro and above. Free tier does not have Connectors. Claude Max is the premium plan ($100 or $200 per month), gets the same Connectors plus longer context for parsing larger dictation transcripts. Claude Code does not have Connectors at all (it uses MCP servers instead). If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0:** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| If you answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Default. Pack works exactly as described. |
-| Max | Same flow. Larger dictation transcripts (over 2 minutes of speech) parse cleaner. |
-| Code | Use the Notion MCP server, not the Pro Connector. Same SKILL.md, different write path. We give you the file install path at `~/.claude/skills/<skill-name>/SKILL.md`. |
-| I do not know | Treat as Pro. |
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## 8 personalization questions, role-conditional
-
-Each answer is free-form. Hard cap: 500 characters per field.
-
-**Q1.** What is your role / title? Variable: `{{VP_ROLE}}`
-
-**Q2.** Paste your Notion Tasks DB URL. (Looks like `https://notion.so/yourworkspace/...?v=...`) Variable: `{{TASKS_DB_URL}}`
-
-### Branching by role on Q3 through Q5
-
-**If your Q1 contains "BD" or "Business Development":**
-
-- **Q3 (BD).** Default project tag list (the projects you most often dictate tasks against). (example: your largest GC's interior renovation pursuit, a major owner-builder's interior renovation RFP, an affordable-housing owner pipeline, an HPD-portfolio owner joint pursuit) Variable: `{{PROJECT_TAGS}}`
-- **Q4 (BD).** Default priority for dictated tasks when you do not name one: P1, P2, P3, P4? Variable: `{{DEFAULT_PRIORITY}}`
-- **Q5 (BD).** Default project tag when you do not name one (often "BD pipeline" or "Inbox"). Variable: `{{DEFAULT_PROJECT}}`
-
-**If your Q1 contains "Ops", "Field", "Superintendent", or "Project Executive":**
-
-- **Q3 (Ops).** Default project tag list (your active projects). (example: your interior renovation project, your prevailing-wage project, an affordable-housing owner's interior renovation, your second active project, an occupied-building owner) Variable: `{{PROJECT_TAGS}}`
-- **Q4 (Ops).** Default priority for dictated tasks when you do not name one: P1, P2, P3, P4? Variable: `{{DEFAULT_PRIORITY}}`
-- **Q5 (Ops).** Default project tag when you do not name one (often "Field general" or your most-active project). Variable: `{{DEFAULT_PROJECT}}`
-
-**If your Q1 contains "Compliance":**
-
-- **Q3 (Compliance).** Default project / framework tag list. (example: NYCHA Section 3, Davis-Bacon (federal prevailing wage; your jurisdiction may differ) prevailing wage, NJ DOL, MWBE, OSHA) Variable: `{{PROJECT_TAGS}}`
-- **Q4 (Compliance).** Default priority for dictated tasks: P1, P2, P3, P4? Variable: `{{DEFAULT_PRIORITY}}`
-- **Q5 (Compliance).** Default project / framework tag when not named (often "Compliance general"). Variable: `{{DEFAULT_PROJECT}}`
-
-**If your Q1 does not match any of the above:**
-
-- **Q3 (default).** Default project tag list. Variable: `{{PROJECT_TAGS}}`
-- **Q4 (default).** Default priority for dictated tasks: P1, P2, P3, P4? Variable: `{{DEFAULT_PRIORITY}}`
-- **Q5 (default).** Default project tag when you do not name one. Variable: `{{DEFAULT_PROJECT}}`
-
-**Q6 (all branches).** Default due-date when not specified: today, tomorrow, next business day, or none? Variable: `{{DEFAULT_DUE}}`
-
-**Q7 (all branches).** Should dictation also create a calendar event for any task with a "due tomorrow" or "due today" tag? (yes / no) Variable: `{{ALSO_CREATE_CALENDAR_EVENT}}`
-
-**Q8 (all branches).** Confirmation style: do you want Claude to read back the parsed tasks before writing to Notion, or just write and confirm after? (read-back / write-and-confirm) Variable: `{{CONFIRMATION_STYLE}}`
-
-**Prompt-injection guard:** Q2 (the URL) is the highest-risk field because we use it to call the Notion API. We validate that the URL matches the pattern `^https://(www\.)?notion\.so/[a-zA-Z0-9-]+/[a-f0-9]{32}\?` before saving. Anything that does not match gets rejected and we ask you to repaste. We never concatenate the raw URL into shell or SQL. Confidence: high.
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## Generated artifacts: Project Knowledge addendum + 3 companion Skills
 
@@ -315,13 +274,11 @@ created: 2026-05-08
 Will not auto-close, auto-cancel, or delete a task. The only operation is to update due-date forward by one business day. If a task has rolled more than 3 times, flag it for VP review with a suggested action; do not act unilaterally.
 ```
 
-## How to install (tier-aware)
+## How to install
 
-| Tier | Install path |
-|---|---|
-| Pro | Append Artifacts 1, 2, 3, 4 to your Project Knowledge in the Project you set up in BEG-01. Click Save. Trigger phrases work in any chat inside that Project. |
-| Max | Same as Pro. The desktop app does not currently support filesystem skill install, so the SKILL.md content lives inside Project Knowledge. If you also run Claude Code on the same machine, follow the Code branch for standalone-file loading at `~/.claude/skills/`. |
-| Code | Save Artifact 2 to `~/.claude/skills/{{DIVISION_SLUG}}-voice-to-task/SKILL.md`. Save Artifact 3 to `~/.claude/skills/{{DIVISION_SLUG}}-task-search/SKILL.md`. Save Artifact 4 to `~/.claude/skills/{{DIVISION_SLUG}}-daily-priority-roller/SKILL.md`. Use the Notion MCP server (`mcp__notion__create-pages`) for the connector. Restart Claude Code. |
+Open your Project in Claude. Click into Project knowledge. Paste the artifacts in order: Artifact 1 (the main block) first, then each companion skill as an additional section in the same Project knowledge panel. Click Save.
+
+If you also run Claude Code on this machine, the companion skills can additionally save to `~/.claude/skills/<skill-name>/SKILL.md` for filesystem-level install. Project knowledge plus filesystem skills coexist; the filesystem version auto-registers on Code session restart.
 
 The Code-tier path is `~/.claude/skills/<skill-name>/SKILL.md` per Anthropic's published Claude Code docs (May 2026). Do NOT use `~/Documents/Claude/skills/`. Do NOT use `~/Library/Application Support/Claude/skills/`.
 

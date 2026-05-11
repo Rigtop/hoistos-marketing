@@ -148,31 +148,19 @@ bun run register-mcp
 
 Appends an entry to `~/.claude/mcp_servers.json` (or `claude_desktop_config.json`) wiring `rag-template` as a stdio MCP server. Then save the three SKILL.md files to `~/.claude/skills/<skill-name>/SKILL.md` per artifact emitted by the activation. Restart Claude Code. The `rag-template` server should appear in the tool palette.
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-**Plain English first:** RAG indexing requires local filesystem access, a long-running daemon, and three API key environment variables. claude.ai web (Pro and Max) has none of those. Claude Code CLI does. If you do not have Claude Code installed and ready, stop here and install it (claude.com/code) before continuing. The rest of this pack assumes Code.
+**Free-form. Answer like you would in a text message.**
 
-**The question:** Q0: Do you have Claude Code installed and a terminal open? Yes or no.
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If "no": pack stops. Install Claude Code, come back.
-
-## Personalization questions (8, role-conditional)
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Index target directories | `INDEX_ROOTS` |
-| Q2 | Role tilt: BD, Ops, Compliance, Field, General | `ROLE_TILT` (drives Q3 weighting) |
-| Q3 (BD) | Boost folders for BD work (proposals, pursuits, Notion exports) | `BD_BOOST_PATHS` |
-| Q3 (Ops) | Boost folders for Ops (project files, schedules, war room transcripts) | `OPS_BOOST_PATHS` |
-| Q3 (Compliance) | Boost folders for Compliance (cert payroll, audits, MWBE) | `COMPLIANCE_BOOST_PATHS` |
-| Q3 (Field) | Boost folders for Field (toolbox talks, daily reports, safety) | `FIELD_BOOST_PATHS` |
-| Q4 | File types to include | `FILE_TYPES_INCLUDE` |
-| Q5 | Embedding model preference | `EMBEDDING_MODEL` |
-| Q6 | Similarity threshold | `SIM_THRESHOLD` |
-| Q7 | Reindex frequency | `REINDEX_FREQUENCY` |
-| Q8 | Privacy guards (directories never to touch) | `INDEX_SKIPS` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -214,14 +202,6 @@ Vertical tables. Code blocks for SKILL.md. Plain prose for conversation.
 > Setting up your RAG knowledge search bundle in about 12 minutes. Three skills, one .env file, one reindex cron. After install, Claude can semantic-search every file you have written. Takes about 12 min interview, then indexing runs in background. Ready?
 
 Wait for affirmative.
-
-## Q0 (Code only check)
-
-> Quick check: do you have Claude Code installed and a terminal open? Yes or no.
->
-> RAG indexing needs local filesystem access plus a daemon plus three API keys. claude.ai web tier (Pro / Max) cannot run any of those. Code CLI can. If "no", install Code (claude.com/code) and come back.
-
-If "no": stop. Otherwise capture `WIRE_TIER = code` and proceed.
 
 ## Q1 (index target directories, with input guard)
 

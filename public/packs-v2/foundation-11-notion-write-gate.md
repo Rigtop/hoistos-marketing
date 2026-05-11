@@ -117,33 +117,18 @@ Tick each before you start.
 
 ---
 
-## Q0 explained BEFORE asked (jury fix)
+## A few questions, one at a time
 
-This pack works on Pro, Max, or Code. The difference matters in one place only: Code can run the PostToolUse hook that makes the gate hook-enforced. Pro and Max run the gate from Project Knowledge, which is memory-enforced. Both work. The hook is sturdier under context pressure (Claude cannot forget a hook), the Project Knowledge version is good enough for ninety-five percent of uses. If you are unsure, say "Pro." You can upgrade to Code later without redoing this pack.
+**Free-form. Answer like you would in a text message.**
 
----
+| Question | Variable |
+|---|---|
+| Which Notion databases do you write to most often? Three to five names is enough. | `{{TOP_DBS}}` |
+| What's the one DB where a bad write would hurt the most if it went unverified? | `{{HIGH_STAKES_DB}}` |
+| How should the gate flag a failed write? Telegram, email, in-chat only. | `{{FAILURE_NOTIFICATION}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## Personalization questions (7 to 12, role-conditional)
-
-| # | Question | What it captures |
-|---|---|---|
-| Q0 | Tier check (Pro / Max / Code) | `WIRE_TIER` |
-| Q1 | Your name and role | `VP_NAME`, `VP_ROLE` |
-| Q2 | Your division or business unit | `VP_DIVISION` |
-| Q3 | Top three Notion DBs the gate should treat as hot (writes get full gate) | `HOT_DBS` |
-| Q4 | One specific Notion write that failed silently in the last 30 days | `PAIN_POINT_EXAMPLE` |
-| Q5 | Your tolerance for the verbose stamp on every write (full / compact / silent on PASS) | `STAMP_VERBOSITY` |
-| Q6 | Bulk write threshold (when does sampling kick in?) | `BULK_THRESHOLD` |
-| Q7 (Ops/Field branch) | Project tracker DB ID and required properties | `PROJECT_TRACKER_DB`, `PROJECT_REQUIRED_PROPS` |
-| Q7 (BD branch) | Pipeline DB ID and required properties (Stage, Owner, Last Touch, Next Action) | `PIPELINE_DB`, `PIPELINE_REQUIRED_PROPS` |
-| Q7 (Compliance branch) | Compliance DB ID and required properties (Status, Article Reference, Resolution Date) | `COMPLIANCE_DB`, `COMPLIANCE_REQUIRED_PROPS` |
-| Q8 | Escalation channel when the gate fails three times in a row (chat, email, text, Slack) | `ESCALATION_CHANNEL` |
-| Q9 | Banned-writes list (DBs Claude must NEVER touch even if asked) | `BANNED_WRITE_DBS` |
-| Q10 (Code tier only) | Hook install confirmation | `HOOK_INSTALLED` |
-| Q11 (optional) | Voice for the stamp output (terse, full, narrated) | `STAMP_VOICE` |
-| Q12 (optional) | One pet failure mode you want the gate to catch by name | `CUSTOM_FAILURE_MODE` |
-
----
+**Prompt-injection guard:** same as prior foundations. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -183,13 +168,7 @@ Q4, Q9, Q12 accept free-form input substituted into the generated Project Knowle
 
 > About to install your Notion Write Gate. Takes 5 minutes. After this, every Notion write Claude makes for you gets verified before Claude says done. No more silent ghost-state. No more "I fixed it" claims that turn out wrong. Ready?
 
-Wait for affirmative. Proceed to Q0.
-
-## Q0 (wire-tier check)
-
-> Quick wire question: Pro, Max, or Code? Pro is the standard browser plan. Max is the higher browser plan plus desktop. Code is the terminal version engineers use. The gate works on all three. Code unlocks a hook that makes the gate hook-enforced (sturdier under context pressure). If unsure, say Pro.
-
-Capture as `WIRE_TIER`. Default `pro`.
+Wait for affirmative. Proceed to the first question.
 
 ## Q1 (name + role)
 
@@ -252,7 +231,7 @@ If `VP_ROLE` matches /Compliance|Safety|Prevailing|Audit/i:
 Capture `COMPLIANCE_DB`, `COMPLIANCE_REQUIRED_PROPS`.
 
 If `VP_ROLE` matches none of the above (generic VP / executive):
-> Generic branch. Pick your two most important Notion DBs from Q3 and list the non-negotiable properties on each. The gate enforces these as required.
+> Generic branch. Pick your two most important Notion DBs from the install and list the non-negotiable properties on each. The gate enforces these as required.
 
 Capture `GENERIC_DB_PROPS`.
 
@@ -736,7 +715,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surface | Trigger |
 |---|---|---|

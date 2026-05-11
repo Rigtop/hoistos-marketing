@@ -136,13 +136,13 @@ Open a new chat in the Team AI Enablement project. Paste the entire body of this
 
 **Step 3. Answer the 11 personalization questions + 1 tier wire question (5 minutes).**
 
-Claude asks Q0 (your tier and team plan posture) first, then Q1 through Q11 one at a time. The questions branch by your role and your team composition. If a question confuses you, type `what does this look like in practice` and Claude shows a concrete construction-VP example.
+Claude asks the personalization questions one at a time. The questions branch by your role and your team composition. If a question confuses you, type `what does this look like in practice` and Claude shows a concrete construction-VP example.
 
 > [SCREENSHOT PLACEHOLDER: Claude asking Q3 with a your company 5-report team example]
 
 **Step 4. Run the rollout (1 hour, distributed across the day or done in one block).**
 
-After Q11, Claude emits 5 artifacts: one Project Knowledge block plus four SKILL.md files. You then run `rollout-projects` for each report (5-minute Project provisioning per report), `starter-skill-kit` to push the three baseline skills + F-05 Skill Builder to each report's Project (2 minutes per report), and book the 30-minute onboarding 1-on-1s on the calendar (handled by the rollout-projects skill via Google Calendar MCP).
+After the questions, Claude emits 5 artifacts: one Project Knowledge block plus four SKILL.md files. You then run `rollout-projects` for each report (5-minute Project provisioning per report), `starter-skill-kit` to push the three baseline skills + F-05 Skill Builder to each report's Project (2 minutes per report), and book the 30-minute onboarding 1-on-1s on the calendar (handled by the rollout-projects skill via Google Calendar MCP).
 
 **Step 5. Save the four generated artifacts (1 minute).**
 
@@ -153,25 +153,6 @@ After Q11, Claude emits 5 artifacts: one Project Knowledge block plus four SKILL
 | Code | Same as Max. The four skills load on `claude` startup. `rollout-projects` triggers the per-report provisioning. |
 
 > [SCREENSHOT PLACEHOLDER: Four SKILL.md files saved into their canonical paths]
-
----
-
-## Q0: Which Claude tier are you on AND what is your team posture?
-
-Two-part question for this pack because the rollout depends on both.
-
-| Tier | What it looks like |
-|---|---|
-| Pro (you) + Pro (reports) | You and each report pay individually for claude.ai Pro. Rollout works but skill-share is manual (paste). |
-| Pro (you) + Free (reports) | Reports do not have paid claude.ai. Rollout creates Projects in your account and shares chat links per report. Limited but workable. |
-| Max (you) + Pro (reports) | You have Max, reports have Pro. Skill-share works one-way (you push, they paste). |
-| Max (you) + Max (reports) | Same as above with broader Project Knowledge multi-file support. |
-| Team plan | Recommended. Shared workspace, shared Projects, automatic skill-share via team-published skills. Smoothest rollout. |
-| Code (you) + any (reports) | You run Claude Code locally; reports run claude.ai. Rollout creates claude.ai Projects for each report; you maintain the master skill kit on Code and broadcast to their Projects via the skill-share skill. |
-
-Answer with one of the six options.
-
-Stored as: `{{TIER_POSTURE}}`.
 
 ---
 
@@ -770,12 +751,9 @@ After week 4, the cadence continues: weekly review on Friday, adoption-metrics e
 
 ## Tier-aware install paths
 
-| Tier | Install path |
-|---|---|
-| Pro | All four SKILL.md files paste-stack inside Project Instructions. The chain runs as embedded prompt logic (Pro does not load Code skills). Skill broadcast is manual paste per report (the skill-share skill orchestrates the prompts). |
-| Max | Project Knowledge block in Project Instructions. Four SKILL.md files paste-stack into Project Knowledge under `## Skill: <name>` headings. The Claude desktop app does not currently load custom skills from the filesystem. If the user also runs Claude Code, do the Code install in parallel for the auto-fire chain. |
-| Code | Same as Max. The four skills load on `claude` startup. `rollout-projects` triggers the per-report provisioning. File watcher monitors `~/.claude/skills/` for new skills, prompts skill-share. |
-| Team plan | Recommended for the smoothest rollout. Provision Projects in shared workspace, broadcast skills via team-published skill registry, adoption metrics pull from team-level analytics. The pack works in Team plan with the four skills installed in your account; the rollout-projects skill creates Projects in the shared workspace instead of your personal account. |
+Open your Project in Claude. Click into Project knowledge. Paste the artifacts in order: Artifact 1 (the main block) first, then each companion skill as an additional section in the same Project knowledge panel. Click Save.
+
+If you also run Claude Code on this machine, the companion skills can additionally save to `~/.claude/skills/<skill-name>/SKILL.md` for filesystem-level install. Project knowledge plus filesystem skills coexist; the filesystem version auto-registers on Code session restart.
 
 Per C3 jury install path fix: canonical Code skill location is `~/.claude/skills/<skill-name>/SKILL.md`. Never `~/Documents/...`. Never `~/Library/Application Support/Claude/...` (that is the Claude desktop app path, different loader).
 

@@ -78,30 +78,22 @@ Pairs with Foundation Packs F-01 (voice lock, never-claim-legal-advice rule) and
 | 1 | Open claude.ai or Claude Code. New chat. [SCREENSHOT: empty Claude chat] | 5 sec |
 | 2 | Copy the `=== PASTE FROM HERE ===` block. | 5 sec |
 | 3 | Paste into Claude. Hit return. Claude switches into activation mode. [SCREENSHOT: post-paste, "ready?" message] | 5 sec |
-| 4 | Answer Q0 through Q8. One question at a time. Branches by role. [SCREENSHOT: mid-conversation, Q5 visible] | 7 to 8 min |
+| 4 | Answer the personalization questions, one at a time. Branches by role. [SCREENSHOT: mid-conversation, Q5 visible] | 7 to 8 min |
 | 5 | Claude generates three SKILL.md files plus a Project Knowledge block. Copy each. Install per branched instructions. Run the test. | 60 sec install + 2 min test |
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Pro = $20/mo browser. Max = $100+ /mo browser plus desktop. Code = terminal app, skills install at `~/.claude/skills/<skill-name>/SKILL.md`. If unsure, say "Pro." All three tiers run the bundle. Code adds the ability to auto-load a contract from a local file path; Pro and Max need the PDF uploaded in chat.
+**Free-form. Answer like you would in a text message.**
 
-## Personalization questions (8, role-conditional)
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name | `VP_NAME` |
-| Q2 | Your role tilt: BD, Ops, Compliance, Field, General | `ROLE_TILT` (drives Q3) |
-| Q3 (BD) | Which GC contracts hit your desk most? | `GC_CONTRACT_LIST` BD-flavored |
-| Q3 (Ops) | Which contracts are highest-risk for execution issues? | `GC_CONTRACT_LIST` Ops-flavored |
-| Q3 (Compliance) | Which contracts have the tightest compliance language? | `GC_CONTRACT_LIST` Compliance-flavored |
-| Q3 (Field) | Which contracts shift the most risk to the trade? | `GC_CONTRACT_LIST` Field-flavored |
-| Q4 | Trade focus | `TRADE_FOCUS` |
-| Q5 | Standard exclusions list | `STANDARD_EXCLUSIONS` |
-| Q6 | Payment terms threshold + jurisdiction | `PAYMENT_TERMS_FLAG` + `JURISDICTION` |
-| Q7 | Insurance minimums | `INSURANCE_MINIMUMS` |
-| Q8 | Indemnification preferences | `INDEMNIFICATION_RULES` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -157,12 +149,6 @@ Vertical tables. Code blocks for SKILL.md. Plain prose for conversation.
 > Setting up your Contract Review bundle in about 9 minutes. Three skills, one Project Knowledge block. After install you can drop a 60-pager and get a 1-page risk summary in 2 minutes. I will ask 8 questions. Ready?
 
 Wait for affirmative.
-
-## Q0 (wire-tier check)
-
-> Quick wire question: Pro, Max, or Code? Pro is $20/mo browser. Max is $100+ browser plus desktop. Code is the terminal version with skills loaded from `~/.claude/skills/`. Code adds local file ingestion. If unsure, say "Pro".
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (VP name)
 
@@ -685,7 +671,7 @@ Send:
 > What are my standard exclusions and what is my insurance pushback ceiling?
 > ```
 >
-> Claude reads Project Knowledge, returns the lists from Q5 and Q7. If Claude says "I do not have that information," repaste artifact 1.
+> Claude reads Project Knowledge, returns the lists from the install and Q7. If Claude says "I do not have that information," repaste artifact 1.
 
 # COMMON BREAKS (top 5)
 
@@ -736,7 +722,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

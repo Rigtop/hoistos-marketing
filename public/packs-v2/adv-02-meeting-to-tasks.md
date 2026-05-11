@@ -79,34 +79,24 @@ Pairs with Foundation Packs F-01 (Operating Constitution) for the never-auto-wri
 | 1 | Confirm transcript export is on. Open Zoom (or Meet) settings -> Recording -> Audio Transcript toggle ON. [SCREENSHOT: Zoom settings panel] | 30 sec |
 | 2 | Open claude.ai (or Claude Code). Hit "New chat" or run `claude`. [SCREENSHOT: empty Claude chat input] | 5 sec |
 | 3 | Copy the `=== PASTE FROM HERE ===` block. | 5 sec |
-| 4 | Paste into Claude. Hit return. Claude switches into activation mode and asks Q0. [SCREENSHOT: post-paste, "ready?" message visible] | 5 sec |
-| 5 | Answer Q0 through Q8 (one tier-wire question + 8 personalization questions, one branches by role). Claude generates three SKILL.md files plus a Project Knowledge block. Install per branched instructions. | 8 to 9 min |
+| 4 | Paste into Claude. Hit return. Claude switches into activation mode and asks the first question. [SCREENSHOT: post-paste, "ready?" message visible] | 5 sec |
+| 5 | Answer the personalization questions, one at a time. Claude generates three SKILL.md files plus a Project Knowledge block. Install per branched instructions. | 8 to 9 min |
 
 Then run the verification suite, the onboarding tutorial, and review the Common Breaks. Total experience: 14 to 18 minutes start to first holy-shit.
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Same wire-tier branch pattern. Pro = $20/mo browser. Max = $100+ /mo browser plus desktop. Code = terminal app, skills install at `~/.claude/skills/<skill-name>/SKILL.md`. If unsure, say "Pro." All three tiers run the bundle; only the install path differs.
+**Free-form. Answer like you would in a text message.**
 
-The Code tier additionally supports auto-write to Notion through the Notion MCP server. Pro and Max can preview the task list inline; Notion writes go through the Notion connector wired in claude.ai Settings.
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## Personalization questions (8, role-conditional)
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name as you want it stamped on the bundle | `VP_NAME` |
-| Q2 | Your role tilt: BD, Ops, Compliance, Field, or General | `ROLE_TILT` (drives Q3 branching) |
-| Q3 (BD) | What kinds of GC pursuit meetings do you run? | `MEETING_TYPES` BD-flavored |
-| Q3 (Ops) | What kinds of project execution meetings do you run? | `MEETING_TYPES` Ops-flavored |
-| Q3 (Compliance) | What kinds of audit / payroll / certification meetings do you run? | `MEETING_TYPES` Compliance-flavored |
-| Q3 (Field) | What kinds of field / safety / handoff meetings do you run? | `MEETING_TYPES` Field-flavored |
-| Q4 | Default project owner per meeting type | `DEFAULT_OWNER_MAP` |
-| Q5 | Action-item language patterns you hear most | `ACTION_PATTERNS` |
-| Q6 | Notion DB ID and field map | `NOTION_TASKS_DB` |
-| Q7 | Default due-date logic | `DEFAULT_DUE_LOGIC` |
-| Q8 | Attendee-to-Notion-user mapping (or "use facts-registry") | `ATTENDEE_MAP` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -150,12 +140,6 @@ Vertical tables. Code blocks for SKILL.md output. Plain prose for conversation.
 > Setting up your Meeting-to-Tasks bundle in about 9 minutes. Three skills, one Project Knowledge block. I will ask 8 questions, one at a time. You can skip any with "skip" and I will use sensible defaults. Ready?
 
 Wait for affirmative.
-
-## Q0 (wire-tier check)
-
-> Quick wire question: Pro, Max, or Code? Pro is $20/mo browser. Max is $100+ browser plus desktop. Code is the terminal version with skills loaded from `~/.claude/skills/`. If unsure, say "Pro".
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (VP name)
 
@@ -609,13 +593,13 @@ After verification passes, send:
 > What meeting types do I run, and what is the default project owner for each?
 > ```
 >
-> Claude reads Project Knowledge, returns the table from Q3 / Q4. If Claude says "I do not have that information" or guesses, the Project Knowledge did not save. Repaste artifact 1.
+> Claude reads Project Knowledge, returns the table from the install / Q4. If Claude says "I do not have that information" or guesses, the Project Knowledge did not save. Repaste artifact 1.
 
 # COMMON BREAKS (top 5)
 
 ## Break 1: Parser detects fewer action items than expected
 
-The parser scans for the patterns from Q5 plus universals. If your team uses uncommon language ("[Sub_A] will" with a name not in your roster, or a foreign-language phrase) the parser misses it. Recovery: open the parser SKILL.md, edit the patterns list under "[ACTION_PATTERNS]", add the missed pattern. Save. Re-run the same transcript.
+The parser scans for the patterns from the install plus universals. If your team uses uncommon language ("[Sub_A] will" with a name not in your roster, or a foreign-language phrase) the parser misses it. Recovery: open the parser SKILL.md, edit the patterns list under "[ACTION_PATTERNS]", add the missed pattern. Save. Re-run the same transcript.
 
 ## Break 2: Skill did not register on Code
 
@@ -660,7 +644,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

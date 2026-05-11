@@ -118,67 +118,23 @@ If Claude responds correctly (the skill triggers, the format matches, the voice 
 
 > [SCREENSHOT PLACEHOLDER: chat showing the smoke test prompt and a clean log-decision skill response]
 
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+## A few questions, one at a time
 
-Before we ask: Claude Pro is the entry plan. Project Knowledge holds the Decision Log discipline as text. Claude Max is the premium plan. Same mechanism. Claude Code stores skills as files at `~/.claude/skills/<skill-name>/SKILL.md`. If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0:** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| If you answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Default. Append the Project Knowledge block + the three SKILL.md blocks to your existing Project Knowledge. |
-| Max | Same flow as Pro. The desktop app does not currently support filesystem skill install. If you also run Claude Code, follow the Code branch for standalone-file loading at `~/.claude/skills/`. |
-| Code | Save the Project Knowledge content to your project CLAUDE.md. Save each of the three SKILL.md files to `~/.claude/skills/<skill-name>/SKILL.md`. Restart Claude Code. |
-| I do not know | Treat as Pro. |
+| What kinds of decisions do you most want logged? Strategic calls, hiring, project pivots, voice corrections. | `{{LOG_SCOPE}}` |
+| How often do you want a replay of recent decisions surfaced back to you? Daily, weekly, on-demand only. | `{{REPLAY_CADENCE}}` |
+| Who else needs to see these decisions? Just you, your right-hand person, the leadership team. | `{{VISIBILITY}}` |
+| What's a recent decision worth capturing right now to seed the log? | `{{SEED_DECISION}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## Personalization questions (8 total, role-conditional branching)
-
-Each answer is free-form. Hard cap: 500 characters per field.
-
-### Universal questions (everyone answers)
-
-| # | Question | Variable |
-|---|---|---|
-| Q1 | What is your role title? (example: "VP of Field Operations", "VP of Business Development", "Director of Compliance", "Senior Project Manager") | `{{VP_ROLE}}` |
-| Q2 | What is your division or team? (example: "Mechanical", "Carpentry + Painting", "BD + Estimating", "Compliance + Certified Payroll") | `{{VP_DIVISION}}` |
-| Q3 | What are your top three active projects right now? Plain names. (example: "your largest active project, your prevailing-wage project, an affordable-housing owner's interior renovation") | `{{VP_TOP_PROJECTS}}` |
-
-### Role-conditional questions
-
-**If `{{VP_ROLE}}` contains "BD" or "business development":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q4-BD | Which GCs do you decide pricing on most often? (example: "your largest GC, a major owner-builder, an affordable-housing owner, Related, another mid-market GC, an urban-mixed-use owner, your prevailing-wage project, an HPD-portfolio owner") | `{{VP_GCS}}` |
-| Q5-BD | What is your typical pricing decision lag? Days from RFP-in to bid-out. | `{{VP_BID_LAG}}` |
-
-**If `{{VP_ROLE}}` contains "Ops" or "Field":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q4-Ops | What does a typical project decision look like in your week? (example: "swap super between two jobs", "approve a change order under $25K", "release a sub for a punch item") | `{{VP_OPS_DECISION}}` |
-| Q5-Ops | Who do you most often need to recall a decision FOR? (example: "your principal, your director of operations, the GC PM, my super") | `{{VP_RECALL_AUDIENCE}}` |
-
-**If `{{VP_ROLE}}` contains "Compliance":**
-
-| # | Question | Variable |
-|---|---|---|
-| Q4-Comp | What compliance decisions do you log most? (example: "wage classification calls, certified payroll exception calls, prevailing wage CBA-tier picks") | `{{VP_COMP_DECISION}}` |
-| Q5-Comp | Which audits do you brace for? (example: "DOL field audit, NYCHA Section 3, NYC SCA prevailing wage compliance") | `{{VP_AUDITS}}` |
-
-### Continued universal questions
-
-| # | Question | Variable |
-|---|---|---|
-| Q6 | What format do you want recall to default to? Choose: bullet list, paragraph summary, table, or quoted-verbatim entry. | `{{VP_RECALL_FORMAT}}` |
-| Q7 | What is your fiscal year end? (your company is Nov-Oct. If you do not know, type "calendar year".) | `{{VP_FY_END}}` |
-| Q8 | Pick three reason codes you want to use. Defaults: DECISION, CORRECTION, POLICY. Optional adds: CANONICAL, ARCHITECTURE, RULE, IDEA QUEUE, UNVERIFIED. | `{{VP_REASON_CODES}}` |
-
-**Prompt-injection guard:** Q3, Q4, Q5 carry GC and project names that go into the SKILL.md verbatim. We strip "ignore previous instructions", "from now on you are", "act as a", and any value > 500 chars gets a re-ask. Confidence: high.
+**Prompt-injection guard:** same as prior foundations. Confidence: high.
 
 ## Section 8: Generated artifacts
 
-After Q0 through Q8 land, Claude assembles four blocks. The first is Project Knowledge (paste at the bottom of your existing Project Knowledge). The next three are Skills (install per tier per Q0).
+After the personalization questions land, Claude assembles four blocks. The first is Project Knowledge (paste at the bottom of your existing Project Knowledge). The next three are Skills.
 
 ### Artifact 1: Project Knowledge block (Decision Log discipline)
 
@@ -429,7 +385,7 @@ Generated from: foundation-04-decision-log v2.0.0
 Fingerprint: [SHA256 placeholder]
 ```
 
-## Section 9: How to install (tier-aware)
+## Section 9: How to install
 
 | Tier | Project Knowledge block | log-decision skill | recall-decisions skill | decisions-by-quarter skill |
 |---|---|---|---|---|

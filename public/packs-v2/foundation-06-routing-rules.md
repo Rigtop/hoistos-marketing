@@ -132,42 +132,21 @@ Run a routing audit on ~/Desktop. Show me what is loose, what is misrouted into 
 
 `routing-audit` scans, prints a before/after tree, lists misrouted items, and waits for your confirmation before moving anything. If your Desktop has 50 loose files, this run takes 30 to 60 seconds. If you have 500, it takes two minutes.
 
-Read the proposal. If anything looks wrong, reply: "change X to Y, re-propose". Once you confirm, the skill executes the moves. Renames only, no deletes, your never-touch list (set in Q11) is honored.
-## Q0: tier wire question (with plain-English fallback BEFORE we ask)
+Read the proposal. If anything looks wrong, reply: "change X to Y, re-propose". Once you confirm, the skill executes the moves. Renames only, no deletes, your never-touch list (set during install) is honored.
+## A few questions, one at a time
 
-Before we ask the tier question: Claude Pro is the most common plan and works fully for this pack. Claude Max raises the file-scan ceiling so the audit skill chews through bigger Desktops in one pass. Claude Code is the terminal CLI which already runs on your filesystem and gets the most out of this pack because the skills can move files directly without an MCP server. If you do not know which tier you are on, the answer is Pro.
+**Free-form. Answer like you would in a text message.**
 
-**Question Q0.** Are you on Claude Pro, Claude Max, or Claude Code?
-
-| Answer | We do this |
+| Question | Variable |
 |---|---|
-| Pro | Project Knowledge holds the matrix + skills. File operations need either Filesystem MCP installed (Claude Desktop app) or you paste the moves into Terminal yourself. |
-| Max | Same as Pro, with raised scan ceiling on the audit skill (2000 files vs 500). |
-| Code | Skills live at `~/.claude/skills/`. File operations are native, no MCP needed. The most powerful path. |
-| I do not know | Treat as Pro. |
+| What are your top three output categories right now? Construction deliverables, marketing copy, financials, anything else. | `{{TOP_CATEGORIES}}` |
+| Where do you want each one to land? A folder path, a Notion DB, or both. | `{{CATEGORY_DESTINATIONS}}` |
+| What's the one folder or DB that should NEVER receive cross-contamination from other work? | `{{ISOLATION_LANE}}` |
+| Do you run prevailing-wage, union, or private work, or a mix? I'll wire the work-type filter from your answer. | `{{WORK_TYPES}}` |
+| What's a routing mistake Claude keeps making that you want hard-blocked? | `{{HARD_BLOCK_RULE}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-## Personalization questions (14, role-conditional)
-
-Each answer is free-form, hard cap 500 characters. Branching applies on Q5, Q9, and Q12 based on your role text in Q2.
-
-| # | Question | Variable |
-|---|---|---|
-| Q1 | What is your first name? | `{{VP_NAME}}` |
-| Q2 | What is your role title? Examples: VP of Field Operations, VP of Mechanical, VP of BD, Director of Compliance, COO, Estimating Manager. | `{{VP_ROLE}}` |
-| Q3 | What division or product line do you operate inside? Examples: a general construction division, a specialty trade division, a product line, or another brand entirely. | `{{DIVISION}}` |
-| Q4 | List your top 3 to 5 active projects right now. Examples: your largest active project (221-unit interior reno), your interior renovation project, your prevailing-wage project St. Nicholas, your interior renovation. | `{{ACTIVE_PROJECTS}}` |
-| Q5 | (BD/business-development tilt) Which 3 to 5 GCs are in your top pursuit list? Examples: your largest GC, a major owner-builder, an affordable-housing owner, an institutional owner, an HPD-portfolio owner, another mid-market GC, an occupied-building owner, your prevailing-wage GC. (Field/Ops tilt) Which 3 to 5 trades are most of your scope? Examples: carpentry, painting, plastering, mechanical, plumbing. (Compliance tilt) Which compliance regimes hit you weekly? Examples: prevailing wage, certified payroll, OSHA, NYCHA pre-qual, PLA letters of assent. | `{{ROLE_FOCUS}}` |
-| Q6 | What are the top-level folders you want under `~/Desktop/Outputs/`? Default is the six in Step 1. Add or swap if your division needs it. | `{{TOP_LEVELS}}` |
-| Q7 | Which file types do you save most often? Examples: PDF, Excel, Word, Pages, Keynote, .docx, image (jobsite photos). | `{{FILE_TYPES}}` |
-| Q8 | What naming convention do you want Claude to use when it generates a filename? Options: date-prefix (`2026-05-08-name.pdf`), project-prefix (`<project-slug>-CO-14.pdf`), or role-prefix (`VP-Field-daily-report.pdf`). | `{{NAMING_CONVENTION}}` |
-| Q9 | (BD tilt) Where do BD deliverables live? Default: `Outputs/<Your Company>/BD/`. Override if your division uses a different path. (Field/Ops tilt) Where do daily reports and field deliverables live? Default: `Outputs/<Your Company>/[Project Name]/Daily Reports/`. (Compliance tilt) Where do compliance docs live? Default: `Outputs/Compliance/[Project Name]/` plus `Outputs/Compliance/Insurance/` for COIs. | `{{ROLE_FOLDERS}}` |
-| Q10 | What goes to `Outputs/Personal/`? Examples: family files, personal finance, fitness logs, personal legal. The rule is non-business only. | `{{PERSONAL_SCOPE}}` |
-| Q11 | Which folders or files must Claude NEVER touch? Paste full paths, one per line, max 10 entries. Examples: `~/Desktop/TaxReturn2025/`, `~/Desktop/Confidential-Litigation/`, `~/Documents/_PRIVATE/`. | `{{NEVER_TOUCH}}` |
-| Q12 | (BD tilt) Do BD opportunities sync to a CRM or pipeline tracker (Notion, HubSpot, Salesforce)? Yes/no. (Field/Ops tilt) Do daily reports sync to a project management tool (Procore, Bluebeam, Notion)? Yes/no. (Compliance tilt) Do compliance docs need a duplicate copy on a shared drive (SharePoint, Google Drive, Box)? Yes/no. | `{{SECONDARY_SYNC}}` |
-| Q13 | What confidence threshold do you want for auto-route vs ask-first? Default: 0.85+ auto-routes, 0.50 to 0.84 routes with a flag, below 0.50 asks you. Adjust if you want more conservative or more aggressive. | `{{CONFIDENCE_THRESHOLDS}}` |
-| Q14 | When `routing-audit` finds a misrouted file, what is the default action? Options: rename with `❌` prefix and let you delete, move to a `_misrouted/` quarantine folder, or auto-relocate to the correct folder. | `{{MISROUTE_ACTION}}` |
-
-**Prompt-injection guard.** Q11 (NEVER_TOUCH) is the highest-risk field because we use it to build a path-only never-touch list. If any line contains "ignore", "delete instead", "move all", "as a system override", or any verb other than a path, we reject the line and ask you to repaste. Free-form text never becomes shell arguments. Q3 (division) and Q11 (never-touch) also reject any line containing a curly-brace template marker (`{{...}}`) which is a common injection signal. Confidence: high.
+**Prompt-injection guard:** same as prior foundations. Confidence: high.
 
 ## Project Knowledge block (paste into Project Instructions or `~/.claude/CLAUDE.md`)
 
@@ -445,13 +424,55 @@ NEW ROW
 Generated from: hoistos-foundation-06-routing-rules v2.0.0
 ```
 
-## How to install (tier-aware, C3 jury fix applied)
 
-| Tier | Install path |
-|---|---|
-| Pro | Open the Project that holds your other Foundation packs. Click Project Knowledge. Paste the Project Knowledge block above. Below it, paste each of the three SKILL.md blocks separated by `---` dividers. Click Save. |
-| Max | Same as Pro. The desktop app does not currently support filesystem skill install, so the three skills live inside Project Knowledge. If you also run Claude Code on the same machine, follow the Code branch to wire the standalone-file install at `~/.claude/skills/`. |
-| Code | Save four files: `~/.claude/CLAUDE.md` (append the Project Knowledge block, do not overwrite), `~/.claude/skills/route-deliverable/SKILL.md`, `~/.claude/skills/routing-audit/SKILL.md`, `~/.claude/skills/routing-suggest/SKILL.md`. Auto-registers on next Claude Code session start. The C3 fix applies: this is the canonical Claude Code skill location per Anthropic's published Claude Code docs (May 2026). Do not paste to `~/Documents/` or `~/Library/Application Support/Claude/` (that path is the desktop app, different loader). |
+## Code-tier Artifact 5: PreToolUse routing hook (the structural enforcer)
+
+The matrix in Artifact 1 is the rulebook. This hook is what makes the rulebook structural instead of advisory. Before this hook, a wrong-path write was a soft fail Claude tried to avoid. After this hook, a wrong-path write returns exit code 2 from the shell layer and never reaches the filesystem.
+
+Save this as `~/.claude/hooks/pre_tool_use_routing.sh` and `chmod +x` it.
+
+```bash
+#!/bin/bash
+# PreToolUse hook for Routing Rules F-06
+# Blocks writes to Claude Workspace/ outside allowlisted Global/ and Skills/ subdirs.
+INPUT=$(cat)
+TARGET=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.target // ""')
+if [[ "$TARGET" == *"/Claude Workspace/"* && "$TARGET" != *"/Claude Workspace/Global/"* && "$TARGET" != *"/Claude Workspace/Skills/"* ]]; then
+  echo "Routing gate: $TARGET is not allowlisted under Claude Workspace/. Route to ~/Desktop/Outputs/ per matrix." >&2
+  exit 2
+fi
+exit 0
+```
+
+Then wire it into Claude Code by adding this to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|Bash",
+        "command": "~/.claude/hooks/pre_tool_use_routing.sh"
+      }
+    ]
+  }
+}
+```
+
+If `settings.json` already exists, merge the `PreToolUse` array. Do not overwrite other hook entries.
+
+### What changes on Code
+
+Before this hook, the routing matrix was a suggestion Claude tried to follow. After this hook, bad-path writes get exit-code 2 from the hook before Claude can save them. Same matrix, structural enforcement instead of advisory.
+
+Verify by attempting an off-matrix write: ask Claude to `Write file at ~/Desktop/Outputs/wrong-lane/test.txt`. The hook fires, returns exit 2, and Claude sees the block message. The file does not land.
+
+
+## How to install
+
+Open your Project in Claude. Click into Project knowledge. Paste the artifacts in order: Artifact 1 (the main block) first, then each companion skill as an additional section in the same Project knowledge panel. Click Save.
+
+If you also run Claude Code on this machine, the companion skills can additionally save to `~/.claude/skills/<skill-name>/SKILL.md` for filesystem-level install. Project knowledge plus filesystem skills coexist; the filesystem version auto-registers on Code session restart.
 
 ## Three-prompt verification suite
 
@@ -565,7 +586,7 @@ What you should see: routing-audit runs first, prints a proposal, you confirm, i
 
 Prompt: `Where would the next change order from your top client contact go?`
 
-What you should see: Claude answers without asking who your top client contact is or which project. It should infer your top client contact works at the GC on your interior renovation (or wherever your Q4 active projects place him), classify as Financial (row 1, change order signal), and answer: "Outputs/Financial/your interior renovation/, named per your date-prefix convention." This proves the Project Knowledge is loaded AND your active projects from Q4 are anchoring inference.
+What you should see: Claude answers without asking who your top client contact is or which project. It should infer your top client contact works at the GC on your interior renovation (or wherever your active projects answer place him), classify as Financial (row 1, change order signal), and answer: "Outputs/Financial/your interior renovation/, named per your date-prefix convention." This proves the Project Knowledge is loaded AND your active projects from the install are anchoring inference.
 
 If Claude asks "who is your top client contact?" the Facts Registry (F-02) is not loaded. Install F-02 first.
 

@@ -108,33 +108,19 @@ The bundle fires when you (or Claude on your behalf) tag a deliverable `[high-st
 
 Pick a real deliverable you have drafted (or are about to). Tag `[high-stakes]`. The bundle auto-routes to OpenAI. Wait 30 to 60 seconds. The verdict returns. Read the diff. Decide.
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-**Plain English first:** the jury bundle calls OpenAI's API. That requires either a Claude Code session (which can shell out and call APIs directly) or a Claude Max session that you trigger manually by pasting the deliverable into a separate OpenAI playground. Pro can do the manual path. Auto-routing is Code-only.
+**Free-form. Answer like you would in a text message.**
 
-**The question:** Q0: Are you on Claude Code, Claude Max, or Claude Pro? One word.
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-The pack branches:
-- **Code:** auto-routing wired. SKILLs install at `~/.claude/skills/<skill-name>/SKILL.md`. Skill auto-fires on `[high-stakes]` tag.
-- **Max:** semi-auto. Skill body in Project Instructions. Manual trigger by saying "run the jury on this."
-- **Pro:** manual only. Skill prints a paste-block you copy into ChatGPT or platform.openai.com playground.
-
-## Personalization questions (7, role-conditional)
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your role tilt: BD, Ops, Compliance, Field, General | `ROLE_TILT` (drives Q2) |
-| Q2 (BD) | High-stakes deliverable types for BD | `HIGH_STAKES_TYPES` BD-flavored |
-| Q2 (Ops) | High-stakes deliverable types for Ops | `HIGH_STAKES_TYPES` Ops-flavored |
-| Q2 (Compliance) | High-stakes deliverable types for Compliance | `HIGH_STAKES_TYPES` Compliance-flavored |
-| Q2 (Field) | High-stakes deliverable types for Field | `HIGH_STAKES_TYPES` Field-flavored |
-| Q3 | Critic model (gpt-5-pro / gpt-5 / gpt-4.1) | `CRITIC_MODEL` |
-| Q4 | Monthly USD cap | `MONTHLY_CAP_USD` |
-| Q5 | MAJOR_DISAGREE policy (hold-for-human / auto-revise / log-only) | `MAJOR_DISAGREE_POLICY` |
-| Q6 | Audit log location (jsonl / Notion / both / none) | `AUDIT_LOG_LOCATION` |
-| Q7 | Sensitive-content filter (strip secrets before sending to OpenAI) | `SENSITIVE_FILTER` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -176,12 +162,6 @@ Vertical tables. Code blocks for SKILL.md. Plain prose for conversation.
 > Setting up your multi-model jury bundle in about 8 minutes. Three skills, one state-init script. After install, any deliverable you tag `[high-stakes]` gets adversarially reviewed by GPT-5 before it ships. Cost: typically $5 to $20/month, capped hard. Ready?
 
 Wait for affirmative.
-
-## Q0 (tier wire)
-
-> Quick wire question: Code, Max, or Pro? Code auto-routes to OpenAI on `[high-stakes]` tag. Max is semi-auto (manual trigger). Pro is manual only (paste-block to ChatGPT). If unsure, say "Pro".
-
-Capture as `WIRE_TIER`.
 
 ## Q1 (role tilt, branch driver)
 
@@ -771,7 +751,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

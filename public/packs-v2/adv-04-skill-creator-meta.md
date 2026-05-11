@@ -80,32 +80,22 @@ Pairs hard with Foundation Packs F-01 (the voice-enforcer reads the Operating Co
 | 1 | Open claude.ai or Claude Code. New chat. | 5 sec |
 | 2 | Copy the `=== PASTE FROM HERE ===` block. | 5 sec |
 | 3 | Paste into Claude. Hit return. Claude switches into activation mode. | 5 sec |
-| 4 | Answer Q0 (tier wire) + Q1 to Q8. The 8 questions characterize one specific workflow plus your role. | 7 to 8 min |
+| 4 | Answer the personalization questions, one at a time. The 8 questions characterize one specific workflow plus your role. | 7 to 8 min |
 | 5 | Claude generates THREE SKILL.md files (workflow skill + validator + voice-enforcer) plus a Project Knowledge block. Copy each. Save. Run the test. | 60 sec install + 60 sec test |
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Pro = $20/mo browser. Max = $100+ /mo browser plus desktop. Code = terminal app, skills install at `~/.claude/skills/<skill-name>/SKILL.md`. If unsure, say "Pro." All three tiers can host generated skills. Note: skills that require Bash or shell or file-write capabilities only work on Code; Pro and Max can host the same SKILL.md but the workflow logic must be inline (no shell commands).
+**Free-form. Answer like you would in a text message.**
 
-## Personalization questions (8, role-conditional)
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-This is a meta-skill, so the questions are about YOUR workflow plus your role.
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name | `VP_NAME` |
-| Q2 | Your role tilt: BD, Ops, Compliance, Field, General | `ROLE_TILT` (drives Q3) |
-| Q3 (BD) | Which BD workflow do you repeat most? | `WORKFLOW_NAME` BD-flavored |
-| Q3 (Ops) | Which Ops workflow do you repeat most? | `WORKFLOW_NAME` Ops-flavored |
-| Q3 (Compliance) | Which Compliance workflow do you repeat most? | `WORKFLOW_NAME` Compliance-flavored |
-| Q3 (Field) | Which Field workflow do you repeat most? | `WORKFLOW_NAME` Field-flavored |
-| Q4 | Trigger phrase / slash command | `WORKFLOW_TRIGGER` |
-| Q5 | Inputs the skill needs | `WORKFLOW_INPUTS` |
-| Q6 | Outputs you want + audience | `WORKFLOW_OUTPUTS` + `AUDIENCE` |
-| Q7 | Validation rules (what must NOT happen) | `VALIDATION_RULES` |
-| Q8 | Tone / voice / format preferences | `VOICE_PREFERENCES` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -163,12 +153,6 @@ Vertical tables. Code blocks for SKILL.md. Plain prose for conversation.
 > About to build you a custom bundle for ONE specific workflow you repeat. Three skills, one Project Knowledge block. Takes 8 minutes. After this, you will have a skill that triggers on a phrase you pick and runs the workflow in 90 seconds. Ready?
 
 Wait for affirmative. Then send the workflow-validation gate above.
-
-## Q0 (wire-tier check)
-
-> Quick wire question: Pro, Max, or Code? Pro is $20/mo browser. Max is $100+ browser plus desktop. Code is the terminal version with skills loaded from `~/.claude/skills/`. Skills that need Bash or file-write only work on Code. Skills that just process text work everywhere. If unsure, say "Pro".
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (VP name)
 
@@ -415,7 +399,7 @@ Pattern: [either "ask each input as a separate question, one at a time" or "acce
 2. On first run only, fire workflow-validator to pre-flight check trigger collisions and missing inputs.
 3. Collect inputs per the pattern above. Ask one at a time if sequential.
 4. Run the workflow logic:
-   [WORKFLOW_DESC expanded into 3 to 5 numbered steps based on Q5 / Q6 answers]
+   [WORKFLOW_DESC expanded into 3 to 5 numbered steps based on the install answers]
 5. Produce the output. Match tone, length, audience.
 6. Fire voice-enforcer on the output to strip banned phrases / em dashes.
 7. End with no closer ("Hope this helps" banned). Just stop.
@@ -642,7 +626,7 @@ Send:
 > What is my workflow trigger and what are my banned phrases?
 > ```
 >
-> Claude reads Project Knowledge, returns `[WORKFLOW_TRIGGER.slash_command]` and the banned phrase list from Q8. If Claude says "I do not know," repaste artifact 1.
+> Claude reads Project Knowledge, returns `[WORKFLOW_TRIGGER.slash_command]` and the banned phrase list from the install. If Claude says "I do not know," repaste artifact 1.
 
 # COMMON BREAKS (top 5)
 
@@ -696,7 +680,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

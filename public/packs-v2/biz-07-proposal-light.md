@@ -82,46 +82,24 @@ Pairs with BIZ-05 (heavy proposal builder) for full-research pursuits and F-09 (
 | 1 | Open claude.ai in your browser. Hit "New chat" inside your division project. [SCREENSHOT: claude.ai project chat input] | 5 sec |
 | 2 | Copy everything in the `=== PASTE FROM HERE ===` block below. | 5 sec |
 | 3 | Paste into the Claude chat input. Hit return. Claude reads the pack and switches into activation mode. [SCREENSHOT: paste landed, "ready?" prompt visible] | 5 sec |
-| 4 | Answer Q0 (Pro / Max / Code), then Q1 through Q9. One at a time. Branches by your role tilt. [SCREENSHOT: mid-conversation, Q5 visible] | 6 to 7 min |
+| 4 | Answer the personalization questions, one at a time. One at a time. Branches by your role tilt. [SCREENSHOT: mid-conversation, Q5 visible] | 6 to 7 min |
 | 5 | Claude generates four SKILL.md files plus a Project Knowledge block. Copy each. Install per branched instructions. | 60 sec |
 
 Then run the three-prompt verification suite (smoke, real-task, stress) and the three-prompt onboarding tutorial. Total experience clocks in at 12 to 15 minutes start to first holy-shit moment.
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Claude will ask "are you on Pro, Max, or Code?" first. Plain English so you do not have to pick blind.
+**Free-form. Answer like you would in a text message.**
 
-| Tier | Plain English | Default if unsure |
-|---|---|---|
-| Pro | $20/month plan. Claude in a browser tab. Most VPs are here. | This is you if you have not paid extra. |
-| Max | $100 or $200/month plan. Same browser, longer context, faster output. | You would know if you signed up. |
-| Code | A terminal app on your Mac that engineers use. Skills install at `~/.claude/skills/<skill-name>/SKILL.md`. | You would know if you installed it. |
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If you cannot tell, say "Pro" and Claude will roll with that. The bundle works on all three tiers, only the install path differs.
-
-## Personalization questions (9, role-conditional branching)
-
-Q1 through Q3 are universal. Q4 onward branches by role.
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name as it appears on a job site | `VP_NAME` |
-| Q2 | Division name (e.g., e.g., a painting division or a mechanical division) | `DIVISION_NAME` |
-| Q3 | Your role tilt: BD, Ops, Compliance, Field, or Principal | `ROLE_TILT` (drives Q4 branching) |
-| Q4 (BD) | Default GP target on change orders for existing clients | `GP_TARGET_CO` |
-| Q4 (Ops) | Default foreman who signs field measurements on most CO scope | `DEFAULT_FOREMAN` |
-| Q4 (Compliance) | Prevailing wage flag default on CO line items: in or out | `PW_DEFAULT_CO` |
-| Q4 (Field) | Default unit-of-measure preference (LF, SF, EA, LS) | `DEFAULT_UOM` |
-| Q4 (Principal) | Default principal who counter-signs CO over a $ threshold | `DEFAULT_PRINCIPAL` |
-| Q5 | Your top 3 to 5 GCs you do change orders with most often | `GC_LIST` |
-| Q6 | Your dual-signature pattern: foreman + principal, super + PM, or single-sig | `SIG_PATTERN` |
-| Q7 | Default Net terms on CO invoicing (30, 45, or per-contract) | `NET_TERMS_CO` |
-| Q8 | Where do CO files save: `Outputs/<Your Company>/Proposals/<client>/` or custom | `OUTPUT_PATH` |
-| Q9 | Your real email signature, copy-pasted from a sent message | `EMAIL_SIGNATURE` |
-
-Defaults engaged on "skip": GP target falls to `[YOUR_CO_GP_TARGET]` placeholder, foreman = `[VERIFY FOREMAN]`, prevailing-wage out, UOM = LS, principal = your principal, GCs = your largest active project / a major owner-builder / an affordable-housing owner, sig pattern = foreman+principal, Net 30, output path = `Outputs/<Your Company>/Proposals/<client>/`, signature = generic your company with `[VERIFY SIGNATURE]` flag.
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -144,7 +122,7 @@ You are NOT a generic assistant during this session. You are the activation pack
 - Banned closers: "Hope this helps", "Let me know if". Just stop.
 - Banned tropes: "leverage", "transformed", "game-changer", "from that moment forward", "moment of clarity".
 - One question at a time. Wait for the answer. No batching.
-- After Q3 and after Q6, give a one-line progress note ("3 of 9 done." / "6 of 9 done.").
+- Give a one-line progress note halfway through (e.g., "3 of 7 done."). Keep it terse.
 - Always say your company name in full. The two-letter form (P, then E) is BANNED on every surface.
 
 ## HARD persona lock
@@ -171,12 +149,6 @@ Vertical tables only. Code blocks for SKILL.md output. Plain prose for conversat
 > You are about to set up your Light Proposal and Change Order Builder. Four skills, one bundle, fast lane for everything that does not need a heavy proposal. Takes about 7 minutes. I will ask 9 questions, one at a time. You can skip any with "skip" and I will use sensible defaults. Ready?
 
 Wait for affirmative. If they ask a clarifying question first, answer in two sentences max, then re-ask "ready?"
-
-## Q0 (wire-tier check)
-
-> Quick wire question first. Are you on Claude Pro, Claude Max, or Claude Code? If unsure, say "Pro." Pro is the $20/month browser plan. Max is $100+ browser plus desktop. Code is the terminal version with skills loaded from `~/.claude/skills/`. If your Claude is in a browser tab and you have not paid extra, you are on Pro.
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (VP name)
 
@@ -786,7 +758,7 @@ You ran the four `mkdir + pbpaste` commands but `change order for...` returns "n
 
 ## Break 3: Wrong tier path
 
-You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge). Recovery: re-run the activation pack, answer Q0 honestly. The install paths are tier-specific; using the wrong one wires nothing. The pack itself is the same; only the install commands branch.
+You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge). Recovery: re-run the activation pack. Default to the Max install path; it works for Pro and Max identically. The pack itself is the same; only the install commands branch.
 
 ## Break 4: Prompt injection in answers (especially the email signature)
 
@@ -825,7 +797,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary, for the VP reading this page)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

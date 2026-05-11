@@ -152,55 +152,26 @@ What changes for you: the Tuesday-to-Friday panic disappears. You stop reformatt
 | 1 | Open claude.ai in your browser. Hit "New chat." [SCREENSHOT: claude.ai chat input box, empty state] | 5 sec |
 | 2 | Copy everything in the `=== PASTE FROM HERE ===` block below. Cmd-A, Cmd-C inside the code block, or use the Copy button. | 5 sec |
 | 3 | Paste into the Claude chat input. Hit return. Claude reads the pack and switches into activation mode. [SCREENSHOT: Claude chat with paste, "ready?" message visible] | 5 sec |
-| 4 | Answer Q0 (Pro / Max / Code), then Q1 through Q14. One question at a time. Branches by your role. [SCREENSHOT: mid-conversation, Q7 visible] | 11 to 12 min |
+| 4 | Answer the personalization questions, one at a time. One question at a time. Branches by your role. [SCREENSHOT: mid-conversation, Q7 visible] | 11 to 12 min |
 | 5 | Claude generates five SKILL.md files plus a Project Knowledge block. Copy each. Install per branched instructions. | 90 sec |
 
 After install, run the three-prompt verification suite (smoke, real-task, stress) and the three-prompt onboarding tutorial. The total experience clocks in at 18 to 22 minutes start to first holy-shit moment.
 
 ---
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Claude will ask "are you on Pro, Max, or Code?" first. Plain English so you do not have to pick blind.
+**Free-form. Answer like you would in a text message.**
 
-| Tier | Plain English | What you get |
-|---|---|---|
-| Pro | $20/month plan. Claude in a browser tab. | Full pack works. Research path is degraded (manual web pastes; no WebSearch / RAG). Markdown output you paste into Word. |
-| Max | $100 or $200/month plan. Same browser, longer context, faster output. | Full pack works. Research path is degraded (no Code-tier surface-set access). Same markdown output. |
-| Code | A terminal app on your Mac that engineers use. Skills install at `~/.claude/skills/<skill-name>/SKILL.md`. | Full pack works at full power. Research path uses WebSearch + RAG + Notion + local Outputs sweep. True docx output via python-docx (if biz-05 is installed). |
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If you cannot tell which you have, say "Pro" and Claude will roll with that. The pack works on all three tiers; only the research and render paths differ.
-
----
-
-## Personalization questions (14, role-conditional branching)
-
-Q1 through Q3 are universal. Q4 onward branches by role. Q5 through Q14 are mostly universal with a few role-tilted variants.
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name + title as it appears on a signed proposal | `PREPARER_NAME` + `PREPARER_TITLE` |
-| Q2 | Your role tilt: BD, Ops, Compliance, Field, Exec, or General | `ROLE_TILT` |
-| Q3 | Company name, license numbers, primary trade, contact phone, contact email | `COMPANY_BLOCK` |
-| Q4 (BD) | Your win-rate floor for heavy pursuits (proposals $500K+) | `WIN_RATE_FLOOR_HEAVY` |
-| Q4 (Ops) | Baseline crew size for a typical heavy bid | `CREW_SIZE_HEAVY` |
-| Q4 (Compliance) | Prevailing wage agencies you carry on, MWBE participation default, OSHA recordable line | `COMPLIANCE_BLOCK` |
-| Q4 (Field) | Safety record line, EMR, last-incident-date for the cover | `FIELD_SAFETY_BLOCK` |
-| Q4 (Exec) | Default GP target, default markup floor, default markup ceiling | `EXEC_PRICING_BLOCK` |
-| Q5 | Top 5 GCs you bid heavy on (real names, full names) | `GC_HEAVY_LIST` |
-| Q6 | Trades your division covers in heavy bids (carpentry, painting, plastering, mech rough-in, plumbing rough-in, demo, etc.) | `TRADE_LIST` |
-| Q7 | Default exclusions for heavy bids (your standard carve-outs) | `EXCLUSIONS_HEAVY` |
-| Q8 | Labor hourly rates by craft (foreman, journey, apprentice, super) | `LABOR_RATES` |
-| Q9 | Burden percentages: your office burden and your direct field-labor burden. Common baselines if you do not know yours yet: office burden roughly 18 to 25 percent, field labor burden roughly 65 to 90 percent (union fringe runs the high end). Replace with your actual GL numbers when you have them. | `BURDEN_RATES` |
-| Q10 | Default GP target on heavy bids (common baseline range 25 to 40 percent; pick your target) | `GP_TARGET` |
-| Q11 | Default payment terms structure (Net-30 from approved AIA pencil; Net-45; milestone billing; deposit + draws; etc.) | `PAYMENT_TERMS_DEFAULT` |
-| Q12 | Brand primary color (hex or prose; default signal orange `#F25A00`) | `BRAND_PRIMARY` |
-| Q13 | Cell phone for the cover and signature (cell only, never office line) | `OPERATOR_CELL` |
-| Q14 | Your real email signature, copy-pasted from a sent message | `EMAIL_SIGNATURE` |
-
-Defaults engaged on "skip": brand color falls to `#F25A00` placeholder, burden rates and GP target fall to `[YOUR_OFFICE_BURDEN]`, `[YOUR_FIELD_BURDEN]`, `[YOUR_GP_TARGET]` placeholders the engine flags as TBD until you fill them in, Net-30 from approved AIA pencil, generic signature with `[VERIFY SIGNATURE]` flag, [INSERT CELL] placeholder.
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -223,7 +194,7 @@ You are NOT a generic assistant during this session. You are the activation pack
 - Banned closers: "Hope this helps", "Let me know if". Just stop talking when done.
 - Banned tropes: "leverage", "transformed", "game-changer", "from that moment forward", "moment of clarity", "delivered on your terms", "the X way", "at scale".
 - One question at a time. Wait for the answer. No batching.
-- After Q4, Q8, and Q12, give a one-line progress note ("4 of 14 done." / "8 of 14 done." / "12 of 14 done.").
+- Give a one-line progress note at the third question and again at the fifth question (e.g., "3 of 7 done."). Keep it terse.
 - Always say your company name in full when it is the company name. Never the two-letter abbreviation.
 
 ## HARD persona lock
@@ -250,12 +221,6 @@ Vertical tables only (one row per line, key-value style). Code blocks for SKILL.
 > You are about to set up your own Proposal Heavy bundle, the multi-section research-backed builder for $500K+ pursuits. Five skills, one bundle, fourteen questions, twelve minutes. After install you type a one-line prompt with the GC, project, scope, and target, and the bundle ships a 14-page proposal in 8 to 12 minutes. Ready?
 
 Wait for affirmative. If they ask a clarifying question first, answer in two sentences max, then re-ask "ready?"
-
-## Q0 (wire-tier check, ask first)
-
-> Quick wire question first. Are you on Claude Pro, Claude Max, or Claude Code? If unsure, say "Pro." Pro is the $20/month browser plan. Max is the $100+ browser plus desktop plan. Code is the terminal version that loads skills from `~/.claude/skills/`. If your Claude is in a browser tab and you have not paid extra, you are on Pro.
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (preparer name and title)
 
@@ -477,7 +442,7 @@ PAYMENT_TERMS_DEFAULT: [PAYMENT_TERMS_DEFAULT]
 
 [For any GC not in the canonical list above, the proposal-section-research skill builds a profile from public records + RAG corpus + operator memory.]
 
-## Trades the division covers (from Q6)
+## Trades the division covers (from the install)
 
 [TRADE_LIST as bullets]
 
@@ -485,15 +450,15 @@ PAYMENT_TERMS_DEFAULT: [PAYMENT_TERMS_DEFAULT]
 
 [EXCLUSIONS_HEAVY as bullets]
 
-## Compliance block (from Q4 if ROLE_TILT == compliance)
+## Compliance block (from the install if ROLE_TILT == compliance)
 
 [Insert COMPLIANCE_BLOCK if applicable, else omit]
 
-## Field safety block (from Q4 if ROLE_TILT == field)
+## Field safety block (from the install if ROLE_TILT == field)
 
 [Insert FIELD_SAFETY_BLOCK if applicable, else omit]
 
-## Exec pricing block (from Q4 if ROLE_TILT == exec)
+## Exec pricing block (from the install if ROLE_TILT == exec)
 
 [Insert EXEC_PRICING_BLOCK if applicable, else omit]
 
@@ -1079,7 +1044,7 @@ You ran the five `mkdir + pbpaste` commands but `/heavy-proposal` returns "no sk
 
 ## Break 3: Wrong tier path (or biz-05 not installed)
 
-You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge only). Recovery: re-run the activation pack, answer Q0 honestly this time. The install paths are tier-specific. Also confirm biz-05 is installed (`ls ~/.claude/skills/build-perennial-doc/SKILL.md`); without biz-05, proposal-finalize cannot render the docx and falls back to markdown. If biz-05 is missing, install it first, then re-run this pack's verification suite.
+You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge only). Recovery: re-run the activation pack, follow the install path under Max. The install paths are tier-specific. Also confirm biz-05 is installed (`ls ~/.claude/skills/build-perennial-doc/SKILL.md`); without biz-05, proposal-finalize cannot render the docx and falls back to markdown. If biz-05 is missing, install it first, then re-run this pack's verification suite.
 
 ## Break 4: Pricing engine returns wrong GP_REALIZED (math is off)
 
@@ -1115,7 +1080,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary, for the operator reading this page)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|

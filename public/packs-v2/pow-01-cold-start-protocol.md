@@ -96,43 +96,29 @@ Copy the entire `=== PASTE FROM HERE ===` block below. Paste into the Claude Cod
 
 If the paste is large enough to truncate (rare on Claude Code, common on web), drag the `.md` file into the chat as an attachment instead.
 
-### Step 3: Answer Q0 + Q1 to Q8
-
-Claude asks Q0 first (tier wire), then Q1 to Q8. Total wall-clock: 7 to 10 minutes if you know your answers.
+### Step 3: Answer the personalization questions, one at a time. Total wall-clock: 7 to 10 minutes if you know your answers.
 
 ### Step 4: Receive 4 generated files plus 3 SKILL.md files
 
-After Q8, Claude emits seven artifacts as separate code blocks: 4 cold-start files plus 3 SKILL.md files (cold-start-verify + identity-stamp + rules-enforcer).
+After the questions, Claude emits seven artifacts as separate code blocks: 4 cold-start files plus 3 SKILL.md files (cold-start-verify + identity-stamp + rules-enforcer).
 
 ### Step 5: Save, install hook, restart
 
 Save the 4 files to `~/.claude/cold-start/`. Save the 3 SKILL.md files to `~/.claude/skills/<skill-name>/SKILL.md`. Wire the UserPromptSubmit hook in `~/.claude/settings.json` (the pack provides the JSON snippet). Restart Claude Code (`/exit` then re-launch).
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-**Plain English first:** there are three flavors of Claude. Pro is the $20/month browser plan. Max is $100+ /month browser plus desktop. Code is the terminal app where skills install at `~/.claude/skills/<skill-name>/SKILL.md`. THIS pack is Code-first; Max gets a partial install (files in Project Knowledge plus local files but no auto-fire hook); Pro gets the partial Project Knowledge install only.
+**Free-form. Answer like you would in a text message.**
 
-**The question:** Q0: Are you on Pro, Max, or Code? One word.
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If you answer wrong, the skill body has a guard: Code-only features fall back to read-only mode and note "upgrade to Code to enable auto-loading."
-
-## Personalization questions (8, role-conditional)
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Identity: full name, title, company | `USER_NAME`, `USER_TITLE`, `COMPANY_NAME` |
-| Q2 | Role tilt: BD, Ops, Compliance, Field, General | `ROLE_TILT` (drives Q3) |
-| Q3 (BD) | Top 3 active pursuits | `PROJECT_LIST` BD-flavored |
-| Q3 (Ops) | Top 3 active execution projects | `PROJECT_LIST` Ops-flavored |
-| Q3 (Compliance) | Top 3 active compliance items | `PROJECT_LIST` Compliance-flavored |
-| Q3 (Field) | Top 3 active field operations | `PROJECT_LIST` Field-flavored |
-| Q4 | Communication preferences (voice contract) | `VOICE_CONTRACT` |
-| Q5 | Audience tiers (who you write to in a typical week) | `AUDIENCE_TIERS` |
-| Q6 | Hard rules (3 to 7 zero-tolerance) | `HARD_RULES` |
-| Q7 | Cold-start file paths (default `~/.claude/cold-start/`) | `COLD_START_PATH` |
-| Q8 | Hook firing policy (auto-fire on every prompt vs only on first prompt of session) | `HOOK_POLICY` |
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -176,12 +162,6 @@ Vertical tables. Code blocks for files. Plain prose for conversation.
 > Setting up your cold-start protocol. Every Claude session you open will read 4 files, fire 3 skills, and stamp your identity in 30 seconds. After install your sessions stop starting cold. Takes about 10 minutes. Ready?
 
 Wait for affirmative.
-
-## Q0 (tier wire)
-
-> Quick wire question: Pro, Max, or Code? Pro is $20/mo browser. Max is $100+ /mo browser plus desktop. Code is the terminal version, skills loaded from `~/.claude/skills/`. This pack is Code-first; Max works partially; Pro gets file install only without auto-fire hook. If unsure, say "Pro".
-
-Capture as `WIRE_TIER`.
 
 ## Q1 (identity)
 
@@ -731,7 +711,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary)
+## How to install
 
 | Tier | Files | Skills | Hook |
 |---|---|---|---|

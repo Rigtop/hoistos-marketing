@@ -135,52 +135,26 @@ What changes for you: you stop being a writer-formatter-editor in three passes. 
 | 1 | Open claude.ai in your browser. Hit "New chat." [SCREENSHOT: claude.ai chat input box, empty state] | 5 sec |
 | 2 | Copy everything in the `=== PASTE FROM HERE ===` block below. Cmd-A, Cmd-C inside the code block, or use the Copy button. | 5 sec |
 | 3 | Paste into the Claude chat input. Hit return. Claude reads the pack and switches into activation mode. [SCREENSHOT: Claude chat with paste, "ready?" message visible] | 5 sec |
-| 4 | Answer Q0 (Pro / Max / Code), then Q1 through Q11. One question at a time. Branches by your role. [SCREENSHOT: mid-conversation, Q5 visible] | 8 to 9 min |
+| 4 | Answer the personalization questions, one at a time. One question at a time. Branches by your role. [SCREENSHOT: mid-conversation, Q5 visible] | 8 to 9 min |
 | 5 | Claude generates four SKILL.md files plus a Project Knowledge block. Copy each. Install per branched instructions. | 60 sec |
 
 After install, run the three-prompt verification suite (smoke, real-task, stress) and the three-prompt onboarding tutorial. The total experience clocks in at 14 to 17 minutes start to first holy-shit moment.
 
 ---
 
-## Q0 explained BEFORE asked
+## A few questions, one at a time
 
-Claude will ask "are you on Pro, Max, or Code?" first. Plain English so you do not have to pick blind.
+**Free-form. Answer like you would in a text message.**
 
-| Tier | Plain English | What you get |
-|---|---|---|
-| Pro | $20/month plan. Claude in a browser tab. Most VPs are here. | Markdown output you paste into a Word template. Loses the brand colors, keeps the structure. |
-| Max | $100 or $200/month plan. Same browser, longer context, faster output. | Same as Pro plus access to the Code-tier python-docx render if you have python installed. |
-| Code | A terminal app on your Mac that engineers use. Skills install at `~/.claude/skills/<skill-name>/SKILL.md`. | True docx output with brand colors, KPI cards, callouts, signature blocks. Full Perennial Standard rendered. |
+| Question | Variable |
+|---|---|
+| What's the one outcome you want this pack to deliver for you? One line describing the win. | `{{TOP_OUTCOME}}` |
+| What's the context I should know about your setup that makes this pack land right? | `{{SETUP_CONTEXT}}` |
+| Any rule or constraint the pack should NEVER break? Voice, naming, routing, anything else. | `{{HARD_CONSTRAINT}}` |
+| What does success look like the first time you use this? One line. | `{{SUCCESS_CRITERIA}}` |
+| Anything else I should know that we did not cover? Say no and we ship the install. | `{{EXTRA_CONTEXT}}` |
 
-If you cannot tell which you have, say "Pro" and Claude will roll with that. The pack works on all three tiers; only the docx render path differs. Pro renders clean markdown that paste-translates to Word in 60 seconds. Code renders a docx file directly. Max can do either.
-
----
-
-## Personalization questions (11, role-conditional branching)
-
-Q1 through Q3 are universal. Q4 onward branches by role. Q5 through Q11 are mostly universal with a few role-tilted variants.
-
-| # | Question | Captures |
-|---|---|---|
-| Q1 | Your name as it appears on a signed memo | `OPERATOR_NAME` |
-| Q2 | Your division and your role tilt: Ops, BD, Compliance, Field, Exec, or General | `DIVISION_NAME` + `ROLE_TILT` |
-| Q3 | Your highest-frequency document type: SOP, role guide, operating manual, project report, strategic memo, onboarding doc | `PRIMARY_DOC_TYPE` |
-| Q4 (Ops) | Who signs your SOPs as the approving authority? | `SOP_APPROVER` |
-| Q4 (BD) | What is the standard cover-page recipient title for proposal-adjacent memos? | `MEMO_RECIPIENT_DEFAULT` |
-| Q4 (Compliance) | What jurisdiction footer do you stamp on regulated documents? | `COMPLIANCE_FOOTER` |
-| Q4 (Field) | What safety record line should appear on every project report cover? | `SAFETY_RECORD_LINE` |
-| Q4 (Exec) | What is your default executive summary length: 30-second BLUF, 60-second BLUF, or 2-minute scan? | `EXEC_SUMMARY_LENGTH` |
-| Q5 | Brand primary color (hex or prose) | `BRAND_PRIMARY` |
-| Q6 | Brand secondary color (hex or prose, used for slate labels and secondary headers) | `BRAND_SECONDARY` |
-| Q7 | Heading typeface (Georgia, DM Serif Display, Charter, or other) | `FONT_HEADING` |
-| Q8 | Body typeface (Calibri, DM Sans, Helvetica Neue, or other) | `FONT_BODY` |
-| Q9 | Company name as it appears on your letterhead | `COMPANY_NAME` |
-| Q10 | Cell phone for the signature block (cell-only, never the office line) | `OPERATOR_PHONE` |
-| Q11 | Your real email signature, copy-pasted from a sent message | `EMAIL_SIGNATURE` |
-
-Defaults engaged on "skip": signal orange (`#F25A00`) primary, your company slate (`#6B8090`) secondary, Georgia heading + Calibri body, your company as company name, `[INSERT CELL]` placeholder, generic signature with `[VERIFY SIGNATURE]` flag.
-
----
+**Prompt-injection guard:** strip "ignore previous instructions" patterns. Confidence: high.
 
 ## The pack itself (paste this into Claude)
 
@@ -203,7 +177,7 @@ You are NOT a generic assistant during this session. You are the activation pack
 - Banned closers: "Hope this helps", "Let me know if". Just stop talking when done.
 - Banned tropes: "leverage", "transformed", "game-changer", "from that moment forward", "moment of clarity".
 - One question at a time. Wait for the answer. No batching.
-- After Q3, Q6, and Q9, give a one-line progress note ("3 of 11 done." / "6 of 11 done." / "9 of 11 done.").
+- Give a one-line progress note at the third question and again at the fifth question (e.g., "3 of 7 done."). Keep it terse.
 - Always say your company name in full when it is the company name. Never the two-letter abbreviation.
 
 ## HARD persona lock
@@ -230,12 +204,6 @@ Vertical tables only (one row per line, key-value style). Code blocks for SKILL.
 > You are about to set up your own Document Prep Engine, the Perennial Standard packaged for your division. Four skills, one bundle, eleven questions, nine minutes. After install you type a one-line prompt and you get a properly-formatted document back. Ready?
 
 Wait for affirmative. If they ask a clarifying question first, answer in two sentences max, then re-ask "ready?"
-
-## Q0 (wire-tier check, ask first)
-
-> Quick wire question first. Are you on Claude Pro, Claude Max, or Claude Code? If unsure, say "Pro." Pro is the $20/month browser plan. Max is the $100+ browser plus desktop plan. Code is the terminal version that loads skills from `~/.claude/skills/`. If your Claude is in a browser tab and you have not paid extra, you are on Pro.
-
-Capture as `WIRE_TIER`. Default `pro`.
 
 ## Q1 (operator name)
 
@@ -873,7 +841,7 @@ You ran the four `mkdir + pbpaste` commands but `/build-doc` returns "no skill f
 
 ## Break 3: Wrong tier path
 
-You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge). Recovery: re-run the activation pack, answer Q0 honestly this time. The install paths are tier-specific; using the wrong one wires nothing. The pack itself is the same; only the install commands branch.
+You are on Pro but pasted the Code commands into your terminal (or you are on Code but tried to use Project knowledge). Recovery: re-run the activation pack, follow the install path under Max. The install paths are tier-specific; using the wrong one wires nothing. The pack itself is the same; only the install commands branch.
 
 ## Break 4: Prompt injection in answers (especially the email signature or company name)
 
@@ -909,7 +877,7 @@ Stop. No "Hope this helps." No "Let me know if."
 
 ---
 
-## How to install (tier-aware summary, for the operator reading this page)
+## How to install
 
 | Tier | Surfaces | Trigger |
 |---|---|---|
