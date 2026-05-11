@@ -37,7 +37,8 @@ import type { TimelineDMoment } from '../empire/content/timeline-d-real'
 import { EmpirePreflight } from '../empire/EmpirePreflight'
 import {
   buildCodeCliInstallCommand,
-  buildDeepLinkForPack,
+  // buildDeepLinkForPack removed S200 (Danny test fail). Kept the import
+  // surface in claude-deep-link.ts for code-CLI buildCodeCliInstallCommand.
   readTier,
   writeTier,
   type ClaudeTier,
@@ -465,42 +466,27 @@ async function copyPackToClipboard(packId: string, label: string): Promise<void>
   }
   try {
     await navigator.clipboard.writeText(text)
-    toast.success('Pasted to clipboard. Open Claude.ai and press Cmd+V.')
+    // Two-line toast so the user sees both the success and the next step.
+    // "Press Cmd+V" matters: without that instruction, users open Claude.ai
+    // and stare at the empty input box wondering what happened. Per Danny
+    // Bangiyev test fail S200 2026-05-11: the deep-link path is dead because
+    // Claude correctly refuses fetch-as-install. Paste is the only path that
+    // survives Claude's safety boundary.
+    toast.success(`${label} copied. Opening Claude.ai now. Press Cmd+V (or Ctrl+V on Windows) in the chat to paste, then hit Return.`)
     window.open('https://claude.ai/new', '_blank', 'noopener,noreferrer')
   } catch {
-    toast.error('Clipboard blocked. Allow clipboard access and try again.')
+    toast.error('Clipboard blocked. Allow clipboard access in your browser settings and try again.')
   }
-  void label
 }
 
-// Fires the desktop-app deep link. The browser hands the URL off to the OS,
-// the OS routes claude:// to the registered app handler. Falls back to a
-// toast if the URL exceeds the safe cap (should not happen with bootstrap-
-// only packs but the diagnostic protects future packs).
-function openClaudeDesktop(
-  packId: string,
-  packTitle: string,
-  estimatedMinutes: number,
-  tier: ClaudeTier,
-): void {
-  const result = buildDeepLinkForPack({
-    packId,
-    packTitle,
-    estimatedMinutes,
-    tier,
-  })
-  if (!result.withinCap) {
-    toast.error(
-      'This pack is too large for one-click install. Use the copy and paste path instead.',
-    )
-    return
-  }
-  // window.location.href triggers the OS handoff. Fires a friendly toast
-  // first so the user understands what is happening even if the OS prompt
-  // takes a moment to surface.
-  toast.success('Opening in Claude desktop. If nothing happens, the app is not installed.')
-  window.location.href = result.url
-}
+// REMOVED 2026-05-11 S200: openClaudeDesktop used the claude:// deep-link
+// scheme to ship a bootstrap prompt that asked Claude to fetch the pack URL
+// and install the result as governance rules. Danny Bangiyev test fail:
+// Claude correctly refused as indirect prompt injection. Safety boundary,
+// not a bug. The clipboard-paste path in copyPackToClipboard is the only
+// install path that survives Claude's safety boundary across model variants.
+// claude-deep-link.ts kept for the Code CLI shell-install command and the
+// fragmentation planner; the desktop-URL builders are no longer called.
 
 // Copies the one-line install command for Code-tier users.
 async function copyCodeCliInstall(packId: string): Promise<void> {
@@ -604,106 +590,56 @@ function ActivationZone({
   estimatedMinutes: number
   tier: ClaudeTier
 }) {
-  // Diagnostic preview of the deep-link footprint. Surfaces "X chars
-  // delivered" inline so the user sees we are not handing them a 50KB
-  // mystery URL. Cheap to compute on every render; no async required.
-  const deepLink = useMemo(
-    () =>
-      buildDeepLinkForPack({
-        packId,
-        packTitle: label,
-        estimatedMinutes,
-        tier,
-      }),
-    [packId, label, estimatedMinutes, tier],
-  )
-
-  // Two-path install model after the May 2026 audit: every paid Claude tier
-  // (Pro, Max, Team, Enterprise) ships with Cowork via the desktop app, so
-  // the desktop button shows for Desktop + Code + Unknown. Web copy-paste
-  // is always offered as a fallback for Linux + locked-down work machines.
-  // Code-CLI button stays Code-only so we do not confuse Desktop users with
-  // terminal commands they have no use for.
-  const showDesktop = tier === 'desktop' || tier === 'code' || tier === 'unknown'
-  const showWeb = true
+  // Single-path install model after S200 Danny-test 2026-05-11. The
+  // claude:// deep-link path is DEAD: it shipped a bootstrap that told
+  // Claude to fetch the pack URL and install the result as governance
+  // rules, which is textbook indirect-prompt-injection and Claude is
+  // trained to refuse. Danny Bangiyev's Claude refused cleanly. Paste
+  // is the only path that survives the safety boundary across every
+  // Claude model variant. See claude-deep-link.ts header note.
+  //
+  // Code CLI stays separate: terminal curl is unaffected by Claude's
+  // safety boundary because no Claude instance is involved in the
+  // fetch step.
   const showCode = tier === 'code'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
-        {showDesktop ? (
-          <button
-            type="button"
-            onClick={() => openClaudeDesktop(packId, label, estimatedMinutes, tier)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '14px 22px',
-              borderRadius: 12,
-              background: BRAND.signal,
-              color: '#FFFFFF',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: 15,
-              boxShadow: `0 6px 20px ${BRAND.signalGlow}`,
-              transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow = `0 10px 28px ${BRAND.signalGlow}`
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = `0 6px 20px ${BRAND.signalGlow}`
-            }}
-            data-install-path="desktop"
-            title={`Opens claude:// deep link, ${deepLink.length} chars`}
-          >
-            <span>Open in Claude desktop</span>
-            <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
-              one click, ~{estimatedMinutes} min
-            </span>
-          </button>
-        ) : null}
-
-        {showWeb ? (
-          <button
-            type="button"
-            onClick={() => void copyPackToClipboard(packId, label)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '14px 22px',
-              borderRadius: 12,
-              background: showDesktop ? '#FFFFFF' : BRAND.signal,
-              color: showDesktop ? BRAND.ink : '#FFFFFF',
-              border: showDesktop ? `1px solid ${BRAND.rule2}` : 'none',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: 15,
-              boxShadow: showDesktop
-                ? '0 1px 3px rgba(20,20,19,0.06)'
-                : `0 6px 20px ${BRAND.signalGlow}`,
-              transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-            }}
-            data-install-path="web"
-            title="Copies the full pack to your clipboard and opens claude.ai in a new tab"
-          >
-            <span>{showDesktop ? 'Copy and open Claude.ai' : `Activate ${label}`}</span>
-            <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
-              full pack, ~{estimatedMinutes} min
-            </span>
-          </button>
-        ) : null}
+        <button
+          type="button"
+          onClick={() => void copyPackToClipboard(packId, label)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '14px 22px',
+            borderRadius: 12,
+            background: BRAND.signal,
+            color: '#FFFFFF',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: 15,
+            boxShadow: `0 6px 20px ${BRAND.signalGlow}`,
+            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)'
+            e.currentTarget.style.boxShadow = `0 10px 28px ${BRAND.signalGlow}`
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = `0 6px 20px ${BRAND.signalGlow}`
+          }}
+          data-install-path="paste"
+          title="Copies the full pack to your clipboard, opens claude.ai. Paste with Cmd+V."
+        >
+          <span>Install in Claude</span>
+          <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
+            copy + paste, ~{estimatedMinutes} min
+          </span>
+        </button>
 
         {showCode ? (
           <button
@@ -752,9 +688,7 @@ function ActivationZone({
         }}
       >
         <Dot />
-        {showDesktop
-          ? 'Opens directly in your Claude desktop app. Falls back to the copy and paste path if the app is not installed.'
-          : 'Copies the full pack to your clipboard, then opens claude.ai so you can paste it into a new chat.'}
+        Click Install. The full pack copies to your clipboard. Claude.ai opens in a new tab. Press Cmd+V (Ctrl+V on Windows) and Return.
       </span>
     </div>
   )

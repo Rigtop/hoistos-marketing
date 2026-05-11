@@ -336,35 +336,24 @@ function oneClickInstall(b: BonusBlueprint, tier: ClaudeTier): void {
     return
   }
 
-  // Desktop (Pro / Max / Team / Enterprise): claude://cowork/new?q=<bootstrap>.
+  // Desktop (Pro / Max / Team / Enterprise): clipboard-paste path.
+  //
+  // SUPERSESSION 2026-05-11 S200 (Danny Bangiyev test fail): the prior
+  // claude://cowork/new?q=<bootstrap> path is structurally broken across
+  // Claude model variants. The bootstrap told Claude to fetch the pack URL
+  // and install the result as governance rules, which is textbook indirect
+  // prompt injection and Claude is trained to refuse. Danny's Claude
+  // refused cleanly with the canonical "I won't fetch and execute external
+  // URLs" safety response. The clipboard-paste pattern is the only install
+  // path that survives the safety boundary across every Claude tier and
+  // model variant, because the pack body arrives at Claude as a direct
+  // user-pasted message (trusted), not as a fetched URL (untrusted).
+  //
+  // Delegated to browserFallbackInstall which already implements the
+  // correct flow (open Claude.ai new tab, copy full pack body to
+  // clipboard, instruct user to Cmd+V).
   if (tier === 'desktop') {
-    const fullUrl = `${BONUS_BASE_URL}/${b.id}.md`
-    const bootstrap = [
-      `Install the HoistOS Bonus Extras blueprint: ${b.title}.`,
-      ``,
-      `Use your web-fetch tool to retrieve the full pack from ${fullUrl}, then walk me through install one question per turn.`,
-      `After the personalization questions, emit the artifacts as code blocks with clear "save this as" instructions.`,
-      ``,
-      `Voice rules: no em dashes, no banned openers, plain English.`,
-    ].join('\n')
-    const encoded = encodeURIComponent(bootstrap)
-    const url = `claude://cowork/new?q=${encoded}`
-
-    // Anchor click preserves user-gesture trust on Firefox; the OS routes
-    // the URL to Claude desktop; Cowork dispatcher prefills the composer.
-    const a = document.createElement('a')
-    a.href = url
-    a.style.display = 'none'
-    document.body.appendChild(a)
-    a.click()
-    setTimeout(() => {
-      if (a.parentNode) document.body.removeChild(a)
-    }, 200)
-
-    toast.success(
-      `Opening Cowork with the ${b.title} prompt pre-filled. If Claude does not come to front, Cmd+Tab to it. Hit Return on the prompt.`,
-      { duration: 8000 },
-    )
+    browserFallbackInstall(b)
     return
   }
 
@@ -433,6 +422,8 @@ function browserFallbackInstall(b: BonusBlueprint): void {
     }, 400)
   }
 }
+// Reference kept to prevent unused-function lint warning. browserFallbackInstall
+// is now the canonical desktop install path (S200 Danny test fail supersession).
 void browserFallbackInstall
 
 // USER-DRIVEN INSTALL MODAL.

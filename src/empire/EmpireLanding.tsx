@@ -153,12 +153,12 @@ export function EmpireLanding() {
             },
             {
               n: 2,
-              title: 'Click Open in Cowork',
-              sub: 'Claude opens with the prompt pre-filled',
+              title: 'Click Install in Claude',
+              sub: 'Pack copies to clipboard, Claude opens in a new tab',
             },
             {
               n: 3,
-              title: 'Hit Return',
+              title: 'Press Cmd+V and Return',
               sub: '5 to 10 min later, your Claude is sharper',
             },
           ].map((step, i, arr) => (
