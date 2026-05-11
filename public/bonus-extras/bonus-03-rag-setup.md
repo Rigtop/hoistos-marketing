@@ -42,9 +42,12 @@ dependencies: ["B-05"]
 estimatedActivationMinutes: 110
 personalizationQuestionCount: 4
 version: 1.0.0
+requiresCodeCli: true
 createdBy: HoistOS Bonus Extras v1.0
 fingerprint: bonus-03-rag-setup-v1.0.0
 ---
+
+> **This pack requires Claude Code CLI on your machine.** Pro, Max, or Team desktop alone cannot host the Supabase pgvector daemon, the ingest script, the file-watcher daemon, or the MCP server this pack installs. Install B-05 (Code CLI Setup) first.
 
 # Bonus 03: RAG Setup. Supabase pgvector, Voyage embeddings, Cohere rerank, two-second cited search across your knowledge base.
 

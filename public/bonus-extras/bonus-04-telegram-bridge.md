@@ -40,9 +40,12 @@ dependencies: ["B-05"]
 estimatedActivationMinutes: 60
 personalizationQuestionCount: 3
 version: 1.0.0
+requiresCodeCli: true
 createdBy: HoistOS Bonus Extras v1.0
 fingerprint: bonus-04-telegram-bridge-v1.0.0
 ---
+
+> **This pack requires Claude Code CLI on your machine.** Pro, Max, or Team desktop alone cannot host the Telegram bridge daemon this pack installs. The bridge invokes `claude -p` on the laptop, which is a Code CLI surface. Install B-05 (Code CLI Setup) first.
 
 # Bonus 04: Telegram Bridge. Text the bot from outside the office, Claude answers with full context.
 

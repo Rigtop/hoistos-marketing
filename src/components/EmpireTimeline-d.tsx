@@ -1573,6 +1573,7 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
       </div>
 
       <section
+        id="foundation-cards"
         data-foundation-cards
         style={{
           padding: '0 6vw 80px',

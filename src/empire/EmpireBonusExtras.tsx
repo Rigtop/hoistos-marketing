@@ -46,6 +46,10 @@ interface BonusBlueprint {
   desktopHint: string
   /** Hint for users on Claude Code CLI. */
   codeHint: string
+  /** When true, the pack runs daemons or hooks that require Claude Code CLI
+   *  on the user's machine. Pro/Max desktop cannot host the runtime. Surfaces
+   *  as a "Requires Code CLI" badge on the card. */
+  requiresCodeCli?: boolean
 }
 
 const BLUEPRINTS: BonusBlueprint[] = [
@@ -93,6 +97,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     slug: 'bonus-03-rag-setup',
     number: 'B-03',
     title: 'RAG Setup',
+    requiresCodeCli: true,
     oneLine: 'A search layer that lets Claude answer from your own knowledge instead of from what it was trained on. A watcher on your filesystem indexes every file you create. A daily sync pulls your Notion content into the same index. Ask any question and Claude returns a ranked list of passages from your own writing, with the file path back to the source. The first time you watch Claude answer "what did I tell Steve about the proposal" with citations from a meeting note you forgot you wrote, the upgrade pays for itself.',
     scope: 'The search layer. A watcher on your filesystem and a daily Notion sync feed the index. Claude answers from your own knowledge, not from what it was trained on.',
     installMinutes: 105,
@@ -106,6 +111,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     slug: 'bonus-04-telegram-bridge',
     number: 'B-04',
     title: 'Telegram Bridge',
+    requiresCodeCli: true,
     oneLine: 'A Telegram bot tied to your laptop that lets you reach your full Claude setup from your phone. Text the bot from a jobsite, Claude reads your Notion and your knowledge base, runs whatever skills you have installed, and replies in seconds. The bridge holds your tier identity, your memory, your routing rules, all of it. Same Claude as the one on your laptop, addressable from any pocket.',
     scope: 'Lets you reach your full Claude setup from your phone. Text the bot from a jobsite, Claude reads your Notion and your knowledge base, replies in seconds with the same identity and rules as on your laptop.',
     installMinutes: 60,
@@ -145,6 +151,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     slug: 'bonus-07-hooks-and-daemons',
     number: 'B-07',
     title: 'Hooks Plus Daemons',
+    requiresCodeCli: true,
     oneLine: 'The plumbing that keeps Claude reliable in the long run. Hooks fire before and after every tool call (file writes, Notion writes, email drafts) so your voice rules and routing rules block bad output at the OS exit-code level instead of asking the prompt nicely. Background jobs run on their own schedule with health checks that surface a flag if anything stops working. This is the pack that turns voice rules from advisory text into structural enforcement.',
     scope: 'The plumbing that keeps Claude reliable. Voice and routing rules block bad writes at the OS exit-code level. Background jobs stay alive with health checks. Hooks before and after every tool call.',
     installMinutes: 60,
@@ -977,7 +984,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         </div>
       ) : null}
 
-      <div className="flex items-baseline gap-4 mb-3">
+      <div className="flex items-baseline gap-4 mb-3 flex-wrap">
         <span
           className="font-mono text-[11px] uppercase tracking-[0.22em]"
           style={{ color: 'rgb(var(--color-accent))' }}
@@ -990,6 +997,24 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         >
           {blueprint.installDisplay}
         </span>
+        {/* Code CLI Required badge. Renders only on packs that ship daemons
+            or hooks (B-03 RAG, B-04 Telegram, B-07 Hooks). These cannot run
+            on Pro/Max desktop and need Claude Code CLI on the user's machine.
+            Set per-pack via requiresCodeCli flag on the blueprint manifest. */}
+        {blueprint.requiresCodeCli ? (
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.18em] rounded-md px-2 py-1"
+            style={{
+              color: '#fbfaf3',
+              background: '#141413',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+            }}
+            title="This pack needs Claude Code CLI installed on your machine. Pro/Max desktop alone cannot host the daemons/hooks this pack ships."
+          >
+            Code CLI required
+          </span>
+        ) : null}
       </div>
 
       <h2

@@ -53,11 +53,35 @@ export function EmpireLayout() {
           className="flex items-center gap-5 group"
           style={{ paddingLeft: 8, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup as inline SVG. PNG path was creating
-              perception-clipping issues (transparent padding invisible
-              against cream page bg) and CDN cache headaches. Inline SVG
-              gives 100% pixel control, no cache, no PNG dependency. */}
-          <EmpireWorksLockupSVG />
+          {/* EmpireWorks lockup. Reverted from inline SVG back to the real
+              PNG 2026-05-11 PM for authenticity (SVG was an approximation
+              of the canonical mark). The PNG is the padded 2035x780
+              version with 25% transparent margin on all sides. Wrapped in
+              a subtle off-cream pill so the transparent padding reads
+              against the page background instead of vanishing into it. */}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 14px',
+              background: 'rgba(20,20,19,0.025)',
+              borderRadius: 10,
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="/brand/empireworks-lockup-v3.png"
+              alt="EmpireWorks Reconstruction"
+              style={{
+                height: 56,
+                width: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+                objectPosition: 'left center',
+                flexShrink: 0,
+              }}
+            />
+          </span>
           <span
             aria-hidden="true"
             className="h-7 w-px"
@@ -291,5 +315,8 @@ function EmpireWorksLockupSVG() {
     </svg>
   )
 }
+
+// SVG version retained for fast revert if PNG ever fails. Currently unused.
+void EmpireWorksLockupSVG
 
 export default EmpireLayout

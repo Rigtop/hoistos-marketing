@@ -39,9 +39,12 @@ dependencies: ["B-05"]
 estimatedActivationMinutes: 75
 personalizationQuestionCount: 2
 version: 1.0.0
+requiresCodeCli: true
 createdBy: HoistOS Bonus Extras v1.0
 fingerprint: bonus-07-hooks-and-daemons-v1.0.0
 ---
+
+> **This pack requires Claude Code CLI on your machine.** Pro, Max, or Team desktop alone cannot host the PreToolUse hooks or the launchd daemons this pack installs. Hooks live at `~/.claude/hooks/` and daemons at `~/Library/LaunchAgents/`, both Code-only surfaces. Install B-05 (Code CLI Setup) first.
 
 # Bonus 07: Hooks and Daemons. OS-level enforcement of voice rules plus background workers with health checks.
 
