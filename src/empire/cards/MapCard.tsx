@@ -55,7 +55,7 @@ export function MapCard() {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className="relative rounded-3xl p-8 md:p-10 border overflow-hidden group"
+      className="relative rounded-3xl p-5 sm:p-8 md:p-10 border overflow-hidden group"
       data-card="map"
     >
       <div

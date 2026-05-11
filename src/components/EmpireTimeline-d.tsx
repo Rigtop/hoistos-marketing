@@ -42,6 +42,7 @@ import {
   writeTier,
   type ClaudeTier,
 } from '../empire/lib/claude-deep-link'
+import { useIsMobile } from '../lib/useIsMobile'
 
 // ---------------------------------------------------------------------------
 // Brand tokens.
@@ -862,6 +863,7 @@ function FoundationCard({
   tier: ClaudeTier
 }) {
   const num = String(index + 1).padStart(2, '0')
+  const isMobile = useIsMobile()
 
   return (
     <motion.article
@@ -882,81 +884,167 @@ function FoundationCard({
       }}
       whileHover={{ y: open ? 0 : -2 }}
     >
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '64px 1fr 200px',
-          gap: 24,
-          alignItems: 'center',
-          padding: '26px 28px',
-        }}
-      >
-        <span
-          style={{
-            fontSize: 30,
-            fontWeight: 500,
-            color: open ? BRAND.signal : BRAND.ink4,
-            fontStyle: 'italic',
-            textAlign: 'center',
-            fontVariantNumeric: 'oldstyle-nums',
-          }}
-        >
-          {num}
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: 24,
-              fontWeight: 600,
-              color: BRAND.ink,
-              letterSpacing: '-0.01em',
-              lineHeight: 1.2,
-              display: 'block',
-              marginBottom: 8,
-            }}
-          >
-            {pack.title}
-          </span>
-          <span style={{ fontSize: 16, color: BRAND.ink2, lineHeight: 1.55 }}>
-            {pack.explanation}
-          </span>
-        </div>
+      {/* Mobile (≤767px): vertical stack so the 64px+1fr+200px desktop grid
+          does not overflow a 375px viewport. The minutes pill drops below
+          the body copy as a full-width tap target. Tap-state hint moves
+          inline with the pill so it stays readable.
+          Desktop (≥768px): original 3-column grid preserved. */}
+      {isMobile ? (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 6,
-            justifySelf: 'end',
+            gap: 14,
+            padding: '20px 18px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 500,
+                color: open ? BRAND.signal : BRAND.ink4,
+                fontStyle: 'italic',
+                fontVariantNumeric: 'oldstyle-nums',
+                flexShrink: 0,
+                lineHeight: 1,
+              }}
+            >
+              {num}
+            </span>
+            <span
+              style={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: BRAND.ink,
+                letterSpacing: '-0.01em',
+                lineHeight: 1.25,
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {pack.title}
+            </span>
+          </div>
+          <span style={{ fontSize: 15, color: BRAND.ink2, lineHeight: 1.55 }}>
+            {pack.explanation}
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+              marginTop: 2,
+            }}
+          >
+            <span
+              style={{
+                padding: '11px 18px',
+                borderRadius: 10,
+                background: BRAND.signal,
+                color: BRAND.paper,
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '-0.005em',
+                boxShadow:
+                  '0 8px 20px ' + BRAND.signalGlow + ', inset 0 1px 0 rgba(255,255,255,0.2)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pack.estimatedMinutes} min{open ? ' to install' : ''}
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: BRAND.ink4,
+                fontStyle: 'italic',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {open ? 'tap to close' : 'tap to open'}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '64px 1fr 200px',
+            gap: 24,
+            alignItems: 'center',
+            padding: '26px 28px',
           }}
         >
           <span
             style={{
-              padding: '13px 22px',
-              borderRadius: 10,
-              background: BRAND.signal,
-              color: BRAND.paper,
-              fontSize: 15,
-              fontWeight: 600,
-              letterSpacing: '-0.005em',
-              boxShadow: '0 12px 28px ' + BRAND.signalGlow + ', inset 0 1px 0 rgba(255,255,255,0.2)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {pack.estimatedMinutes} min{open ? ' to install' : ''}
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              color: BRAND.ink4,
+              fontSize: 30,
+              fontWeight: 500,
+              color: open ? BRAND.signal : BRAND.ink4,
               fontStyle: 'italic',
-              letterSpacing: '0.04em',
+              textAlign: 'center',
+              fontVariantNumeric: 'oldstyle-nums',
             }}
           >
-            {open ? 'tap to close' : 'foundation pack'}
+            {num}
           </span>
+          <div style={{ minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: 24,
+                fontWeight: 600,
+                color: BRAND.ink,
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+                display: 'block',
+                marginBottom: 8,
+              }}
+            >
+              {pack.title}
+            </span>
+            <span style={{ fontSize: 16, color: BRAND.ink2, lineHeight: 1.55 }}>
+              {pack.explanation}
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 6,
+              justifySelf: 'end',
+            }}
+          >
+            <span
+              style={{
+                padding: '13px 22px',
+                borderRadius: 10,
+                background: BRAND.signal,
+                color: BRAND.paper,
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: '-0.005em',
+                boxShadow:
+                  '0 12px 28px ' + BRAND.signalGlow + ', inset 0 1px 0 rgba(255,255,255,0.2)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pack.estimatedMinutes} min{open ? ' to install' : ''}
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: BRAND.ink4,
+                fontStyle: 'italic',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {open ? 'tap to close' : 'foundation pack'}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <AnimatePresence initial={false}>
         {open ? (
@@ -973,38 +1061,40 @@ function FoundationCard({
                 height: 1,
                 background:
                   'linear-gradient(90deg, transparent, rgba(20,20,19,0.18), transparent)',
-                marginLeft: 28,
-                marginRight: 28,
-                marginBottom: 24,
+                marginLeft: isMobile ? 18 : 28,
+                marginRight: isMobile ? 18 : 28,
+                marginBottom: isMobile ? 18 : 24,
               }}
             />
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '64px 1fr',
-                gap: 24,
-                padding: '0 28px 32px',
+                gridTemplateColumns: isMobile ? '1fr' : '64px 1fr',
+                gap: isMobile ? 18 : 24,
+                padding: isMobile ? '0 18px 24px' : '0 28px 32px',
               }}
             >
-              <span
-                style={{
-                  fontSize: 11,
-                  color: BRAND.signal,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.18em',
-                  textAlign: 'center',
-                  paddingTop: 6,
-                  fontWeight: 600,
-                }}
-              >
-                {num}
-              </span>
+              {!isMobile ? (
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: BRAND.signal,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.18em',
+                    textAlign: 'center',
+                    paddingTop: 6,
+                    fontWeight: 600,
+                  }}
+                >
+                  {num}
+                </span>
+              ) : null}
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 24,
-                  paddingRight: 24,
+                  gap: isMobile ? 18 : 24,
+                  paddingRight: isMobile ? 0 : 24,
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -1057,6 +1147,7 @@ function ChronoRow({
   const displayExplanation = installable
     ? v2Install?.v2Explanation ?? moment.hook
     : v2Narrative?.v2Explanation ?? moment.hook
+  const isMobile = useIsMobile()
 
   return (
     <motion.div
@@ -1073,96 +1164,211 @@ function ChronoRow({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '54px 1fr 110px 130px 110px',
-          gap: 24,
-          alignItems: 'center',
-          padding: '18px 12px',
+          // Mobile: single column. The desktop 5-col grid sums to ~600px
+          // minimum (54+1fr+110+130+110 + 4×24 gap) which overflows a
+          // 375px viewport and clips the "Get it" pill outside the screen.
+          // On mobile we stack: num + title row, date + category meta row,
+          // get-it pill on its own row at the bottom.
+          gridTemplateColumns: isMobile ? '1fr' : '54px 1fr 110px 130px 110px',
+          gap: isMobile ? 10 : 24,
+          alignItems: isMobile ? 'stretch' : 'center',
+          padding: isMobile ? '16px 14px' : '18px 12px',
         }}
       >
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 500,
-            color: BRAND.ink4,
-            fontStyle: 'italic',
-            textAlign: 'center',
-            fontVariantNumeric: 'oldstyle-nums',
-          }}
-        >
-          {num}
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: 17,
-              fontWeight: 500,
-              color: BRAND.ink,
-              lineHeight: 1.4,
-              display: 'block',
-            }}
-          >
-            {displayTitle}
-          </span>
-          {!open ? (
-            <span
+        {isMobile ? (
+          <>
+            {/* Mobile row 1: number + title together so the chrono-number
+                stays glued to the moment it labels even when the line wraps. */}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: BRAND.ink4,
+                  fontStyle: 'italic',
+                  fontVariantNumeric: 'oldstyle-nums',
+                  flexShrink: 0,
+                  lineHeight: 1,
+                }}
+              >
+                {num}
+              </span>
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: BRAND.ink,
+                  lineHeight: 1.35,
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
+                {displayTitle}
+              </span>
+            </div>
+            {!open ? (
+              <span
+                style={{
+                  fontSize: 14,
+                  color: BRAND.ink3,
+                  lineHeight: 1.5,
+                  display: 'block',
+                }}
+              >
+                {displayExplanation}
+              </span>
+            ) : null}
+            {/* Mobile row 3: meta strip (date + category + get-it pill).
+                flex-wrap so a narrow phone keeps the get-it pill on its
+                own line as a full-width tap target if needed. */}
+            <div
               style={{
-                fontSize: 14,
-                color: BRAND.ink3,
-                lineHeight: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
+                flexWrap: 'wrap',
                 marginTop: 4,
-                display: 'block',
               }}
             >
-              {displayExplanation}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: BRAND.ink3, fontStyle: 'italic' }}>
+                  {fmtMonth(moment.dateShipped)}
+                </span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: BRAND.ink2,
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: dot,
+                      display: 'inline-block',
+                    }}
+                  />
+                  {catLabel(cat)}
+                </span>
+              </span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: installable ? BRAND.signal : BRAND.ink3,
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  background: installable ? BRAND.signalSoft : 'transparent',
+                  border:
+                    '1px solid ' + (installable ? 'rgba(204,110,46,0.25)' : BRAND.rule2),
+                }}
+              >
+                {installable
+                  ? (moment.estimatedActivationMinutes ?? 5) + ' min ↓'
+                  : open
+                  ? 'Close ↑'
+                  : 'Read →'}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <span
+              style={{
+                fontSize: 18,
+                fontWeight: 500,
+                color: BRAND.ink4,
+                fontStyle: 'italic',
+                textAlign: 'center',
+                fontVariantNumeric: 'oldstyle-nums',
+              }}
+            >
+              {num}
             </span>
-          ) : null}
-        </div>
-        <span style={{ fontSize: 13, color: BRAND.ink3, fontStyle: 'italic' }}>
-          {fmtMonth(moment.dateShipped)}
-        </span>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            color: BRAND.ink2,
-          }}
-        >
-          <span
-            aria-hidden
-            style={{
-              width: 9,
-              height: 9,
-              borderRadius: '50%',
-              background: dot,
-              display: 'inline-block',
-            }}
-          />
-          {catLabel(cat)}
-        </span>
-        <span
-          style={{
-            justifySelf: 'end',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 13,
-            fontWeight: 600,
-            color: installable ? BRAND.signal : BRAND.ink3,
-            padding: '7px 14px',
-            borderRadius: 999,
-            background: installable ? BRAND.signalSoft : 'transparent',
-            border: '1px solid ' + (installable ? 'rgba(204,110,46,0.25)' : BRAND.rule2),
-          }}
-        >
-          {installable
-            ? (moment.estimatedActivationMinutes ?? 5) + ' min ↓'
-            : open
-            ? 'Close ↑'
-            : 'Read →'}
-        </span>
+            <div style={{ minWidth: 0 }}>
+              <span
+                style={{
+                  fontSize: 17,
+                  fontWeight: 500,
+                  color: BRAND.ink,
+                  lineHeight: 1.4,
+                  display: 'block',
+                }}
+              >
+                {displayTitle}
+              </span>
+              {!open ? (
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: BRAND.ink3,
+                    lineHeight: 1.5,
+                    marginTop: 4,
+                    display: 'block',
+                  }}
+                >
+                  {displayExplanation}
+                </span>
+              ) : null}
+            </div>
+            <span style={{ fontSize: 13, color: BRAND.ink3, fontStyle: 'italic' }}>
+              {fmtMonth(moment.dateShipped)}
+            </span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+                fontWeight: 500,
+                color: BRAND.ink2,
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: '50%',
+                  background: dot,
+                  display: 'inline-block',
+                }}
+              />
+              {catLabel(cat)}
+            </span>
+            <span
+              style={{
+                justifySelf: 'end',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                color: installable ? BRAND.signal : BRAND.ink3,
+                padding: '7px 14px',
+                borderRadius: 999,
+                background: installable ? BRAND.signalSoft : 'transparent',
+                border: '1px solid ' + (installable ? 'rgba(204,110,46,0.25)' : BRAND.rule2),
+              }}
+            >
+              {installable
+                ? (moment.estimatedActivationMinutes ?? 5) + ' min ↓'
+                : open
+                ? 'Close ↑'
+                : 'Read →'}
+            </span>
+          </>
+        )}
       </div>
 
       <AnimatePresence initial={false}>
@@ -1177,10 +1383,13 @@ function ChronoRow({
           >
             <div
               style={{
-                padding: '12px 12px 32px 78px',
+                // Desktop indents under the 54px num gutter (54 + 24 gap = 78).
+                // Mobile drops the gutter entirely so the body reads at full
+                // viewport width on a 375px phone.
+                padding: isMobile ? '8px 14px 24px' : '12px 12px 32px 78px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
+                gap: isMobile ? 16 : 20,
                 maxWidth: 920,
               }}
               onClick={(e) => e.stopPropagation()}
@@ -1255,6 +1464,7 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
   const showStory = mode === 'story' || mode === 'both'
   const [openFoundation, setOpenFoundation] = useState<string | null>(null)
   const [openChrono, setOpenChrono] = useState<string | null>(null)
+  const isMobile = useIsMobile()
   // Tier defaults to whatever localStorage + URL ?tier= returns. Initial
   // render reads it once. The picker writes through to localStorage so the
   // next visit preserves the choice.
@@ -1445,17 +1655,17 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
           intelligence that grows with your division, forever.
         </p>
 
-        {/* Step-1-2-3 strip on Foundation page. Single horizontal row with
-            arrow connectors between steps to read as a sequence. Each step
-            uses flex: 1 so all three share the row evenly. Prior version
-            used a grid auto-fit which wrapped to a second row at narrower
-            widths and broke the sequence feel. */}
+        {/* Step-1-2-3 strip on Foundation page. Desktop: horizontal row with
+            arrow connectors so the three steps read as a sequence. Mobile:
+            stacks vertically with the arrow rotated 90 degrees so the sequence
+            still reads top-to-bottom. Prior fixed-row layout crammed the text
+            into ~115px-wide columns on a 375px phone, making labels unreadable. */}
         <div
           style={{
             display: 'flex',
-            flexDirection: 'row',
+            flexDirection: isMobile ? 'column' : 'row',
             alignItems: 'stretch',
-            gap: 6,
+            gap: isMobile ? 8 : 6,
             marginTop: 4,
             flexWrap: 'nowrap',
           }}
@@ -1483,9 +1693,9 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                   flex: '1 1 0',
                   minWidth: 0,
                   display: 'flex',
-                  gap: 10,
+                  gap: 12,
                   alignItems: 'flex-start',
-                  padding: 14,
+                  padding: isMobile ? 16 : 14,
                   borderRadius: 12,
                   background: 'rgba(20,20,19,0.03)',
                   border: '1px solid rgba(20,20,19,0.08)',
@@ -1497,12 +1707,12 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 26,
-                    height: 26,
+                    width: 28,
+                    height: 28,
                     borderRadius: '50%',
                     background: BRAND.signal,
                     color: BRAND.paper,
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: 600,
                     flexShrink: 0,
                     fontFamily: 'Newsreader, Georgia, serif',
@@ -1513,7 +1723,7 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                 <div style={{ minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: isMobile ? 15 : 13,
                       fontWeight: 600,
                       color: BRAND.ink,
                       marginBottom: 2,
@@ -1522,7 +1732,13 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                   >
                     {step.title}
                   </div>
-                  <div style={{ fontSize: 11, color: BRAND.ink4, lineHeight: 1.4 }}>
+                  <div
+                    style={{
+                      fontSize: isMobile ? 13 : 11,
+                      color: BRAND.ink4,
+                      lineHeight: 1.4,
+                    }}
+                  >
                     {step.sub}
                   </div>
                 </div>
@@ -1538,8 +1754,10 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                     fontSize: 22,
                     fontWeight: 300,
                     flexShrink: 0,
-                    width: 18,
+                    width: isMobile ? '100%' : 18,
+                    height: isMobile ? 18 : 'auto',
                     opacity: 0.7,
+                    transform: isMobile ? 'rotate(90deg)' : 'none',
                   }}
                 >
                   →
@@ -1788,7 +2006,15 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
               zIndex: 2,
             }}
           >
+            {/* Desktop-only table header. The mobile row layout above carries
+                its own inline meta (date + category + get-it pill) so this
+                column-label strip is redundant + would force a 600px-wide
+                grid below 768px. Hidden via media query rather than the
+                isMobile hook because this is rendered inside EmpireTimelineD
+                directly and we want the header to lay out correctly at the
+                instant the user resizes the window across the breakpoint. */}
             <div
+              className="hidden md:grid"
               style={{
                 fontSize: 11,
                 fontWeight: 600,
@@ -1797,7 +2023,6 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
                 letterSpacing: '0.16em',
                 borderBottom: '1px solid ' + BRAND.rule2,
                 padding: '14px 12px',
-                display: 'grid',
                 gridTemplateColumns: '54px 1fr 110px 130px 110px',
                 gap: 24,
                 alignItems: 'center',

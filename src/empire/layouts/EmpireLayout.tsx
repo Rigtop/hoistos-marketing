@@ -13,12 +13,21 @@
  */
 
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { clearSession, hasSession } from '../session'
+import { useIsMobile } from '../../lib/useIsMobile'
 
 export function EmpireLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Close the mobile menu drawer whenever the route changes so a nav-click
+  // never leaves the drawer hanging open over the next page.
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
 
   // The /empire surface always renders against the LIGHT brand palette.
   // We set data-theme on documentElement so body bg + cascade match.
@@ -45,25 +54,23 @@ export function EmpireLayout() {
       style={{ background: 'rgb(var(--color-bg))', color: 'rgb(var(--color-fg))' }}
     >
       <header
-        className="px-[6vw] py-6 flex items-center justify-between border-b"
+        className="px-[6vw] py-4 md:py-6 flex items-center justify-between border-b gap-3"
         style={{ borderColor: 'rgb(var(--color-border))', background: '#f5f4ed' }}
       >
         <Link
           to="/empire"
-          className="flex items-center gap-5 group"
-          style={{ paddingLeft: 8, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
+          className="flex items-center gap-3 md:gap-5 group min-w-0"
+          style={{ paddingLeft: 4, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup. Reverted from inline SVG back to the real
-              PNG 2026-05-11 PM for authenticity (SVG was an approximation
-              of the canonical mark). The PNG is the padded 2035x780
-              version with 25% transparent margin on all sides. Wrapped in
-              a subtle off-cream pill so the transparent padding reads
-              against the page background instead of vanishing into it. */}
+          {/* EmpireWorks lockup. PNG with 25% transparent margin wrapped in
+              an off-cream pill so the padding reads. Logo height drops from
+              56px to 40px on mobile so the lockup + HoistOS sub-mark fit
+              the narrow header without overflowing into the menu button. */}
           <span
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              padding: '4px 14px',
+              padding: isMobile ? '3px 10px' : '4px 14px',
               background: 'rgba(20,20,19,0.025)',
               borderRadius: 10,
               flexShrink: 0,
@@ -73,7 +80,7 @@ export function EmpireLayout() {
               src="/brand/empireworks-lockup-v3.png"
               alt="EmpireWorks Reconstruction"
               style={{
-                height: 56,
+                height: isMobile ? 40 : 56,
                 width: 'auto',
                 display: 'block',
                 objectFit: 'contain',
@@ -82,69 +89,199 @@ export function EmpireLayout() {
               }}
             />
           </span>
-          <span
-            aria-hidden="true"
-            className="h-7 w-px"
-            style={{ background: 'rgba(20,20,19,0.18)' }}
-          />
-          <span
+          {/* "on HoistOS" sub-mark is hidden on mobile to keep the lockup
+              row narrow enough for the menu button. The HoistOS brand is
+              repeated in the mobile menu drawer below. */}
+          {!isMobile ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="h-7 w-px"
+                style={{ background: 'rgba(20,20,19,0.18)' }}
+              />
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontFamily: "'Newsreader', serif",
+                  fontSize: 18,
+                  color: '#3a3a36',
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                <span style={{ fontStyle: 'italic', color: '#5e5d59' }}>on</span>
+                <img
+                  src="/brand/HoistOS-Lockup-Horizontal.svg"
+                  alt="HoistOS"
+                  style={{ height: 22, width: 'auto', display: 'block' }}
+                />
+              </span>
+            </>
+          ) : null}
+        </Link>
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="empire-mobile-menu"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
-              fontFamily: "'Newsreader', serif",
-              fontSize: 18,
-              color: '#3a3a36',
-              letterSpacing: '-0.005em',
+              justifyContent: 'center',
+              width: 44,
+              height: 44,
+              minWidth: 44,
+              borderRadius: 10,
+              background: 'rgba(20,20,19,0.04)',
+              border: '1px solid rgba(20,20,19,0.12)',
+              color: '#141413',
+              cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
-            <span style={{ fontStyle: 'italic', color: '#5e5d59' }}>on</span>
-            <img
-              src="/brand/HoistOS-Lockup-Horizontal.svg"
-              alt="HoistOS"
-              style={{ height: 22, width: 'auto', display: 'block' }}
-            />
-          </span>
-        </Link>
+            {/* Hand-rolled hamburger / close glyph so we do not add a new
+                icon import for a 3-line shape. lucide-react Menu/X would
+                also work; inline SVG keeps the bundle one icon lighter. */}
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              {menuOpen ? (
+                <path
+                  d="M6 6l12 12M18 6l-12 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              ) : (
+                <>
+                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </>
+              )}
+            </svg>
+          </button>
+        ) : (
+          <nav
+            className="flex items-center gap-8 text-sm"
+            style={{ color: '#5e5d59', fontFamily: "'Newsreader', serif" }}
+          >
+            <Link
+              to="/empire"
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+            >
+              Overview
+            </Link>
+            <Link
+              to="/empire/foundation"
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+            >
+              Foundation
+            </Link>
+            <Link
+              to="/empire/bonus-extras"
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+            >
+              Advanced
+            </Link>
+            <Link
+              to="/empire/timeline"
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+            >
+              Timeline
+            </Link>
+            <a
+              href="https://calendly.com/eugeenbernan"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#fbfaf3',
+                fontWeight: 600,
+                fontSize: 14,
+                background: '#cc6e2e',
+                padding: '6px 14px',
+                borderRadius: 999,
+                textDecoration: 'none',
+                boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
+              }}
+            >
+              Book a walkthrough
+            </a>
+            {!onAuthSurface && hasSession() ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm hover:text-fg transition-colors"
+                style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              >
+                Sign out
+              </button>
+            ) : null}
+          </nav>
+        )}
+      </header>
+
+      {/* Mobile drawer. Renders below the header when menuOpen is true.
+          Stacks every nav link + CTA vertically with tap targets ≥44px per
+          iOS Human Interface Guidelines. The drawer closes on route change
+          via the useEffect at component top. */}
+      {isMobile && menuOpen ? (
         <nav
-          className="flex items-center gap-8 text-sm"
-          style={{ color: '#5e5d59', fontFamily: "'Newsreader', serif" }}
+          id="empire-mobile-menu"
+          aria-label="Main menu"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            padding: '12px 6vw 20px',
+            borderBottom: '1px solid rgb(var(--color-border))',
+            background: '#f5f4ed',
+            fontFamily: "'Newsreader', serif",
+          }}
         >
-          <Link
-            to="/empire"
-            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
-          >
-            Overview
-          </Link>
-          <Link
-            to="/empire/foundation"
-            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
-          >
-            Foundation
-          </Link>
-          <Link
-            to="/empire/bonus-extras"
-            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
-          >
-            Advanced
-          </Link>
-          <Link
-            to="/empire/timeline"
-            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
-          >
-            Timeline
-          </Link>
+          {[
+            { to: '/empire', label: 'Overview' },
+            { to: '/empire/foundation', label: 'Foundation' },
+            { to: '/empire/bonus-extras', label: 'Advanced' },
+            { to: '/empire/timeline', label: 'Timeline' },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: 'block',
+                padding: '14px 12px',
+                fontSize: 17,
+                fontWeight: 500,
+                color: '#141413',
+                textDecoration: 'none',
+                borderRadius: 8,
+                background:
+                  location.pathname === item.to
+                    ? 'rgba(204,110,46,0.08)'
+                    : 'transparent',
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
           <a
             href="https://calendly.com/eugeenbernan"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => setMenuOpen(false)}
             style={{
-              color: '#fbfaf3',
+              display: 'block',
+              textAlign: 'center',
+              marginTop: 8,
+              padding: '14px 16px',
+              fontSize: 16,
               fontWeight: 600,
-              fontSize: 14,
+              color: '#fbfaf3',
               background: '#cc6e2e',
-              padding: '6px 14px',
-              borderRadius: 999,
+              borderRadius: 12,
               textDecoration: 'none',
               boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
             }}
@@ -154,22 +291,33 @@ export function EmpireLayout() {
           {!onAuthSurface && hasSession() ? (
             <button
               type="button"
-              onClick={handleSignOut}
-              className="text-sm hover:text-fg transition-colors"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              onClick={() => {
+                setMenuOpen(false)
+                handleSignOut()
+              }}
+              style={{
+                marginTop: 4,
+                padding: '12px 12px',
+                fontSize: 14,
+                color: '#5e5d59',
+                background: 'transparent',
+                border: 'none',
+                textAlign: 'left',
+                cursor: 'pointer',
+              }}
             >
               Sign out
             </button>
           ) : null}
         </nav>
-      </header>
+      ) : null}
 
       <main className="flex-1">
         <Outlet />
       </main>
 
       <footer
-        className="px-[6vw] py-10 border-t flex justify-between items-end flex-wrap gap-6"
+        className="px-[6vw] py-10 border-t flex flex-col md:flex-row md:justify-between md:items-end items-start flex-wrap gap-6"
         style={{
           borderColor: 'rgba(20,20,19,0.1)',
           background: '#efeee5',
@@ -178,7 +326,7 @@ export function EmpireLayout() {
       >
         <div
           style={{
-            fontSize: 18,
+            fontSize: isMobile ? 16 : 18,
             color: '#141413',
             fontStyle: 'italic',
             maxWidth: 720,

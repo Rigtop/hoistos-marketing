@@ -513,7 +513,12 @@ function ModuleOneTeaser({ audience }: { audience: Audience }) {
   return (
     <section
       data-module-one-teaser
-      className="mt-32 max-w-7xl mx-auto px-[6vw]"
+      // Parent EmpireLanding container already applies px-[6vw]. Repeating
+      // the same horizontal padding here doubles the gutter on mobile and
+      // squeezes the live-dashboard iframe to ~70% of available width.
+      // Drop the inner padding; keep mt-32 + max-w-7xl + mx-auto for the
+      // section's vertical rhythm and centered max-width on desktop.
+      className="mt-24 md:mt-32 max-w-7xl mx-auto"
       aria-labelledby="module-one-heading"
     >
       <div className="text-center mb-12">
@@ -706,11 +711,15 @@ function CalendlyInline() {
       </div>
 
       {/* Calendly inline widget mount. The widget script is loaded by
-          useCalendlyScript() above; this div is the target. */}
+          useCalendlyScript() above; this div is the target. minWidth
+          dropped (was 320px) so the widget never forces horizontal
+          overflow on iPhone SE (320px viewport). The Calendly widget
+          handles its own internal min-width with a responsive layout
+          starting at 280px. */}
       <div
         className="calendly-inline-widget"
         data-url={`${CALENDLY_URL}?hide_gdpr_banner=1&primary_color=cc6e2e&text_color=141413&background_color=fbfaf3`}
-        style={{ minWidth: '320px', height: '720px', flex: 1 }}
+        style={{ width: '100%', height: '720px', flex: 1 }}
       />
 
       <div
