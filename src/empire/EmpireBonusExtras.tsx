@@ -23,7 +23,7 @@ import { motion } from 'motion/react'
 import { ArrowRight, CheckCircle2, Download, ExternalLink, Globe2, Terminal } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { type ClaudeTier, readTier, writeTier } from './lib/claude-deep-link'
-import { EmpirePreflight } from './EmpirePreflight'
+// EmpirePreflight import removed 2026-05-11: preflight moved to Foundation page.
 import {
   PostInstallPanel,
   type PostInstallContext,
@@ -706,12 +706,19 @@ export function EmpireBonusExtras() {
     setTier(next)
     writeTier(next)
   }
+  // void markers keep TS from flagging these after tier-picker UI removal.
+  void handleTierPick
+  void TierPicker
 
   function scrollToTierPicker() {
     if (tierPickerRef.current) {
       tierPickerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
+  // Kept after preflight relocation 2026-05-11 for any future component that
+  // needs to surface the picker from elsewhere on the page. void marker
+  // prevents the TS6133 unused-decl warning.
+  void scrollToTierPicker
 
   // Post-install context builder. Called by BlueprintCard right after the
   // user clicks an install button. We use the current tier + the just-clicked
@@ -791,38 +798,17 @@ export function EmpireBonusExtras() {
           questions and handles the rest itself. Pick one and start.
         </motion.p>
 
-        {/* Tier picker. The choice persists across visits and carries to the timeline page. */}
-        <motion.div
-          ref={tierPickerRef}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          className="flex flex-col items-center gap-3 mb-12"
-        >
-          <span
-            className="font-mono text-[11px] uppercase tracking-[0.22em]"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
-          >
-            Pick your tier so the install button matches
-          </span>
-          <TierPicker tier={tier} onPick={handleTierPick} />
-          <span
-            className="text-sm"
-            style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}
-          >
-            {tier === 'unknown'
-              ? 'Not picked yet. Desktop is the safe default if you are unsure.'
-              : tier === 'desktop'
-              ? 'Desktop: one click opens Claude with the install prompt pre-filled in Cowork. Works on Pro, Max, Team, or Enterprise.'
-              : 'Code: one-line shell command drops the blueprint into your skills folder.'}
-          </span>
-        </motion.div>
+        {/* Tier picker removed 2026-05-11 per Steve live feedback. Install
+            path defaults to Desktop universally. ref kept on a hidden div
+            so the scrollToTierPicker callback below does not throw. */}
+        <div ref={tierPickerRef} aria-hidden="true" style={{ display: 'none' }} />
       </section>
 
-      {/* Before-You-Install preflight. Five-step inline checklist that
-          surfaces paid-plan + desktop-app + Cowork-handler preconditions
-          before the user clicks anything in the blueprint grid. */}
-      <EmpirePreflight tier={tier} onScrollToPicker={scrollToTierPicker} />
+      {/* Preflight relocated to Foundation page 2026-05-11 per Eugeen.
+          The "download Claude desktop / sign in / pick tier" checklist
+          applies to Foundation packs (installed first), not Advanced.
+          Advanced visitors are expected to have already completed the
+          preflight on the Foundation page. */}
 
       <section className="mt-8 max-w-4xl mx-auto space-y-8">
         {BLUEPRINTS.map((b, idx) => (

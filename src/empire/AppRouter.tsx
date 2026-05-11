@@ -21,7 +21,7 @@ import { Route, Routes } from 'react-router-dom'
 import { HoistOSHome } from '../HoistOSHome'
 import { EmpireLayout } from './layouts/EmpireLayout'
 import { EmpireLanding } from './EmpireLanding'
-import { EmpireTimelinePage } from './EmpireTimelinePage'
+import { EmpireTimelinePage, EmpireStoryPage } from './EmpireTimelinePage'
 import { EmpirePackDetail } from './EmpirePackDetail'
 import { EmpireBonusExtras } from './EmpireBonusExtras'
 
@@ -39,10 +39,14 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<HoistOSHome />} />
 
-        {/* Canonical: scrolophyte at /empireworksreconstruction */}
+        {/* Canonical: scrolophyte at /empireworksreconstruction.
+            4-tab IA (2026-05-11): /foundation = 10 packs, /timeline = story,
+            /bonus-extras = Advanced. Legacy /timeline alias kept pointing
+            at Foundation for any pre-restructure shared links. */}
         <Route path="/empireworksreconstruction" element={<EmpireLayout />}>
           <Route index element={<EmpireLanding />} />
-          <Route path="timeline" element={<EmpireTimelinePage />} />
+          <Route path="foundation" element={<EmpireTimelinePage />} />
+          <Route path="timeline" element={<EmpireStoryPage />} />
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
         </Route>
@@ -50,7 +54,8 @@ export function AppRouter() {
         {/* Legacy alias: /empire */}
         <Route path="/empire" element={<EmpireLayout />}>
           <Route index element={<EmpireLanding />} />
-          <Route path="timeline" element={<EmpireTimelinePage />} />
+          <Route path="foundation" element={<EmpireTimelinePage />} />
+          <Route path="timeline" element={<EmpireStoryPage />} />
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
         </Route>

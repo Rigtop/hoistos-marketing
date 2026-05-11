@@ -38,9 +38,40 @@ export function EmpireTimelinePage() {
           },
         }}
       />
-      <EmpireTimelineD moments={TIMELINE_D_REAL} />
+      <EmpireTimelineD moments={TIMELINE_D_REAL} mode="foundation" />
     </div>
   )
 }
 
 export default EmpireTimelinePage
+
+// ---------------------------------------------------------------------------
+// EmpireStoryPage: chronological narrative ONLY (the /timeline route after
+// the 4-tab IA split 2026-05-11). Foundation cards moved to /foundation
+// route via EmpireTimelinePage with mode='foundation'.
+// ---------------------------------------------------------------------------
+export function EmpireStoryPage() {
+  return (
+    <div style={{ background: '#f5f4ed', color: '#141413' }}>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: 'rgba(20,20,19,0.95)',
+            color: '#f5f4ed',
+            borderRadius: '12px',
+            fontSize: '14px',
+            border: '1px solid rgba(204,110,46,0.4)',
+            padding: '14px 18px',
+            boxShadow: '0 18px 40px rgba(204,110,46,0.18)',
+            fontFamily: "'Newsreader', serif",
+          },
+          success: {
+            iconTheme: { primary: '#cc6e2e', secondary: '#f5f4ed' },
+          },
+        }}
+      />
+      <EmpireTimelineD moments={TIMELINE_D_REAL} mode="story" />
+    </div>
+  )
+}

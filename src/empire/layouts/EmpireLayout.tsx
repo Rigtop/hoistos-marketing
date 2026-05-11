@@ -53,39 +53,11 @@ export function EmpireLayout() {
           className="flex items-center gap-5 group"
           style={{ paddingLeft: 8, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup. Triple defense against the clipping
-              perception that plagued prior attempts:
-              1. v3 filename forces CDN edge cache to refetch (prior versions
-                 were sitting in Vercel edge cache age 558s, so even after
-                 the PNG was repadded the served bytes were stale).
-              2. PNG has 25% transparent padding baked in (2035x780 with
-                 artwork inset 339px each side, 130px top/bottom = 16.7%
-                 visible margin on every side at render).
-              3. Wrapper span adds 8px additional CSS padding so even if the
-                 PNG perception is off, the visible image area has guaranteed
-                 breathing room independent of the PNG content. */}
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '4px 12px 4px 4px',
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src="/brand/empireworks-lockup-v3.png"
-              alt="EmpireWorks Reconstruction"
-              style={{
-                height: 56,
-                width: 'auto',
-                display: 'block',
-                objectFit: 'contain',
-                objectPosition: 'left center',
-                imageRendering: 'auto',
-                flexShrink: 0,
-              }}
-            />
-          </span>
+          {/* EmpireWorks lockup as inline SVG. PNG path was creating
+              perception-clipping issues (transparent padding invisible
+              against cream page bg) and CDN cache headaches. Inline SVG
+              gives 100% pixel control, no cache, no PNG dependency. */}
+          <EmpireWorksLockupSVG />
           <span
             aria-hidden="true"
             className="h-7 w-px"
@@ -121,7 +93,7 @@ export function EmpireLayout() {
             Overview
           </Link>
           <Link
-            to="/empire/timeline"
+            to="/empire/foundation"
             style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
           >
             Foundation
@@ -131,6 +103,12 @@ export function EmpireLayout() {
             style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
           >
             Advanced
+          </Link>
+          <Link
+            to="/empire/timeline"
+            style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+          >
+            Timeline
           </Link>
           <a
             href="https://calendly.com/eugeenbernan"
@@ -243,6 +221,74 @@ export function EmpireLayout() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// EmpireWorksLockupSVG. Inline SVG version of the EmpireWorks Reconstruction
+// lockup. Authored from scratch so we have 100% pixel control: no PNG cache,
+// no transparent-padding-perception issues, no CDN edge-cache gotchas.
+//
+// Composition (matches the canonical PNG at empireworks.com):
+//   - Three-color flag mark (yellow + red + blue triangles) above the text
+//   - "EmpireWorks" wordmark in bold sans-serif (uses Inter Black via font-family)
+//   - Yellow horizontal rule between EmpireWorks and RECONSTRUCTION
+//   - "RECONSTRUCTION" subtype in bold uppercase with letter-spacing
+//
+// viewBox sized so artwork has 12% padding on every side, guaranteeing
+// visible breathing room without any CSS wrapper.
+// ---------------------------------------------------------------------------
+
+function EmpireWorksLockupSVG() {
+  return (
+    <svg
+      viewBox="0 0 480 240"
+      role="img"
+      aria-label="EmpireWorks Reconstruction"
+      style={{ height: 56, width: 'auto', display: 'block', flexShrink: 0 }}
+    >
+      {/* Three-color flag mark, centered horizontally above the wordmark.
+          Coordinates establish the same proportions as the canonical lockup. */}
+      <g transform="translate(190, 18)">
+        {/* Yellow left flag */}
+        <path d="M 0 0 L 20 0 L 20 50 L 0 32 Z" fill="#F2C94C" />
+        {/* Red middle flag */}
+        <path d="M 22 0 L 42 0 L 42 50 L 22 32 Z" fill="#E74C3C" />
+        {/* Blue right flag */}
+        <path d="M 44 0 L 66 0 L 66 32 L 44 50 Z" fill="#5DAEDB" />
+      </g>
+
+      {/* EmpireWorks wordmark. Set in tightly-tracked bold sans-serif. */}
+      <text
+        x="240"
+        y="138"
+        textAnchor="middle"
+        fontFamily="'Helvetica Neue', 'Inter', system-ui, sans-serif"
+        fontSize="72"
+        fontWeight="900"
+        fill="#141413"
+        letterSpacing="-1.5"
+      >
+        EmpireWorks
+      </text>
+
+      {/* Yellow horizontal rule */}
+      <rect x="64" y="152" width="352" height="4" fill="#F2C94C" />
+
+      {/* RECONSTRUCTION subtype. Spaced caps. */}
+      <text
+        x="240"
+        y="192"
+        textAnchor="middle"
+        fontFamily="'Helvetica Neue', 'Inter', system-ui, sans-serif"
+        fontSize="28"
+        fontWeight="800"
+        fill="#141413"
+        letterSpacing="6"
+      >
+        RECONSTRUCTION
+      </text>
+    </svg>
   )
 }
 

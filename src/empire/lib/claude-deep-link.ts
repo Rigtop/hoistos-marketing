@@ -248,55 +248,27 @@ const TIER_STORAGE_KEY = 'hoistos.empire.tier'
 
 /**
  * Read the persisted tier from localStorage, with a URL ?tier= override.
- * Returns 'unknown' on the first visit so the UI can prompt the user.
  *
- * Legacy migration: prior visits stored 'pro' or 'max' as the tier. Both
- * map to 'desktop' on read, and we silently rewrite the localStorage entry
- * to 'desktop' so subsequent loads do not pay the migration cost. Existing
- * campaign URLs with ?tier=pro or ?tier=max also resolve to 'desktop'.
+ * SUPERSESSION 2026-05-11 (Eugeen live feedback from Steve install):
+ * Steve hit choice paralysis at the tier picker. Returning 'desktop'
+ * unconditionally collapses the friction. Install paths assume Max
+ * (the strongest Anthropic plan with Cowork + web-fetch + every tier
+ * mechanic the packs depend on). Pro users get the same experience
+ * because every pack's install behavior is identical on Pro and Max
+ * once Cowork is registered. The ?tier=code URL override still resolves
+ * for developers who explicitly want the CLI path.
  */
 export function readTier(): ClaudeTier {
-  if (typeof window === 'undefined') return 'unknown'
-  function normalize(raw: string): ClaudeTier | null {
-    const v = raw.toLowerCase()
-    if (v === 'desktop') return 'desktop'
-    if (v === 'pro' || v === 'max') return 'desktop' // legacy migration
-    if (v === 'code') return 'code'
-    return null
-  }
-  // URL override takes precedence so a campaign link can preset the tier.
+  if (typeof window === 'undefined') return 'desktop'
+  // ?tier=code URL override stays for developers who want the CLI path.
   try {
     const params = new URLSearchParams(window.location.search)
-    const fromUrl = normalize(params.get('tier') ?? '')
-    if (fromUrl) {
-      try {
-        window.localStorage.setItem(TIER_STORAGE_KEY, fromUrl)
-      } catch {
-        // localStorage write blocked, accept tier for this session only.
-      }
-      return fromUrl
-    }
+    const fromUrl = (params.get('tier') ?? '').toLowerCase()
+    if (fromUrl === 'code') return 'code'
   } catch {
-    // URLSearchParams should never throw in modern browsers but defensive.
+    // URLSearchParams should never throw in modern browsers.
   }
-  try {
-    const stored = normalize(window.localStorage.getItem(TIER_STORAGE_KEY) ?? '')
-    if (stored) {
-      // Rewrite legacy values to canonical so subsequent reads skip migration.
-      const raw = (window.localStorage.getItem(TIER_STORAGE_KEY) ?? '').toLowerCase()
-      if (raw === 'pro' || raw === 'max') {
-        try {
-          window.localStorage.setItem(TIER_STORAGE_KEY, stored)
-        } catch {
-          // ignore
-        }
-      }
-      return stored
-    }
-  } catch {
-    // localStorage can throw in private browsing on some browsers.
-  }
-  return 'unknown'
+  return 'desktop'
 }
 
 /** Persist the user's tier pick across sessions. */

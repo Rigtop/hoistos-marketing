@@ -34,6 +34,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion, type Variants } from 'motion/react'
 import toast from 'react-hot-toast'
 import type { TimelineDMoment } from '../empire/content/timeline-d-real'
+import { EmpirePreflight } from '../empire/EmpirePreflight'
 import {
   buildCodeCliInstallCommand,
   buildDeepLinkForPack,
@@ -1233,9 +1234,25 @@ function ChronoRow({
 
 export interface EmpireTimelineDProps {
   moments: TimelineDMoment[]
+  /**
+   * Section visibility for the four-tab IA introduced 2026-05-11.
+   *
+   *   'foundation' = render only the 10 Foundation packs + step strip + preflight,
+   *                  followed by the "next, eleven more" Advanced banner.
+   *                  Chronological table is hidden.
+   *   'story'      = render only the chronological story table + intro.
+   *                  Foundation cards + step strip + tier picker are hidden.
+   *   'both'       = legacy single-page view, both sections rendered with the
+   *                  divider line between them. Kept for back-compat.
+   *
+   * Default 'both' so any existing callers do not change behavior.
+   */
+  mode?: 'foundation' | 'story' | 'both'
 }
 
-export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
+export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps) {
+  const showFoundation = mode === 'foundation' || mode === 'both'
+  const showStory = mode === 'story' || mode === 'both'
   const [openFoundation, setOpenFoundation] = useState<string | null>(null)
   const [openChrono, setOpenChrono] = useState<string | null>(null)
   // Tier defaults to whatever localStorage + URL ?tier= returns. Initial
@@ -1246,6 +1263,9 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
     setTier(next)
     writeTier(next)
   }
+  // Both retained behind the dev URL flag, void to dodge TS6133 after picker removal.
+  void TierPicker
+  void handleTierPick
 
   useEffect(() => {
     const html = document.documentElement
@@ -1297,6 +1317,8 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
         }}
       />
 
+      {showFoundation ? (
+      <>
       <section
         style={{
           padding: '88px 6vw 56px',
@@ -1355,16 +1377,14 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
           card to open it. The Activate buttons hand you the upgrade ready to drop into your
           own Claude. Five to ten minutes each. Stays in your Claude forever.
         </p>
-        <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <TierPicker tier={tier} onPick={handleTierPick} />
-          <span style={{ fontSize: 12, color: BRAND.ink4, fontStyle: 'italic' }}>
-            {tier === 'unknown'
-              ? 'Pick your path so the Activate buttons match your setup.'
-              : tier === 'desktop'
-              ? 'Desktop path: one click opens Cowork with the install prompt pre-filled. Works on Pro, Max, Team, or Enterprise.'
-              : 'Code path: one-line shell install into ~/.claude/skills/.'}
-          </span>
-        </div>
+        {/* Tier picker removed 2026-05-11 per Steve live install feedback.
+            Choice paralysis killed dropoff. Install path always defaults to
+            Desktop (Cowork prefill works on Pro, Max, Team, Enterprise; only
+            developers passing ?tier=code see the CLI flow). The picker
+            component is retained behind the dev URL param for future revert. */}
+        <p style={{ marginTop: 28, fontSize: 14, color: BRAND.ink3, fontStyle: 'italic' }}>
+          One click opens Claude with the install prompt pre-filled. Works on any paid Claude plan.
+        </p>
       </section>
 
       <div
@@ -1530,6 +1550,28 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
         </div>
       </section>
 
+      {/* Preflight checklist (5 steps: paid plan, download Claude desktop,
+          sign in, pick tier, click install). Moved here from Advanced page
+          2026-05-11 per Eugeen: Foundation is where new operators land
+          first, so the precondition checks belong on this page. */}
+      <div
+        style={{
+          padding: '0 6vw',
+          maxWidth: 1280,
+          margin: '0 auto 32px',
+          position: 'relative',
+          zIndex: 2,
+        }}
+      >
+        <EmpirePreflight
+          tier={tier}
+          onScrollToPicker={() => {
+            const picker = document.querySelector('[data-tier-picker]') as HTMLElement | null
+            if (picker) picker.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+        />
+      </div>
+
       <section
         data-foundation-cards
         style={{
@@ -1643,76 +1685,142 @@ export function EmpireTimelineD({ moments }: EmpireTimelineDProps) {
           </span>
         </a>
       </div>
+      </>
+      ) : null}
 
-      <div
-        style={{
-          padding: '32px 6vw 32px',
-          maxWidth: 1280,
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 24,
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <span style={{ flex: 1, height: 1, background: BRAND.rule2 }} />
-        <span
+      {/* Story-mode hero, only shown when mode='story' (Timeline tab). Sets
+          a narrative-led intro before the chronological table since the
+          Foundation hero is hidden in this view. */}
+      {showStory && !showFoundation ? (
+        <section
           style={{
-            fontSize: 14,
-            color: BRAND.ink3,
-            fontStyle: 'italic',
-            letterSpacing: '0.02em',
-            whiteSpace: 'nowrap',
+            padding: '88px 6vw 36px',
+            maxWidth: 1100,
+            margin: '0 auto',
+            position: 'relative',
+            zIndex: 2,
+            textAlign: 'center',
           }}
         >
-          Or read the journey from start to today.
-        </span>
-        <span style={{ flex: 1, height: 1, background: BRAND.rule2 }} />
-      </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: BRAND.signal,
+              textTransform: 'uppercase',
+              letterSpacing: '0.18em',
+              marginBottom: 18,
+              fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            }}
+          >
+            The journey, start to today
+          </div>
+          <h1
+            style={{
+              fontFamily: 'Newsreader, Georgia, serif',
+              fontSize: 'clamp(40px, 6vw, 72px)',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+              margin: 0,
+              color: BRAND.ink,
+            }}
+          >
+            How Perennial went{' '}
+            <em style={{ color: BRAND.signal, fontStyle: 'italic' }}>AI-native</em>.
+          </h1>
+          <p
+            style={{
+              fontSize: 18,
+              lineHeight: 1.6,
+              color: BRAND.ink2,
+              maxWidth: 720,
+              margin: '20px auto 0',
+              fontFamily: 'Newsreader, Georgia, serif',
+            }}
+          >
+            Every moment that turned a construction company into an AI-native operation, in
+            order. Some are story. The ones with a signal-orange dot are upgrades you can drop
+            into your own Claude in five minutes.
+          </p>
+        </section>
+      ) : null}
 
-      <div
-        data-chronological-table
-        style={{
-          padding: '0 6vw 96px',
-          maxWidth: 1280,
-          margin: '0 auto',
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: BRAND.ink4,
-            fontVariant: 'small-caps',
-            letterSpacing: '0.16em',
-            borderBottom: '1px solid ' + BRAND.rule2,
-            padding: '14px 12px',
-            display: 'grid',
-            gridTemplateColumns: '54px 1fr 110px 130px 110px',
-            gap: 24,
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ textAlign: 'center' }}>No.</span>
-          <span>Moment</span>
-          <span>When</span>
-          <span>Category</span>
-          <span style={{ textAlign: 'right' }}>Get it</span>
-        </div>
+      {showStory ? (
+        <>
+          {showFoundation ? (
+            <div
+              style={{
+                padding: '32px 6vw 32px',
+                maxWidth: 1280,
+                margin: '0 auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 24,
+                position: 'relative',
+                zIndex: 2,
+              }}
+            >
+              <span style={{ flex: 1, height: 1, background: BRAND.rule2 }} />
+              <span
+                style={{
+                  fontSize: 14,
+                  color: BRAND.ink3,
+                  fontStyle: 'italic',
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Or read the journey from start to today.
+              </span>
+              <span style={{ flex: 1, height: 1, background: BRAND.rule2 }} />
+            </div>
+          ) : null}
 
-        {sortedMoments.map((m) => (
-          <ChronoRow
-            key={m.id}
-            moment={m}
-            open={openChrono === m.id}
-            onToggle={() => setOpenChrono((cur) => (cur === m.id ? null : m.id))}
-            tier={tier}
-          />
-        ))}
-      </div>
+          <div
+            data-chronological-table
+            style={{
+              padding: '0 6vw 96px',
+              maxWidth: 1280,
+              margin: '0 auto',
+              position: 'relative',
+              zIndex: 2,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: BRAND.ink4,
+                fontVariant: 'small-caps',
+                letterSpacing: '0.16em',
+                borderBottom: '1px solid ' + BRAND.rule2,
+                padding: '14px 12px',
+                display: 'grid',
+                gridTemplateColumns: '54px 1fr 110px 130px 110px',
+                gap: 24,
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ textAlign: 'center' }}>No.</span>
+              <span>Moment</span>
+              <span>When</span>
+              <span>Category</span>
+              <span style={{ textAlign: 'right' }}>Get it</span>
+            </div>
+
+            {sortedMoments.map((m) => (
+              <ChronoRow
+                key={m.id}
+                moment={m}
+                open={openChrono === m.id}
+                onToggle={() => setOpenChrono((cur) => (cur === m.id ? null : m.id))}
+                tier={tier}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }

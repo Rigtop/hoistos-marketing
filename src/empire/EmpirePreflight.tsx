@@ -46,7 +46,10 @@ interface EmpirePreflightProps {
  * and surfaces the troubleshooting accordion.
  */
 export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps) {
-  const tierPicked = tier === 'desktop' || tier === 'code'
+  // Both vars retained for back-compat with prop types after Step 4 removal.
+  // void markers keep TS from flagging unused declarations.
+  void tier
+  void onScrollToPicker
 
   return (
     <motion.section
@@ -169,45 +172,14 @@ export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps
           }
         />
 
-        <PreflightRow
-          n={4}
-          title="Pick your path above: Desktop or Code."
-          subtitle="Two paths, two buttons. Desktop covers Pro, Max, Team, and Enterprise (one click into Cowork). Code is the CLI path (one-line curl in Terminal)."
-          done={tierPicked}
-          cta={
-            tierPicked
-              ? {
-                  label: `You picked ${tier === 'desktop' ? 'Desktop' : 'Code'}`,
-                  sub: 'change it anytime above',
-                  onClick: onScrollToPicker,
-                }
-              : {
-                  label: 'Pick your path',
-                  sub: 'scrolls up',
-                  onClick: onScrollToPicker,
-                }
-          }
-          detail={
-            <div className="flex flex-col gap-3 text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-              <p>
-                <strong>Desktop:</strong> the install button opens Claude Cowork with your prompt
-                pre-filled. You hit Return. Claude grabs the full blueprint from hoistos.com using
-                its web-fetch tool, then walks you through install one question per turn. Works
-                identically on Pro, Max, Team, and Enterprise.
-              </p>
-              <p>
-                <strong>Code CLI:</strong> the button copies a one-line curl command to your
-                clipboard. You paste it in Terminal. The blueprint lands in
-                <code className="mx-1 px-1.5 py-0.5 rounded text-[11px]" style={{ background: 'rgba(20,20,19,0.06)', fontFamily: 'ui-monospace, Menlo, monospace' }}>~/.claude/skills/</code>
-                and Claude registers it on the next session.
-              </p>
-            </div>
-          }
-        />
+        {/* Step 4 (Pick your path) removed 2026-05-11 per Steve live install
+            feedback. Install path defaults to Desktop/Cowork universally;
+            developers passing ?tier=code see the CLI flow. The preflight is
+            now 4 steps instead of 5, and Step 5 below becomes Step 4. */}
 
         <PreflightRow
-          n={5}
-          title="Pick a blueprint below and click the install button."
+          n={4}
+          title="Pick a pack below and click the install button."
           subtitle="That is it. The button opens Claude on your machine, prefills the install prompt, and you hit Return. Each blueprint asks two or three questions and handles the rest."
           done={false}
           detail={
