@@ -511,7 +511,15 @@ echo "Validator state initialized: log at $HOME/.claude/logs/validator.jsonl"
 | 2. Save the three SKILL.md files at `~/.claude/skills/validate-output/SKILL.md`, `~/.claude/skills/self-rate/SKILL.md`, `~/.claude/skills/pre-send-email-gate/SKILL.md`. |
 | 3. Paste Project Knowledge into your daily project. |
 | 4. Skills auto-fire per their description triggers. validate-output runs before any deliverable. pre-send-email-gate runs on every Gmail draft per `{{EMAIL_GATE_MODE}}`. |
-| 5. (Optional) Wire a PreToolUse hook in `~/.claude/settings.json` blocking `mcp__claude_ai_Gmail__create_draft` until pre-send-email-gate emits the audit line. |
+| 5. (Recommended) Install the structural pre-send hook from Foundation 10. One-line: `curl -fsSL https://hoistos.com/install-email-hook.sh \| bash`. The Skill in step 4 is the Claude-layer enforcement; the hook is the shell-layer enforcement (exit 2 on banned patterns before the Gmail draft tool call resolves). See the F-10 pack for full one-line install + manual install + honest gap discussion. |
+
+### Why two layers (Skill + hook)
+
+The `pre-send-email-gate` Skill in Artifact 4 enforces inside Claude: Claude reads the Skill body, runs the 4 email-specific checks, refuses bad drafts before calling the Gmail tool. That works most of the time.
+
+The structural hook from F-10 enforces outside Claude: a PreToolUse shell hook intercepts the Gmail draft tool call at the OS layer and returns exit 2 if a banned pattern is detected. The hook fires even when the Skill is bypassed by a prompt injection or a malformed instruction.
+
+Belt and suspenders. The Skill is the belt. The hook is the suspenders. A Pro/Max VP gets the belt only (no hook surface on those tiers). A Code-tier VP can run both. The audit trail F-09 emits records every gate decision regardless of which layer fires the block.
 
 ---
 

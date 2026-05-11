@@ -393,6 +393,71 @@ Fingerprint: [SHA256 placeholder]
 | Max | Append to Project Knowledge (desktop app does not support filesystem skill install) | Same | Same | Same |
 | Code | Append to project CLAUDE.md | Save to `~/.claude/skills/log-decision/SKILL.md`. Restart Claude Code. | Save to `~/.claude/skills/recall-decisions/SKILL.md` | Save to `~/.claude/skills/decisions-by-quarter/SKILL.md` |
 
+---
+
+## Pro/Max parity, the honest play
+
+> **Read this once.** On Code, `log-decision` writes the entry directly to a Decision Log file on your filesystem. The skill calls Write, the entry lands, the next session sees it. On Pro/Max, the Project Knowledge surface is read-only from inside the chat: Claude can read it, but the chat itself cannot edit it. The capture path on Pro/Max is a paste-back loop. Three rituals close that seam.
+
+**The seam (be honest about it):**
+
+On Pro/Max, when you say "log this decision: <text>," `log-decision` cannot write the entry into Project Knowledge for you. The skill formats the entry correctly, voice rules apply, the metadata block (date, reason code, confidence) is filled in. But the final step is YOU paste the entry back into Project Knowledge yourself. If you skip the paste, the entry is lost when the chat ends.
+
+On Code, the same skill writes the file. No paste-back. The entry persists.
+
+### Ritual 1: Paste-back stamp (after every log-decision fire)
+
+When you say "log this decision: <text>" on Pro/Max, `log-decision` responds in a structured shape designed for paste-back. The skill emits one block: the new entry, formatted per the Decision Log schema (date, reason code, summary, trigger context). Above the block, the skill prints exactly:
+
+```
+PASTE-BACK: append the block below to the "Decision Log entries" section of your Project Knowledge. 20 seconds.
+```
+
+Your job: copy the block, click into Project Knowledge in the right rail, find the "Decision Log entries" section at the bottom of the F-04 entry, paste the new block at the top of that list (newest first), save. That is the seam. 20 seconds per capture.
+
+A VP who logs 5 decisions a week spends 100 seconds a week on paste-back. That is the explicit cost of the Pro/Max tier vs Code. Plan for it or upgrade to Code where the cost is zero.
+
+### Ritual 2: Session-start replay primer (paste at the top of weekly chats)
+
+This is the closest Pro/Max analog to the Code-tier session-start replay sweep. Paste it as the first turn of any new chat that needs decision history loaded:
+
+```
+Session start. Read the Decision Log entries section in Project Knowledge before answering. List the 3 most recent decisions inline so I can confirm you loaded them. Then wait for my actual prompt.
+```
+
+Expected response: Claude reads Project Knowledge, lists the top 3 decisions with dates, then says "Decision Log loaded, ready for your prompt." If Claude says it does not see a Decision Log section, the entries were never pasted back or Project Knowledge was reset. Re-paste from your local copy if you keep one, or accept that the older decisions are gone.
+
+### Ritual 3: Weekly Decision Log reconcile (5 minutes, Sunday)
+
+The Pro/Max Decision Log entries section grows append-only until you curate it. Every Sunday, drop this prompt:
+
+```
+Decision reconcile. Audit my Decision Log entries section in Project Knowledge. Surface: decisions older than 90 days that should be archived to a separate Knowledge entry, contradictions between decisions (same topic, opposite decisions), and supersessions (a newer decision that should replace an older one). Do not auto-fix; surface and ask.
+```
+
+This is the Pro/Max approximation of the `decisions-by-quarter` skill's natural rollover behavior on Code (where the canonical Decision Log file grows on disk and gets quarterly review). Same surfaces (stale, contradictions, supersessions), manual fire instead of timed.
+
+### Ritual 4: External backup (the realistic safety net)
+
+Project Knowledge has no version history visible to you, and a paste-back accident (selecting all and overwriting) destroys captures. Keep a parallel external backup:
+
+- **Notion:** create a Decision Log database (date, reason code, summary, trigger). After every paste-back, also write the same entry into Notion. 10 extra seconds per capture. Buys you a versioned history.
+- **Local markdown file:** maintain `~/Desktop/decision-log.md` and paste into it as well. Cheap, no Notion needed.
+
+On Code, the canonical Decision Log file is itself the version-controlled source. On Pro/Max, you build the version control around it manually.
+
+### The realistic gap (do not pretend it does not exist)
+
+After all four rituals, Pro/Max parity with Code is roughly 80%. The remaining 20% is genuine:
+
+- **No automatic capture.** Every entry costs you 20 seconds of paste-back. Forget it once and the entry is lost.
+- **No filesystem grep.** `recall-decisions` on Pro/Max searches Project Knowledge text only. On Code it can grep across the full Decision Log file plus any archive partitions you have.
+- **No git-tracked history.** Project Knowledge is opaque to version control. Your "what did I decide 6 months ago" answer depends on what is currently in the entries section, not on what you wrote at the time.
+
+The 80% is enough for a VP making 5 to 10 decisions a week. The 20% gap is what makes Code-tier installation worth the extra 30 minutes of setup for someone making 30+ decisions a week or someone who needs the audit trail to survive a forgotten paste. Confidence: high.
+
+---
+
 ## Section 10: Three-prompt verification suite
 
 ### Prompt 1: smoke test (does the skill respond at all in the right voice)

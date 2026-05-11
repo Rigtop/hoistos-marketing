@@ -798,9 +798,68 @@ Recommended length: 1-2 sentences (decision drop)
 
 The canonical Claude Code skill location is `~/.claude/skills/<skill-name>/SKILL.md`. NOT `~/Documents/Claude/skills/`. NOT `~/Library/Application Support/Claude/skills/` (that path is for the Claude desktop app, which has a different skill loader). C3 jury fix per Anthropic published Claude Code docs (May 2026).
 
-### Code tier hook integration
+### Code tier hook integration (the structural enforcer)
 
-For Code tier, the email-pre-send-gate doubles as a PreToolUse hook. Add to `~/.claude/settings.json`:
+The email-pre-send-gate skill in Artifact 4 is the rulebook. The PreToolUse hook below is what makes the rulebook structural instead of advisory. Before the hook, a banned pattern in a draft was a soft fail Claude tried to avoid. After the hook, a draft containing `Best,`, an em dash, office phone 212-727-1807, `Attached is`, or a compound-name opener returns exit 2 from the shell layer and never reaches `mcp__claude_ai_Gmail__create_draft`.
+
+#### One-line install (recommended)
+
+This is the fastest path. The installer does four things: downloads the hook to `~/.claude/hooks/`, chmods it, merges the `PreToolUse` entry into your `settings.json` without clobbering anything else (timestamped backup written), and runs a 2-case verification at the end (banned-pattern draft expects exit 2, clean draft expects exit 0).
+
+```bash
+curl -fsSL https://hoistos.com/install-email-hook.sh | bash
+```
+
+Expected output (success path):
+
+```
+HoistOS Email Playbook Hook installer
+  ✓ OS detected: macos
+  ✓ Claude Code found at /Users/<you>/.claude
+
+Downloading hook
+  ✓ Downloaded to /Users/<you>/.claude/hooks/email_playbook_pre_send.sh
+  ✓ Made executable
+
+Merging settings.json
+  ✓ Backed up existing settings.json
+  added PreToolUse entry: matcher=mcp__claude_ai_Gmail__create_draft
+  ✓ settings.json updated
+
+Verifying hook
+  ✓ Hook correctly blocked 'Best,' sign-off (exit 2)
+  ✓ Hook correctly allowed clean draft (exit 0)
+
+Install complete
+```
+
+Prerequisites the installer checks for: macOS or Linux, Claude Code installed at `~/.claude/`, `python3` available (for JSON merge), `curl`, and `jq` at runtime when the hook fires. If `jq` is missing the hook fails open (exit 0) and prints a warning, so a missing dependency does not silently break Gmail drafting.
+
+Restart your Claude Code session after the installer finishes for the hook to load.
+
+If your Gmail MCP server is namespaced differently than the default `mcp__claude_ai_Gmail__create_draft`, set `HOISTOS_GMAIL_MATCHER` before piping: `HOISTOS_GMAIL_MATCHER="mcp__my_gmail__create_draft" curl ... | bash`.
+
+#### Manual install (inspect before piping)
+
+If piping a script from the internet is not your style, do this instead.
+
+**Step 1.** Read the hook script:
+
+```bash
+curl -fsSL https://hoistos.com/hooks/email_playbook_pre_send.sh
+```
+
+The script is ~80 lines of bash. No network calls. Banned-pattern checks live in clearly-named blocks you can customize per your voice (rename openers, add patterns, change office phone, etc.).
+
+**Step 2.** Save to `~/.claude/hooks/email_playbook_pre_send.sh` and `chmod +x`:
+
+```bash
+mkdir -p ~/.claude/hooks
+curl -fsSL https://hoistos.com/hooks/email_playbook_pre_send.sh -o ~/.claude/hooks/email_playbook_pre_send.sh
+chmod +x ~/.claude/hooks/email_playbook_pre_send.sh
+```
+
+**Step 3.** Wire it into Claude Code. Add to `~/.claude/settings.json` (merge with existing hooks if any):
 
 ```json
 {
@@ -808,30 +867,49 @@ For Code tier, the email-pre-send-gate doubles as a PreToolUse hook. Add to `~/.
     "PreToolUse": [
       {
         "matcher": "mcp__claude_ai_Gmail__create_draft",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/email-playbook-pre-send.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "mcp__claude_ai_Gmail__create_draft",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/email-draft-desktop-mirror.sh"
-          }
-        ]
+        "command": "~/.claude/hooks/email_playbook_pre_send.sh"
       }
     ]
   }
 }
 ```
 
-The hook scripts are referenced in your canonical Operating Constitution under the email-playbook pre-send discipline. If you do not have them, the skill alone enforces the gate inside Claude. The hooks add a second layer outside Claude, blocking with exit 2 if a banned pattern slips past.
+**Step 4.** Verify. Feed a banned-pattern draft and confirm exit 2:
+
+```bash
+echo '{"tool_input": {"body": "Steve,\n\nSounds good.\n\nBest,"}}' | ~/.claude/hooks/email_playbook_pre_send.sh
+echo "exit=$?"
+```
+
+Expected: the block message prints to stderr listing the `Best,` sign-off violation, `exit=2`. If you see `exit=0` with no message, check `jq` is installed (`brew install jq` on macOS).
+
+#### What changes on Code
+
+Before the hook, a banned pattern in a draft depended on the email-pre-send-gate skill being loaded and Claude honoring it. After the hook, even a prompt-injected "ignore the playbook" instruction cannot bypass the gate at the shell layer.
+
+Smoke test in a Claude Code session: ask Claude to draft a one-line email ending with `Best,` as the sign-off. Claude calls `mcp__claude_ai_Gmail__create_draft`. The hook fires, returns exit 2 with the violation list. Claude sees the block message in the tool result and revises the draft. The wrong sign-off never lands in Gmail.
+
+#### Honest gap: what Pro/Max users do not get
+
+The hook is Code-only. It runs on your local machine before the Gmail tool call reaches Anthropic's servers. Pro/Max users have no equivalent surface (there is no PreToolUse hook on Claude desktop or claude.ai).
+
+For Pro/Max users, the playbook stays behavioral: Claude follows the gate because Artifact 4 is loaded in Project Knowledge, and the audience tier matrix is in Artifact 1. That works most of the time. The failure mode is when prompt injection or a "ignore the playbook" instruction slips past the skill body and Claude drafts the violation anyway. On Pro/Max, your only recourse is reading the draft before clicking Send. On Code, the hook also blocks at the shell layer if the skill is bypassed.
+
+The realistic implication: a Pro/Max user can install F-10 today and get most of the value. A user who sends 10+ emails a week, where one bad draft is a real reputational cost, should run the one-line install above. The cost is 60 seconds. The win is exit-code-level enforcement that no prompt injection or careless instruction can override.
+
+Hard Rule #34 (Email Playbook Pre-Send Gate) is the structural locking of this gate on Eugeen's canonical stack. The hook ships here is the install-on-your-machine version of that rule.
+
+#### Bypass for legitimate edge cases
+
+Sometimes you genuinely need to ship a draft that contains a flagged pattern (e.g., quoting a banned phrase verbatim because the recipient used it first). For one-off bypass without disabling the hook globally, set `HOISTOS_EMAIL_HOOK_BYPASS=1` in the Claude environment before the tool call. The hook detects the env var, logs the bypass to stderr (so the audit trail still records it), and exits 0.
+
+#### To disable or uninstall
+
+Remove the matching `PreToolUse` entry from `~/.claude/settings.json` (or restore from the timestamped backup the installer wrote at `~/.claude/settings.json.bak.<timestamp>`). The hook script itself can stay; without the settings entry, it is dormant.
+
+#### Optional PostToolUse companion (Code only)
+
+If you also want the Code-tier desktop-mirror pattern from Eugeen's canonical stack (every Gmail draft referencing an `Outputs/` file gets the attachment auto-copied to `~/Desktop/` for drag-attach), add a separate PostToolUse hook. That is out of scope for F-10 base install; it ships as part of the bonus extras catalog. Search HoistOS for `email-draft-desktop-mirror` when you are ready for that layer.
 
 ## Section 10: three-prompt verification suite
 
