@@ -474,6 +474,94 @@ export function HoistOSHome() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25, ease: 'easeOut' }}
+              onMouseEnter={() => setHoveredCard('login')}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              <a
+                href="https://app.hoistos.com"
+                className="group relative block overflow-hidden transition-all cursor-pointer"
+                style={{
+                  borderRadius: '18px',
+                  padding: '32px 36px 30px',
+                  textDecoration: 'none',
+                  color: '#0B0F14',
+                  background: '#FFFFFF',
+                  border: '1px solid',
+                  borderColor:
+                    hoveredCard === 'login'
+                      ? 'rgba(242, 90, 0, 0.28)'
+                      : 'rgba(11, 15, 20, 0.08)',
+                  boxShadow:
+                    hoveredCard === 'login'
+                      ? '0 14px 36px rgba(11, 15, 20, 0.08), 0 0 0 1px rgba(242, 90, 0, 0.22)'
+                      : '0 1px 3px rgba(11, 15, 20, 0.04)',
+                  transform:
+                    hoveredCard === 'login'
+                      ? 'translateY(-2px)'
+                      : 'translateY(0)',
+                }}
+              >
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 transition-opacity"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, transparent 0%, rgba(242, 90, 0, 0.04) 100%)',
+                    opacity: hoveredCard === 'login' ? 1 : 0,
+                  }}
+                />
+                <div className="relative flex items-start justify-between gap-8">
+                  <div className="flex-1">
+                    <div
+                      className="text-[11px] font-mono uppercase mb-3"
+                      style={{
+                        color: '#F25A00',
+                        letterSpacing: '0.18em',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Internal · Perennial operators
+                    </div>
+                    <div
+                      className="text-[26px] mb-2.5 leading-[1.15]"
+                      style={{
+                        fontFamily:
+                          'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                      }}
+                    >
+                      HoistOS Login
+                    </div>
+                    <div
+                      className="text-[15px] leading-[1.55]"
+                      style={{ color: '#2D3845', maxWidth: '54ch' }}
+                    >
+                      The HoistOS platform. Field tools, office, AI agents.
+                    </div>
+                  </div>
+                  <div
+                    className="font-mono mt-1 transition-transform"
+                    style={{
+                      color: '#F25A00',
+                      fontSize: '26px',
+                      transform:
+                        hoveredCard === 'login'
+                          ? 'translateX(6px)'
+                          : 'translateX(0)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    &rarr;
+                  </div>
+                </div>
+              </a>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35, ease: 'easeOut' }}
               onMouseEnter={() => setHoveredCard('empire')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -560,7 +648,7 @@ export function HoistOSHome() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35, ease: 'easeOut' }}
+              transition={{ duration: 0.6, delay: 0.45, ease: 'easeOut' }}
               onMouseEnter={() => setHoveredCard('dashboard')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -635,94 +723,6 @@ export function HoistOSHome() {
                       fontSize: '26px',
                       transform:
                         hoveredCard === 'dashboard'
-                          ? 'translateX(6px)'
-                          : 'translateX(0)',
-                      flexShrink: 0,
-                    }}
-                  >
-                    &rarr;
-                  </div>
-                </div>
-              </a>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45, ease: 'easeOut' }}
-              onMouseEnter={() => setHoveredCard('login')}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <a
-                href="https://app.hoistos.com"
-                className="group relative block overflow-hidden transition-all cursor-pointer"
-                style={{
-                  borderRadius: '18px',
-                  padding: '32px 36px 30px',
-                  textDecoration: 'none',
-                  color: '#0B0F14',
-                  background: '#FFFFFF',
-                  border: '1px solid',
-                  borderColor:
-                    hoveredCard === 'login'
-                      ? 'rgba(242, 90, 0, 0.28)'
-                      : 'rgba(11, 15, 20, 0.08)',
-                  boxShadow:
-                    hoveredCard === 'login'
-                      ? '0 14px 36px rgba(11, 15, 20, 0.08), 0 0 0 1px rgba(242, 90, 0, 0.22)'
-                      : '0 1px 3px rgba(11, 15, 20, 0.04)',
-                  transform:
-                    hoveredCard === 'login'
-                      ? 'translateY(-2px)'
-                      : 'translateY(0)',
-                }}
-              >
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 transition-opacity"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, transparent 0%, rgba(242, 90, 0, 0.04) 100%)',
-                    opacity: hoveredCard === 'login' ? 1 : 0,
-                  }}
-                />
-                <div className="relative flex items-start justify-between gap-8">
-                  <div className="flex-1">
-                    <div
-                      className="text-[11px] font-mono uppercase mb-3"
-                      style={{
-                        color: '#F25A00',
-                        letterSpacing: '0.18em',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Internal · Perennial operators
-                    </div>
-                    <div
-                      className="text-[26px] mb-2.5 leading-[1.15]"
-                      style={{
-                        fontFamily:
-                          'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-                        fontWeight: 700,
-                        letterSpacing: '-0.02em',
-                      }}
-                    >
-                      HoistOS Login
-                    </div>
-                    <div
-                      className="text-[15px] leading-[1.55]"
-                      style={{ color: '#2D3845', maxWidth: '54ch' }}
-                    >
-                      The HoistOS platform. Field tools, office, AI agents.
-                    </div>
-                  </div>
-                  <div
-                    className="font-mono mt-1 transition-transform"
-                    style={{
-                      color: '#F25A00',
-                      fontSize: '26px',
-                      transform:
-                        hoveredCard === 'login'
                           ? 'translateX(6px)'
                           : 'translateX(0)',
                       flexShrink: 0,
