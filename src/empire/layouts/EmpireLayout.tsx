@@ -169,25 +169,25 @@ export function EmpireLayout() {
           >
             <Link
               to="/empire"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
             >
               Overview
             </Link>
             <Link
               to="/empire/foundation"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
             >
               Foundation
             </Link>
             <Link
               to="/empire/bonus-extras"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
             >
               Advanced
             </Link>
             <Link
               to="/empire/timeline"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14 }}
+              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
             >
               Timeline
             </Link>
@@ -360,8 +360,8 @@ export function EmpireLayout() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 32,
-              height: 32,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
               border: '1px solid rgba(20,20,19,0.18)',
               color: '#5e5d59',
