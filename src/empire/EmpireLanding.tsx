@@ -35,7 +35,8 @@ import {
   Search,
   Shield,
 } from 'lucide-react'
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { CAPABILITIES, type Capability } from './content/capabilities'
 
 /**
  * Audience flag detection. Default audience is "construction VPs" (the broad
@@ -89,140 +90,24 @@ const ACTIVATION_LINE =
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
 /**
- * The 6 capability cards. Surface is intentionally minimal: icon + layer chip
- * + title + tagline + Learn more arrow. Click opens CapabilityModal (below)
- * with the full dream-pitch: Monday-morning vision, explicit pack mapping
- * from empireworks-bridge/packs/*, compounding angle, proof line.
- *
- * S205 iteration 2 (2026-05-13): split surface vs deep content into separate
- * fields so the card stays calm on first read but the modal sells the vision
- * when a VP clicks in. Reduced surface density per Eugeen's "less busy on
- * the surface" feedback.
+ * S205 iteration 3 (2026-05-13): CAPABILITIES + Capability type moved to
+ * src/empire/content/capabilities.ts so both EmpireLanding (cards) and
+ * EmpireCapabilityLayer (route at /layer/:slug) read from the same source.
+ * Modal pattern from iteration 2 deleted; cards now Link to the dedicated
+ * layer page so scroll, deep-linking, and back navigation all work.
  */
-type Capability = {
-  layer: 'Voice' | 'Memory' | 'Routing' | 'Sources' | 'Validation' | 'Stack'
-  Icon: typeof Shield
-  title: string
-  /** One-line tagline shown on the resting card. < 80 chars. */
-  tagline: string
-  /** Two- to three-sentence body shown in the modal hero. */
-  body: string
-  /** Concrete Monday-morning scenario the VP will recognize. */
-  mondayMorning: string
-  /** Why this compounds week over week. */
-  compounding: string
-  /** Which actual bridge packs power this layer (real bridge content). */
-  packs: { badge: string; name: string }[]
-  /** Single proof line (italic, shown bottom of modal). */
-  proof: string
+// Map iconName string to the actual lucide-react component
+const ICON_MAP: Record<Capability['iconName'], typeof Shield> = {
+  Shield,
+  Brain,
+  Compass,
+  Search,
+  BadgeCheck,
+  Layers,
 }
-
-const CAPABILITIES: Capability[] = [
-  {
-    layer: 'Voice',
-    Icon: Shield,
-    title: 'Rules locked',
-    tagline: 'Your voice on every reply.',
-    body: 'Your voice, your title, your company name, your banned phrases, and your signing conventions get enforced on every Claude reply. No more reading drafts to police em dashes or "Best,". Claude polices itself.',
-    mondayMorning:
-      'Monday morning, you ask Claude to draft a follow-up to your largest GC on a stalled RFI. The reply lands clean. No em dashes. No "I hope this email finds you well." Company name in full. Signs with your first name. You forward it without reading twice.',
-    compounding:
-      'Every voice correction you make to Claude becomes a permanent rule. The Constitution updates. Next month the drafts get sharper because the rules tightened. Year one you stop policing the line entirely.',
-    packs: [
-      { badge: 'F-01', name: 'Operating Constitution' },
-      { badge: 'F-10', name: 'Email Playbook (audience-aware)' },
-    ],
-    proof: 'No em dashes. No canned openers. Signs as you, not "Best,".',
-  },
-  {
-    layer: 'Memory',
-    Icon: Brain,
-    title: 'Memory compounds',
-    tagline: 'Tell it once. Forever.',
-    body: 'Corrections, decisions, people, projects, vendors, and roles stay loaded across every Claude chat. The thing you taught Claude on Tuesday is still true in chat 47 on Friday. The thing you decided last month is one question away.',
-    mondayMorning:
-      'You open a fresh chat at 7:42 AM, type one word: "status." Claude returns a 5-line briefing: top 3 projects pulled from your Registry, voice locked, last session\'s open items pulled from the Briefing field. You have not re-explained your role to Claude since chat 12. You hit reply on three threads before coffee.',
-    compounding:
-      'Every correction compounds. Every fact lands in the Registry. Every decision lands in the Log. Week 1: a tool. Week 12: a system that remembers your business better than half your team. Year 1: an institutional memory layer your senior people can lean on.',
-    packs: [
-      { badge: 'F-02', name: 'Facts Registry (canonical names + roles)' },
-      { badge: 'F-03', name: 'Cold Start Protocol (warm open every chat)' },
-      { badge: 'F-04', name: 'Decision Log (recallable months later)' },
-      { badge: 'F-07', name: 'Memory Architecture (corrections compound)' },
-    ],
-    proof: 'Tell Claude once. It carries forward forever, with citation.',
-  },
-  {
-    layer: 'Routing',
-    Icon: Compass,
-    title: 'Routing knows where',
-    tagline: 'Right folder, every time.',
-    body: 'Claude knows the right folder before you ask. Change orders go to /change-orders. GC follow-ups go to /correspondence. RFIs go to /rfi. SOPs go to /sop. You stop typing paths. Claude stops asking.',
-    mondayMorning:
-      'You type "save the change order, the GC follow-up, the safety SOP, and tomorrow\'s daily report." Claude saves four files to four different folders. Each landed correctly. You did not name a path. You did not approve four save prompts. Three minutes later you are onto the next thing.',
-    compounding:
-      'Skills get built on top of the routing layer. By month three, you have a /change-order skill, a /proposal skill, a /daily-report skill. Same Bridge. Same routing. Your division operates on rails. Onboarding gets cut in half.',
-    packs: [
-      { badge: 'F-06', name: 'Routing Rules (folder routing engine)' },
-      { badge: 'F-05', name: 'Skill Builder (build skills in 8 minutes)' },
-    ],
-    proof: 'Saves change order, GC follow-up, SOP, and daily report to four correct paths.',
-  },
-  {
-    layer: 'Sources',
-    Icon: Search,
-    title: 'Source-checked first',
-    tagline: 'Citation, not hallucination.',
-    body: 'Factual questions hit your trusted sources before Claude\'s training. Notion. Gmail. Your file system. Your RAG corpus. Your canonical contracts. Claude returns a stamped Source Sweep showing the hit count per surface and the primary source quoted in full.',
-    mondayMorning:
-      'You ask "who is our compliance contact at the GC on the renovation project, and what did we agree on the schedule slip last Thursday?" Claude returns "Source Sweep: Notion 2 hits, Gmail 1 hit, RAG 4 hits, primary source: Gmail thread with the GC PM 2026-05-08" and quotes the exact line you agreed to. You forward the quote. The GC stops re-asking.',
-    compounding:
-      'Every email, every Notion update, every meeting transcript that lands in your stack becomes citable. The Source Sweep gets richer every week. Your "I think we said..." problem dies. Your audit trail gets free.',
-    packs: [{ badge: 'F-08', name: 'Pre-Answer Source Sweep (citation gate)' }],
-    proof: 'Returns a Source Sweep stamp with hit counts and the primary source quoted in full.',
-  },
-  {
-    layer: 'Validation',
-    Icon: BadgeCheck,
-    title: 'Validation gate',
-    tagline: 'The pre-send safety net.',
-    body: 'Every external-facing draft hits a validation gate before you see it. Em dashes, misspelled names, banned phrases, missing disclosures, wrong audience tier, broken citations: all caught by the gate. Claude rewrites, re-runs, and ships clean.',
-    mondayMorning:
-      'You ask Claude to draft a follow-up to your top GC contact on the abatement slip, mention you are out Friday. Claude drafts it. Catches an em dash in paragraph two. Catches "Spenser" should be "Spencer". Rewrites both. Re-runs the gate. The version you see is the version that would not have embarrassed you.',
-    compounding:
-      'Every validator catch becomes a rule. The gate gets smarter every week. Year one, the validation gate runs on every email, every proposal, every Notion update, every external deliverable. The "oh no I sent that" problem dies.',
-    packs: [
-      { badge: 'F-09', name: 'Output Validator (pre-send gate)' },
-      { badge: 'F-11', name: 'Notion Write Gate (post-write verify)' },
-    ],
-    proof: 'Catches the mistake that would have embarrassed you. Rewrites. Re-runs. Ships clean.',
-  },
-  {
-    layer: 'Stack',
-    Icon: Layers,
-    title: 'Packs stack on top',
-    tagline: 'Foundation now. Everything else, later.',
-    body: 'Foundation lands first. 11 packs across 5 operating layers. Once that is rolling, advanced packs (proposal builder, RFI flow, change orders, meeting capture, document prep, contract risk, multi-model jury, RAG search) layer onto the same Bridge with no reinstall. You just ask for more.',
-    mondayMorning:
-      'Three weeks after Foundation lands, you type "I want Claude to write proposals in our voice on our letterhead". The Bridge installs A-01 Proposal Builder in 60 seconds. Five minutes after that you have shipped your first AI-drafted proposal to a real client. No new setup. No new account. No new install.',
-    compounding:
-      '33 packs available today. New packs ship every month. Your division\'s competitive moat is the stack you build, not the model you pay for. Year one you have a custom AI operating layer no GC competitor can match.',
-    packs: [
-      { badge: 'A-01', name: 'Proposal Builder (branded, your division)' },
-      { badge: 'A-02', name: 'Meeting Transcript to Action Items' },
-      { badge: 'A-03', name: 'Contract Risks in Plain English' },
-      { badge: 'BIZ-01', name: 'Notion + MCP Setup' },
-      { badge: 'BIZ-02', name: 'Email to Notion Pipeline' },
-      { badge: 'P-02', name: 'RAG Knowledge Search' },
-      { badge: 'P-04', name: 'Multi-Model Jury (GPT-5 adversarial review)' },
-    ],
-    proof: 'Same Bridge. Same install. You just ask for more.',
-  },
-]
 
 export function EmpireLanding() {
   const audience = useAudience()
-  const [openCapability, setOpenCapability] = useState<Capability['layer'] | null>(null)
 
   function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
@@ -231,27 +116,6 @@ export function EmpireLanding() {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }
-
-  // Lock body scroll when the capability modal is open. ESC closes too.
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (openCapability) {
-      const prev = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      const onEsc = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') setOpenCapability(null)
-      }
-      window.addEventListener('keydown', onEsc)
-      return () => {
-        document.body.style.overflow = prev
-        window.removeEventListener('keydown', onEsc)
-      }
-    }
-  }, [openCapability])
-
-  const activeCap = openCapability
-    ? CAPABILITIES.find((c) => c.layer === openCapability) ?? null
-    : null
 
   return (
     <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))' }}>
@@ -322,12 +186,7 @@ export function EmpireLanding() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-12 text-left"
         >
           {CAPABILITIES.map((cap, i) => (
-            <CapabilityCard
-              key={cap.layer}
-              capability={cap}
-              index={i}
-              onOpen={() => setOpenCapability(cap.layer)}
-            />
+            <CapabilityCard key={cap.layer} capability={cap} index={i} />
           ))}
         </motion.div>
 
@@ -365,12 +224,14 @@ export function EmpireLanding() {
               className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              The Bridge is the installer. The steps below show exactly what to click,
-              what to paste, and what Claude should report back when Foundation is live.
+              The Bridge is the installer. Watch the install at a glance below, then
+              follow the six steps for the exact clicks and paste payloads.
             </p>
 
+            <InstallSlideshow />
+
             <div
-              className="divide-y rounded-xl overflow-hidden"
+              className="mt-8 divide-y rounded-xl overflow-hidden"
               style={{ border: '1px solid rgb(var(--color-fg) / 0.08)' }}
             >
               <StepRow index={1} label="Download the Bridge" centered>
@@ -389,19 +250,17 @@ export function EmpireLanding() {
               <StepRow index={2} label="Double-click it and click Install">
                 <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
                   Claude Desktop opens an extension screen. Click Install or Update, keep
-                  the extension enabled, then come back here.
+                  the extension enabled, then come back here. (See frame 1 of the slideshow
+                  below.)
                 </p>
-                <ClaudeInstallDialogMock />
                 <InstallFacts />
               </StepRow>
 
-              <StepRow index={3} label="Create or open a Claude Project">
+              <StepRow index={3} label="Open Claude Desktop and the Project">
                 <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Open Claude Desktop, choose Projects, then create or select the Project
-                  where you want this system to live. Start the setup prompt inside that
-                  Project, not in a loose chat.
+                  Open Claude Desktop. Pick or create the Project where this system will
+                  live. The setup prompt runs inside that Project, not in a loose chat.
                 </p>
-                <ClaudeProjectMock />
               </StepRow>
 
               <StepRow
@@ -423,11 +282,9 @@ export function EmpireLanding() {
                 rightSlot={<CopyButton text={ACTIVATION_LINE} label="Copy line" />}
               >
                 <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Open Project settings, choose Instructions, paste the activation line,
-                  and save. This makes every new chat inside that Claude Project load the
-                  router automatically.
+                  Open Project Instructions, paste the activation line, save. Every new
+                  chat in that Project loads the router automatically after this.
                 </p>
-                <ClaudeProjectInstructionsMock />
                 <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
                 <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
                   Project Instructions are per Project. If you create another Claude Project
@@ -445,7 +302,6 @@ export function EmpireLanding() {
                   Foundation files, manifest, and router are live.
                 </p>
                 <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
-                <ClaudeVerifyResponseMock />
               </StepRow>
             </div>
 
@@ -631,15 +487,6 @@ export function EmpireLanding() {
           (behavior layer). This section frames the dashboard module as
           the next leg of HoistOS, fitted to whoever installs it. */}
       <ModuleOneTeaser audience={audience} />
-
-      {/* Capability deep-dive modal. Opens when a VP clicks Learn more on
-          any of the 6 cards above. Sells the Monday-morning scenario,
-          shows the exact bridge packs that power the layer, and frames
-          the compounding angle. Iteration 2 of S205. */}
-      <CapabilityModalRender
-        capability={activeCap}
-        onClose={() => setOpenCapability(null)}
-      />
     </div>
   )
 }
@@ -1506,6 +1353,371 @@ function StepRow({
 }
 
 // ---------------------------------------------------------------------------
+// InstallSlideshow. Auto-cycling carousel that walks the VP through the full
+// install sequence as 5 visual frames (extension dialog, open Project, paste
+// setup prompt, save activation line, verify response). Iteration 3 of S205:
+// replaces 4 inline mocks scattered across individual steps with one visual
+// pass-through. Eugeen feedback: "make the instructions steps smoother with
+// better buttons and more visually appealing" + "the photos you used arent
+// what the actual setup is, it might confuse a user if they're looking for
+// a one-to-one replica."
+//
+// The slideshow tries a real screenshot path first (public/screenshots/
+// empireworks-bridge/step-N-*.png). If the image 404s or fails to load, the
+// component falls back to the existing inline Claude Desktop mock. When
+// Eugeen drops real screenshots in the folder, the next deploy automatically
+// picks them up.
+//
+// Behavior: auto-advance every 5.5s, pause on hover or focus, manual
+// prev/next via arrows + dot indicators, keyboard arrows when focused.
+// ---------------------------------------------------------------------------
+
+type SlideFrame = {
+  id: string
+  stepLabel: string
+  title: string
+  caption: string
+  realImagePath: string
+  alt: string
+  fallbackMock: React.ReactNode
+}
+
+function InstallSlideshow() {
+  const FRAMES: SlideFrame[] = [
+    {
+      id: 'extension',
+      stepLabel: 'Step 2 of 6',
+      title: 'Approve the EmpireWorks Bridge extension',
+      caption:
+        'Claude Desktop shows a security callout. That is expected. Click Install (or Update) and keep the extension enabled.',
+      realImagePath: '/screenshots/empireworks-bridge/step-2-extension-page.png',
+      alt: 'EmpireWorks Bridge extension install dialog in Claude Desktop',
+      fallbackMock: <ClaudeInstallDialogMock />,
+    },
+    {
+      id: 'cowork-project',
+      stepLabel: 'Step 3 of 6',
+      title: 'Open or create your Project',
+      caption:
+        'Open Claude Desktop. Pick or create the Project where the system will live. The setup prompt runs inside that Project.',
+      realImagePath: '/screenshots/empireworks-bridge/step-3-cowork-project.png',
+      alt: 'Claude Desktop Cowork home with project picker',
+      fallbackMock: <ClaudeProjectMock />,
+    },
+    {
+      id: 'paste-prompt',
+      stepLabel: 'Step 4 of 6',
+      title: 'Paste the setup prompt',
+      caption:
+        'One sentence does the whole install: Set up my Foundation system with EmpireWorks Bridge. Claude calls setup_foundation. You click Allow.',
+      realImagePath: '/screenshots/empireworks-bridge/step-4-paste-prompt.png',
+      alt: 'Claude Desktop with the EmpireWorks setup prompt typed in',
+      fallbackMock: <CoworkSetupPromptMock />,
+    },
+    {
+      id: 'instructions',
+      stepLabel: 'Step 5 of 6',
+      title: 'Save the activation line in Project Instructions',
+      caption:
+        'Paste the activation line into Project Instructions and save. Every new chat in this Project loads the router automatically from that moment on.',
+      realImagePath: '/screenshots/empireworks-bridge/step-5-instructions-saved.png',
+      alt: 'Claude Desktop Project Instructions panel with the activation line saved',
+      fallbackMock: <ClaudeProjectInstructionsMock />,
+    },
+    {
+      id: 'verify',
+      stepLabel: 'Step 6 of 6',
+      title: 'Verify the install',
+      caption:
+        'Run the check prompt. Claude reports back: Foundation is live, 11 packs installed, here is what you can ask me to do now.',
+      realImagePath: '/screenshots/empireworks-bridge/step-6-verify-response.png',
+      alt: 'Claude responding with a verify_setup tool call and confirmation',
+      fallbackMock: <ClaudeVerifyResponseMock />,
+    },
+  ]
+
+  const [idx, setIdx] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const total = FRAMES.length
+
+  useEffect(() => {
+    if (paused) return
+    const t = window.setTimeout(() => setIdx((i) => (i + 1) % total), 5500)
+    return () => window.clearTimeout(t)
+  }, [idx, paused, total])
+
+  function prev() {
+    setIdx((i) => (i - 1 + total) % total)
+  }
+  function next() {
+    setIdx((i) => (i + 1) % total)
+  }
+  function onKey(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'ArrowLeft') prev()
+    else if (e.key === 'ArrowRight') next()
+  }
+
+  const frame = FRAMES[idx]
+
+  return (
+    <div
+      className="relative mt-8 rounded-2xl overflow-hidden"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Install walkthrough"
+      tabIndex={0}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      onKeyDown={onKey}
+      style={{
+        background:
+          'linear-gradient(135deg, rgba(20,20,19,0.04), rgba(20,20,19,0.01))',
+        border: '1px solid rgb(var(--color-fg) / 0.08)',
+        boxShadow: '0 18px 40px -16px rgb(var(--color-fg) / 0.12)',
+      }}
+    >
+      <div className="px-4 sm:px-6 py-4 flex items-center justify-between border-b"
+        style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span
+            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] rounded-full px-2.5 py-1 shrink-0"
+            style={{
+              color: 'rgb(var(--color-accent))',
+              background: 'rgb(var(--color-accent) / 0.1)',
+              border: '1px solid rgb(var(--color-accent) / 0.22)',
+            }}
+          >
+            Install walkthrough
+          </span>
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.22em] hidden sm:inline"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            {paused ? 'Paused' : 'Auto-advancing'}, frame {idx + 1} of {total}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={prev}
+            aria-label="Previous frame"
+            className="inline-flex items-center justify-center rounded-full transition"
+            style={{
+              width: 36,
+              height: 36,
+              background: 'rgba(20,20,19,0.06)',
+              color: '#141413',
+              border: '1px solid rgba(20,20,19,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(204,110,46,0.12)'
+              e.currentTarget.style.borderColor = 'rgba(204,110,46,0.35)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(20,20,19,0.06)'
+              e.currentTarget.style.borderColor = 'rgba(20,20,19,0.1)'
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            aria-label="Next frame"
+            className="inline-flex items-center justify-center rounded-full transition"
+            style={{
+              width: 36,
+              height: 36,
+              background: 'rgba(20,20,19,0.06)',
+              color: '#141413',
+              border: '1px solid rgba(20,20,19,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(204,110,46,0.12)'
+              e.currentTarget.style.borderColor = 'rgba(204,110,46,0.35)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(20,20,19,0.06)'
+              e.currentTarget.style.borderColor = 'rgba(20,20,19,0.1)'
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M10 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Frame body */}
+      <div className="px-4 sm:px-6 py-5 min-h-[280px]">
+        <div className="flex items-baseline gap-3 mb-3 flex-wrap">
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            style={{ color: 'rgb(var(--color-accent))' }}
+          >
+            {frame.stepLabel}
+          </span>
+          <h3 className="font-display text-lg sm:text-xl leading-tight m-0">
+            {frame.title}
+          </h3>
+        </div>
+        <div className="relative">
+          <SlideFrameBody
+            key={frame.id}
+            src={frame.realImagePath}
+            alt={frame.alt}
+            mock={frame.fallbackMock}
+          />
+        </div>
+        <p
+          className="mt-4 text-sm leading-relaxed m-0"
+          style={{ color: 'rgb(var(--color-fg-muted))' }}
+        >
+          {frame.caption}
+        </p>
+      </div>
+
+      {/* Dot indicators + autoplay progress */}
+      <div className="px-4 sm:px-6 py-4 flex items-center justify-center gap-2 border-t"
+        style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+      >
+        {FRAMES.map((f, i) => (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setIdx(i)}
+            aria-label={`Jump to ${f.stepLabel}: ${f.title}`}
+            className="inline-flex items-center justify-center rounded-full transition-all"
+            style={{
+              width: i === idx ? 28 : 8,
+              height: 8,
+              background:
+                i === idx ? 'rgb(var(--color-accent))' : 'rgba(20,20,19,0.22)',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SlideFrameBody({
+  src,
+  alt,
+  mock,
+}: {
+  src: string
+  alt: string
+  mock: React.ReactNode
+}) {
+  const [err, setErr] = useState(false)
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="relative"
+    >
+      {!err ? (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onError={() => setErr(true)}
+          style={{
+            display: 'block',
+            width: '100%',
+            maxWidth: '100%',
+            height: 'auto',
+            borderRadius: 12,
+            border: '1px solid rgb(var(--color-fg) / 0.08)',
+            boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.08)',
+          }}
+        />
+      ) : (
+        <div>{mock}</div>
+      )}
+    </motion.div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CoworkSetupPromptMock. Mock for the Step 4 slideshow frame showing the
+// Claude Desktop Cowork home with the setup prompt typed in but not yet
+// submitted. Approximates the real UI from Eugeen's 2026-05-13 screenshots.
+// Used only as fallback when /screenshots/.../step-4-paste-prompt.png is
+// missing.
+// ---------------------------------------------------------------------------
+
+function CoworkSetupPromptMock() {
+  return (
+    <ClaudeDesktopChrome title="Claude Desktop, Cowork">
+      <div className="p-5 sm:p-6">
+        <div className="font-display text-xl sm:text-2xl leading-tight mb-4">
+          Let's knock something off your list
+        </div>
+        <div
+          className="rounded-2xl p-4"
+          style={{
+            background: '#ffffff',
+            border: '1px solid rgb(var(--color-fg) / 0.12)',
+            boxShadow: '0 6px 16px rgb(var(--color-fg) / 0.04)',
+          }}
+        >
+          <div
+            className="text-sm leading-relaxed mb-3"
+            style={{
+              color: '#141413',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            }}
+          >
+            Set up my Foundation system with EmpireWorks Bridge.
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md w-7 h-7"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(20,20,19,0.12)',
+                color: '#141413',
+              }}
+              aria-hidden="true"
+            >
+              +
+            </button>
+            <span
+              className="inline-flex items-center justify-center rounded-md w-9 h-9"
+              style={{
+                background: 'rgb(var(--color-accent))',
+                color: '#fbfaf3',
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.18em]" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
+          <span>Work in a project</span>
+          <span>Ask</span>
+          <span className="ml-auto">Opus 4.7</span>
+        </div>
+      </div>
+    </ClaudeDesktopChrome>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // DownloadBridgeCTA. The single most-important button on the page. Bigger
 // than the prior version, with a constant accent glow + arrow icon, and a
 // version + size badge underneath. Iteration 2 polish: this is the moment
@@ -1599,19 +1811,17 @@ function DownloadBridgeCTA() {
 function CapabilityCard({
   capability,
   index,
-  onOpen,
 }: {
   capability: Capability
   index: number
-  onOpen: () => void
 }) {
-  const ref = useRef<HTMLButtonElement>(null)
+  const ref = useRef<HTMLAnchorElement>(null)
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const rotX = useSpring(useTransform(my, [-1, 1], [3, -3]), { stiffness: 220, damping: 22 })
   const rotY = useSpring(useTransform(mx, [-1, 1], [-3, 3]), { stiffness: 220, damping: 22 })
 
-  function onMove(e: React.MouseEvent<HTMLButtonElement>) {
+  function onMove(e: React.MouseEvent<HTMLAnchorElement>) {
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -1625,13 +1835,13 @@ function CapabilityCard({
     my.set(0)
   }
 
-  const Icon = capability.Icon
+  const Icon = ICON_MAP[capability.iconName]
+  const MotionLink = motion(Link)
 
   return (
-    <motion.button
+    <MotionLink
       ref={ref}
-      type="button"
-      onClick={onOpen}
+      to={`/empireworksreconstruction/layer/${capability.slug}`}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
       style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
@@ -1639,9 +1849,9 @@ function CapabilityCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
-      className="group relative rounded-2xl overflow-hidden p-6 sm:p-7 text-left w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="group relative rounded-2xl overflow-hidden p-6 sm:p-7 text-left w-full block cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       data-card="capability"
-      aria-label={`${capability.title}. Click to see how this changes Monday morning.`}
+      aria-label={`${capability.title}. Open the deep-dive page for this layer.`}
     >
       {/* Base surface */}
       <span
@@ -1718,290 +1928,18 @@ function CapabilityCard({
         See the dream
         <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
       </div>
-    </motion.button>
+    </MotionLink>
   )
 }
 
 // ---------------------------------------------------------------------------
-// CapabilityModalRender. The dream-pitch modal that opens when a VP clicks
-// "See the dream" on any capability card. Mounted at the EmpireLanding
-// level so only one modal is alive at a time. Lock body scroll + ESC close
-// are handled by the parent useEffect.
+// S205 iteration 3: CapabilityModalRender + ModalBody DELETED.
+// Replaced by EmpireCapabilityLayer.tsx route page at /layer/:slug. The
+// modal pattern was scroll-broken inside the live webpage and the
+// "Take me to install" CTA at the bottom was unreachable. Real routes
+// solve that structurally.
 // ---------------------------------------------------------------------------
 
-function CapabilityModalRender({
-  capability,
-  onClose,
-}: {
-  capability: Capability | null
-  onClose: () => void
-}) {
-  return (
-    <AnimatePresence>
-      {capability ? (
-        <motion.div
-          key="cap-modal"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-          style={{
-            background: 'rgba(20,20,19,0.55)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-          }}
-          onClick={onClose}
-          role="presentation"
-        >
-          <motion.div
-            key="cap-modal-inner"
-            initial={{ y: 40, opacity: 0, scale: 0.97 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 30, opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl"
-            style={{
-              background: '#fbfaf3',
-              color: '#141413',
-              boxShadow:
-                '0 40px 100px -20px rgba(20,20,19,0.45), 0 12px 30px rgba(20,20,19,0.15)',
-              border: '1px solid rgba(20,20,19,0.08)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${capability.title} deep-dive`}
-          >
-            <ModalBody capability={capability} onClose={onClose} />
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  )
-}
-
-function ModalBody({ capability, onClose }: { capability: Capability; onClose: () => void }) {
-  const Icon = capability.Icon
-  return (
-    <div className="p-6 sm:p-9">
-      {/* Close + nav */}
-      <div className="flex items-center justify-between mb-6">
-        <span
-          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] rounded-full px-3 py-1.5"
-          style={{
-            color: 'rgb(var(--color-accent))',
-            background: 'rgb(var(--color-accent) / 0.1)',
-            border: '1px solid rgb(var(--color-accent) / 0.22)',
-          }}
-        >
-          Operating layer: {capability.layer}
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="inline-flex items-center justify-center rounded-full transition"
-          style={{
-            width: 36,
-            height: 36,
-            background: 'rgba(20,20,19,0.06)',
-            color: '#141413',
-            border: '1px solid rgba(20,20,19,0.1)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(204,110,46,0.12)'
-            e.currentTarget.style.borderColor = 'rgba(204,110,46,0.35)'
-            e.currentTarget.style.color = 'rgb(var(--color-accent))'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(20,20,19,0.06)'
-            e.currentTarget.style.borderColor = 'rgba(20,20,19,0.1)'
-            e.currentTarget.style.color = '#141413'
-          }}
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Hero block: icon + title */}
-      <div className="flex items-start gap-4 mb-6">
-        <span
-          aria-hidden="true"
-          className="inline-flex items-center justify-center rounded-2xl shrink-0"
-          style={{
-            width: 56,
-            height: 56,
-            background:
-              'linear-gradient(135deg, rgb(var(--color-accent) / 0.18), rgb(var(--color-accent) / 0.06))',
-            color: 'rgb(var(--color-accent))',
-            border: '1px solid rgb(var(--color-accent) / 0.28)',
-            boxShadow: '0 12px 24px rgb(var(--color-accent) / 0.18)',
-          }}
-        >
-          <Icon className="w-7 h-7" aria-hidden="true" />
-        </span>
-        <div className="min-w-0">
-          <h2 className="font-display text-[clamp(1.6rem,3.5vw,2.2rem)] leading-tight m-0">
-            {capability.title}
-          </h2>
-          <p
-            className="text-base leading-relaxed mt-2 m-0"
-            style={{ color: 'rgb(var(--color-fg-muted))' }}
-          >
-            {capability.body}
-          </p>
-        </div>
-      </div>
-
-      {/* Monday morning vision */}
-      <div
-        className="rounded-2xl p-5 sm:p-6 mb-5"
-        style={{
-          background:
-            'linear-gradient(135deg, rgb(var(--color-accent) / 0.07), rgb(var(--color-accent) / 0.02))',
-          border: '1px solid rgb(var(--color-accent) / 0.22)',
-        }}
-      >
-        <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
-          style={{ color: 'rgb(var(--color-accent))' }}
-        >
-          Monday morning, after install
-        </div>
-        <p
-          className="text-base leading-relaxed m-0"
-          style={{ color: '#141413' }}
-        >
-          {capability.mondayMorning}
-        </p>
-      </div>
-
-      {/* Compounding angle */}
-      <div className="rounded-2xl p-5 sm:p-6 mb-5"
-        style={{
-          background: 'rgba(20,20,19,0.04)',
-          border: '1px solid rgba(20,20,19,0.08)',
-        }}
-      >
-        <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
-          style={{ color: 'rgb(var(--color-accent))' }}
-        >
-          Why this compounds
-        </div>
-        <p
-          className="text-base leading-relaxed m-0"
-          style={{ color: '#3a3a36' }}
-        >
-          {capability.compounding}
-        </p>
-      </div>
-
-      {/* Pack mapping: the receipts */}
-      <div className="mb-6">
-        <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
-          style={{ color: 'rgb(var(--color-accent))' }}
-        >
-          Powered by these packs in your Claude
-        </div>
-        <ul className="space-y-2 list-none m-0 pl-0">
-          {capability.packs.map((p) => (
-            <li
-              key={p.badge}
-              className="flex items-center gap-3 rounded-xl p-3"
-              style={{
-                background: '#ffffff',
-                border: '1px solid rgba(20,20,19,0.08)',
-              }}
-            >
-              <span
-                className="inline-flex items-center justify-center rounded-md font-mono text-[10px] uppercase tracking-[0.18em] shrink-0"
-                style={{
-                  minWidth: 56,
-                  padding: '4px 8px',
-                  background: 'rgb(var(--color-accent) / 0.12)',
-                  color: 'rgb(var(--color-accent))',
-                  fontWeight: 700,
-                }}
-              >
-                {p.badge}
-              </span>
-              <span className="text-sm leading-snug" style={{ color: '#141413' }}>
-                {p.name}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Proof footer */}
-      <div
-        className="flex items-start gap-3 rounded-xl p-4 mb-5"
-        style={{
-          background: 'rgb(18, 128, 82, 0.06)',
-          border: '1px solid rgb(18, 128, 82, 0.25)',
-        }}
-      >
-        <Check
-          className="w-4 h-4 mt-0.5 shrink-0"
-          style={{ color: 'rgb(18,128,82)' }}
-          aria-hidden="true"
-        />
-        <p
-          className="text-sm leading-snug m-0 italic"
-          style={{ color: '#1a5d3f' }}
-        >
-          {capability.proof}
-        </p>
-      </div>
-
-      {/* CTAs */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            onClose()
-            const target = document.getElementById('how-it-works')
-            if (target) target.scrollIntoView({ behavior: 'smooth' })
-          }}
-          className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition flex-1 min-h-11"
-          style={{
-            background: 'rgb(var(--color-accent))',
-            color: '#fbfaf3',
-            boxShadow: '0 10px 22px rgb(var(--color-accent) / 0.28)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)'
-            e.currentTarget.style.boxShadow = '0 14px 28px rgb(var(--color-accent) / 0.42)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = '0 10px 22px rgb(var(--color-accent) / 0.28)'
-          }}
-        >
-          Take me to install
-          <ArrowRight className="w-4 h-4" aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition min-h-11"
-          style={{
-            background: 'transparent',
-            color: '#141413',
-            border: '1px solid rgba(20,20,19,0.18)',
-          }}
-        >
-          Back to the layers
-        </button>
-      </div>
-    </div>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // ClaudeInstallDialogMock. Inline mock of the Claude Desktop extension-install

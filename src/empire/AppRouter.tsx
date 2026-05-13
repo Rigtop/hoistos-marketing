@@ -24,6 +24,7 @@ import { EmpireLanding } from './EmpireLanding'
 import { EmpireTimelinePage, EmpireStoryPage } from './EmpireTimelinePage'
 import { EmpirePackDetail } from './EmpirePackDetail'
 import { EmpireBonusExtras } from './EmpireBonusExtras'
+import { EmpireCapabilityLayer } from './EmpireCapabilityLayer'
 
 function ThemeRouteSync() {
   useEffect(() => {
@@ -73,6 +74,7 @@ export function AppRouter() {
           <Route path="timeline" element={<EmpireStoryPage />} />
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
+          <Route path="layer/:layerSlug" element={<EmpireCapabilityLayer />} />
         </Route>
 
         {/* Legacy alias: /empire */}
@@ -82,6 +84,7 @@ export function AppRouter() {
           <Route path="timeline" element={<EmpireStoryPage />} />
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
+          <Route path="layer/:layerSlug" element={<EmpireCapabilityLayer />} />
         </Route>
       </Routes>
     </>
