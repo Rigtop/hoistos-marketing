@@ -906,11 +906,11 @@ export function EmpireBonusExtras() {
         </div>
       </section>
 
-      {/* Browser-only fallback panel. For users on Linux, Chromebooks,
-          locked-down corporate machines, or anyone who genuinely cannot
-          install the Claude Desktop app. Three-step manual path that does
-          not depend on the claude:// URL scheme. */}
-      <BrowserFallbackPanel onPostInstall={firePostInstall} />
+      {/* S205 iteration 4: BrowserFallbackPanel REMOVED from render. Per
+          R068 the browser-fetch path was unsafe, and the curl path assumes
+          Code CLI tier which the post-Bridge architecture does not need.
+          Anyone who can run the Bridge can install all the advanced packs
+          through it. Component definition kept below for fast revert. */}
 
       {/* Post-install follow-up panel. Lives at page level so it persists
           across re-renders and stays positioned bottom-right regardless of
@@ -1207,30 +1207,12 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           </span>
         </button>
 
-        {/* Secondary "Use browser instead" button on desktop tier. Calls
-            browserFallbackInstall which uses claude.ai web. Same paste
-            mechanic, different surface. Hidden on code tier (where curl
-            is the only path) and unknown tier (nudge first). */}
-        {tier === 'desktop' ? (
-          <button
-            type="button"
-            onClick={() => {
-              browserFallbackInstall(blueprint)
-              onPostInstall(blueprint, 'desktop')
-            }}
-            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
-            style={{
-              background: '#FFFFFF',
-              color: 'rgb(var(--color-fg))',
-              border: '1px solid rgba(20,20,19,0.18)',
-              cursor: 'pointer',
-            }}
-            title="Copies the full blueprint to your clipboard, opens claude.ai in a new browser tab. Use this if the Claude Desktop app is not installed."
-          >
-            <ExternalLink className="w-4 h-4" aria-hidden="true" />
-            <span>Use browser instead</span>
-          </button>
-        ) : null}
+        {/* S205 iteration 4: "Use browser instead" secondary button REMOVED.
+            Per R068 (indirect prompt injection boundary), Claude refuses to
+            fetch external URLs and treat them as governance, so the browser
+            path was unsafe. Eugeen feedback 2026-05-13: "the advance packs
+            still have browser button? do we need that?" Answer: no. The
+            primary "Install in Claude Desktop" button stays. */}
 
         <button
           type="button"
@@ -1400,5 +1382,9 @@ function BrowserFallbackPanel({
     </motion.section>
   )
 }
+
+// S205 iteration 4: BrowserFallbackPanel + ExternalLink import retained but
+// not rendered. void-marked to suppress unused-declaration warnings.
+void BrowserFallbackPanel
 
 export default EmpireBonusExtras

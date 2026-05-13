@@ -35,7 +35,7 @@ import {
   Search,
   Shield,
 } from 'lucide-react'
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
 import { CAPABILITIES, type Capability } from './content/capabilities'
 
 /**
@@ -193,10 +193,11 @@ export function EmpireLanding() {
         {/* Guided Bridge setup. Novice path only: Desktop extension, one
             setup prompt, one Project Instructions paste, one verification. */}
         <motion.div
+          id="install-panel"
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-4xl mx-auto mb-12"
+          className="max-w-4xl mx-auto mb-12 scroll-mt-24"
         >
           <div
             className="relative rounded-2xl p-6 sm:p-8 text-left"
@@ -224,86 +225,11 @@ export function EmpireLanding() {
               className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              The Bridge is the installer. Watch the install at a glance below, then
-              follow the six steps for the exact clicks and paste payloads.
+              Six steps, ten minutes, one paste. Use the prev/next buttons or click any
+              dot to jump around.
             </p>
 
-            <InstallSlideshow />
-
-            <div
-              className="mt-8 divide-y rounded-xl overflow-hidden"
-              style={{ border: '1px solid rgb(var(--color-fg) / 0.08)' }}
-            >
-              <StepRow index={1} label="Download the Bridge" centered>
-                <div className="mx-auto max-w-2xl text-center">
-                  <p
-                    className="text-sm leading-relaxed mb-5"
-                    style={{ color: 'rgb(var(--color-fg-muted))' }}
-                  >
-                    This is the one installer. The Foundation pack pages below are previews,
-                    not separate installs.
-                  </p>
-                  <DownloadBridgeCTA />
-                </div>
-              </StepRow>
-
-              <StepRow index={2} label="Double-click it and click Install">
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Claude Desktop opens an extension screen. Click Install or Update, keep
-                  the extension enabled, then come back here. (See frame 1 of the slideshow
-                  below.)
-                </p>
-                <InstallFacts />
-              </StepRow>
-
-              <StepRow index={3} label="Open Claude Desktop and the Project">
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Open Claude Desktop. Pick or create the Project where this system will
-                  live. The setup prompt runs inside that Project, not in a loose chat.
-                </p>
-              </StepRow>
-
-              <StepRow
-                index={4}
-                label="Paste one setup prompt"
-                rightSlot={<CopyButton text={SETUP_PROMPT} label="Copy setup" />}
-              >
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Paste this into the Project chat. Claude will ask to call
-                  setup_foundation. Click Allow. The Bridge writes the 11 Foundation
-                  packs locally, writes the router, then gives you the activation line.
-                </p>
-                <PromptBlock>{SETUP_PROMPT}</PromptBlock>
-              </StepRow>
-
-              <StepRow
-                index={5}
-                label="Paste the activation line into Project Instructions"
-                rightSlot={<CopyButton text={ACTIVATION_LINE} label="Copy line" />}
-              >
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Open Project Instructions, paste the activation line, save. Every new
-                  chat in that Project loads the router automatically after this.
-                </p>
-                <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
-                <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
-                  Project Instructions are per Project. If you create another Claude Project
-                  later, paste the same activation line into that Project too.
-                </p>
-              </StepRow>
-
-              <StepRow
-                index={6}
-                label="Run the check"
-                rightSlot={<CopyButton text={VERIFY_PROMPT} label="Copy check" />}
-              >
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Paste this into the same Project chat. A clean result means the Bridge,
-                  Foundation files, manifest, and router are live.
-                </p>
-                <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
-              </StepRow>
-            </div>
+            <InstallFlow />
 
             <div
               className="mt-5 rounded-xl p-4 text-sm leading-relaxed"
@@ -1382,7 +1308,398 @@ type SlideFrame = {
   fallbackMock: React.ReactNode
 }
 
-function InstallSlideshow() {
+// ---------------------------------------------------------------------------
+// InstallFlow. The consolidated installer stepper. Iteration 4 of S205:
+// replaces the InstallSlideshow + 6 separate StepRow rows (which were two
+// sets of instructions side by side per Eugeen's "now there's 2 sets of
+// instructions" feedback) with a single source-of-truth stepper.
+//
+// Pattern: top progress bar with 6 clickable steps + Play/Pause toggle, body
+// shows the active step (visual + copy + paste blocks + facts), prev/next at
+// the bottom. Auto-advances every 7s when Play is on; manual nav otherwise.
+//
+// Auto-advance defaults to OFF so the user is in control. Click Play to
+// watch the full sequence as a guided tour.
+// ---------------------------------------------------------------------------
+
+type InstallStep = {
+  n: number
+  label: string
+  title: string
+  description: string
+  /** What kind of visual to render in the body. */
+  visualType: 'download-cta' | 'image' | 'mock-only'
+  visualScreenshot: string | null
+  visualFallback: React.ReactNode
+  /** Optional paste payloads with their own Copy buttons. */
+  copyBlocks: { label: string; text: string }[]
+  /** Optional extra block (e.g. InstallFacts) shown below the visual. */
+  extras: React.ReactNode | null
+}
+
+function useInstallSteps(): InstallStep[] {
+  return [
+    {
+      n: 1,
+      label: 'Download',
+      title: 'Download the Bridge for Claude Desktop',
+      description:
+        'One installer for everything. The Foundation packs install through this. The pack preview pages are reference reading, not separate installs.',
+      visualType: 'download-cta',
+      visualScreenshot: null,
+      visualFallback: null,
+      copyBlocks: [],
+      extras: null,
+    },
+    {
+      n: 2,
+      label: 'Install',
+      title: 'Approve the EmpireWorks Bridge extension',
+      description:
+        'Claude Desktop shows a security callout. That is expected. Click Install (or Update) and keep the extension enabled.',
+      visualType: 'image',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-2-extension-page.png',
+      visualFallback: <ClaudeInstallDialogMock />,
+      copyBlocks: [],
+      extras: <InstallFacts />,
+    },
+    {
+      n: 3,
+      label: 'Open',
+      title: 'Open Claude Desktop and your Project',
+      description:
+        'Open Claude Desktop. Pick or create the Project where the system will live. The setup prompt runs inside that Project, not in a loose chat.',
+      visualType: 'image',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-3-cowork-project.png',
+      visualFallback: <ClaudeProjectMock />,
+      copyBlocks: [],
+      extras: null,
+    },
+    {
+      n: 4,
+      label: 'Paste setup',
+      title: 'Paste the setup prompt',
+      description:
+        'Paste this one sentence into your Project chat. Claude asks to call setup_foundation. Click Allow. The Bridge writes the 11 Foundation packs locally and returns the activation line.',
+      visualType: 'image',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-4-paste-prompt.png',
+      visualFallback: <CoworkSetupPromptMock />,
+      copyBlocks: [{ label: 'Copy setup prompt', text: SETUP_PROMPT }],
+      extras: null,
+    },
+    {
+      n: 5,
+      label: 'Activate',
+      title: 'Save the activation line in Project Instructions',
+      description:
+        'Open Project Instructions, paste the activation line, save. Every new chat in this Project loads the router automatically from this point on.',
+      visualType: 'image',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-5-instructions-saved.png',
+      visualFallback: <ClaudeProjectInstructionsMock />,
+      copyBlocks: [{ label: 'Copy activation line', text: ACTIVATION_LINE }],
+      extras: null,
+    },
+    {
+      n: 6,
+      label: 'Verify',
+      title: 'Verify the install',
+      description:
+        'Paste this into the same Project chat. Claude calls verify_setup and reports back: Foundation is live, 11 packs installed, here is what you can ask me next.',
+      visualType: 'image',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-6-verify-response.png',
+      visualFallback: <ClaudeVerifyResponseMock />,
+      copyBlocks: [{ label: 'Copy verify prompt', text: VERIFY_PROMPT }],
+      extras: null,
+    },
+  ]
+}
+
+function InstallFlow() {
+  const STEPS = useInstallSteps()
+  const total = STEPS.length
+  const [active, setActive] = useState(1)
+  const [playing, setPlaying] = useState(false)
+
+  // Auto-advance only when playing. Reset on user nav.
+  useEffect(() => {
+    if (!playing) return
+    const t = window.setTimeout(() => {
+      setActive((a) => (a >= total ? 1 : a + 1))
+    }, 7000)
+    return () => window.clearTimeout(t)
+  }, [active, playing, total])
+
+  const step = STEPS[active - 1]
+
+  function go(n: number) {
+    setActive(((n - 1 + total) % total) + 1)
+  }
+  function prev() {
+    go(active - 1)
+  }
+  function next() {
+    go(active + 1)
+  }
+
+  return (
+    <div className="mt-2">
+      {/* Stepper bar */}
+      <div
+        className="flex items-center gap-2 sm:gap-3 flex-wrap mb-6"
+        role="tablist"
+        aria-label="Install steps"
+      >
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+          {STEPS.map((s) => {
+            const isActive = s.n === active
+            const isDone = s.n < active
+            return (
+              <button
+                key={s.n}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-label={`Step ${s.n}: ${s.label}`}
+                onClick={() => {
+                  setPlaying(false)
+                  go(s.n)
+                }}
+                className="group relative flex-1 min-w-0 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-full"
+                style={{ minHeight: 44 }}
+              >
+                <span
+                  className="block h-1.5 rounded-full transition-all"
+                  style={{
+                    background: isActive
+                      ? 'rgb(var(--color-accent))'
+                      : isDone
+                        ? 'rgb(var(--color-accent) / 0.5)'
+                        : 'rgb(var(--color-fg) / 0.12)',
+                    boxShadow: isActive
+                      ? '0 4px 12px rgb(var(--color-accent) / 0.32)'
+                      : 'none',
+                  }}
+                />
+                <span
+                  className="block mt-2 text-center font-mono uppercase tracking-[0.18em] truncate transition-colors"
+                  style={{
+                    fontSize: 10,
+                    color: isActive
+                      ? 'rgb(var(--color-accent))'
+                      : isDone
+                        ? 'rgb(var(--color-fg-muted))'
+                        : 'rgb(var(--color-fg-subtle))',
+                    fontWeight: isActive ? 700 : 500,
+                  }}
+                >
+                  <span className="sm:hidden">{s.n}</span>
+                  <span className="hidden sm:inline">{s.n}. {s.label}</span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        {/* Play / Pause toggle */}
+        <button
+          type="button"
+          onClick={() => setPlaying((p) => !p)}
+          aria-pressed={playing}
+          aria-label={playing ? 'Pause auto-advance' : 'Play guided walkthrough'}
+          className="inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] shrink-0 transition"
+          style={{
+            background: playing
+              ? 'rgb(var(--color-accent) / 0.12)'
+              : 'rgba(20,20,19,0.05)',
+            color: playing ? 'rgb(var(--color-accent))' : '#141413',
+            border: playing
+              ? '1px solid rgb(var(--color-accent) / 0.32)'
+              : '1px solid rgba(20,20,19,0.1)',
+            minHeight: 36,
+          }}
+        >
+          {playing ? (
+            <>
+              <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="6" y="4" width="4" height="16" fill="currentColor" />
+                <rect x="14" y="4" width="4" height="16" fill="currentColor" />
+              </svg>
+              Pause
+            </>
+          ) : (
+            <>
+              <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 3l16 9-16 9V3z" fill="currentColor" />
+              </svg>
+              Play tour
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Step body */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: 'rgb(var(--color-bg) / 0.7)',
+            border: '1px solid rgb(var(--color-fg) / 0.08)',
+            boxShadow: '0 18px 40px -16px rgb(var(--color-fg) / 0.12)',
+          }}
+        >
+          <div className="p-5 sm:p-6">
+            <div className="flex items-baseline gap-3 mb-3 flex-wrap">
+              <span
+                className="inline-flex items-center justify-center rounded-full font-mono text-[11px] uppercase tracking-[0.16em]"
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+                  color: '#fbfaf3',
+                  padding: '4px 12px',
+                  boxShadow: '0 6px 14px rgb(var(--color-accent) / 0.28)',
+                  fontWeight: 700,
+                }}
+              >
+                Step {active} of {total}
+              </span>
+              <h3 className="font-display text-lg sm:text-2xl leading-tight m-0">
+                {step.title}
+              </h3>
+            </div>
+            <p
+              className="text-sm sm:text-base leading-relaxed m-0 mb-5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
+            >
+              {step.description}
+            </p>
+
+            {/* Paste blocks above the visual so the user sees the action first */}
+            {step.copyBlocks.map((block) => (
+              <div key={block.label} className="mb-4">
+                <div className="flex items-center justify-end mb-2">
+                  <CopyButton text={block.text} label={block.label} />
+                </div>
+                <PromptBlock>{block.text}</PromptBlock>
+              </div>
+            ))}
+
+            {/* Visual */}
+            <InstallStepVisual step={step} />
+
+            {/* Extras (e.g. InstallFacts on Step 2) */}
+            {step.extras ? <div className="mt-5">{step.extras}</div> : null}
+          </div>
+
+          {/* Prev / Next nav */}
+          <div
+            className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-t"
+            style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false)
+                prev()
+              }}
+              disabled={active === 1}
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-sm font-semibold transition min-h-11"
+              style={{
+                background: active === 1 ? 'rgba(20,20,19,0.04)' : 'rgba(20,20,19,0.06)',
+                color: active === 1 ? 'rgb(var(--color-fg-subtle))' : '#141413',
+                border: '1px solid rgba(20,20,19,0.1)',
+                cursor: active === 1 ? 'not-allowed' : 'pointer',
+                opacity: active === 1 ? 0.5 : 1,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+            <span
+              className="font-mono text-[10px] uppercase tracking-[0.22em]"
+              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            >
+              {active < total ? `Up next: ${STEPS[active]?.label}` : 'Last step'}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setPlaying(false)
+                next()
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-5 py-2 text-sm font-semibold transition min-h-11"
+              style={{
+                background:
+                  active === total
+                    ? 'rgba(20,20,19,0.06)'
+                    : 'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+                color: active === total ? '#141413' : '#fbfaf3',
+                border:
+                  active === total
+                    ? '1px solid rgba(20,20,19,0.1)'
+                    : '1px solid transparent',
+                boxShadow:
+                  active === total
+                    ? 'none'
+                    : '0 10px 24px rgb(var(--color-accent) / 0.28)',
+              }}
+            >
+              <span className="hidden sm:inline">
+                {active === total ? 'Back to step 1' : 'Next step'}
+              </span>
+              <span className="sm:hidden">{active === total ? 'Restart' : 'Next'}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function InstallStepVisual({ step }: { step: InstallStep }) {
+  const [err, setErr] = useState(false)
+  if (step.visualType === 'download-cta') {
+    return (
+      <div className="flex justify-center py-4">
+        <DownloadBridgeCTA />
+      </div>
+    )
+  }
+  if (step.visualType === 'image' && step.visualScreenshot && !err) {
+    return (
+      <img
+        src={step.visualScreenshot}
+        alt={step.title}
+        loading="lazy"
+        decoding="async"
+        onError={() => setErr(true)}
+        style={{
+          display: 'block',
+          width: '100%',
+          maxWidth: '100%',
+          height: 'auto',
+          borderRadius: 12,
+          border: '1px solid rgb(var(--color-fg) / 0.08)',
+          boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.08)',
+        }}
+      />
+    )
+  }
+  return <div>{step.visualFallback}</div>
+}
+
+// Keep InstallSlideshow as a reserved component (used by no one now). Kept so
+// the iteration 4 stepper diff is a clean replace, not a churn. void-marked
+// at the bottom of this block so TS does not warn about unused declaration.
+function _InstallSlideshowRemoved() {
   const FRAMES: SlideFrame[] = [
     {
       id: 'extension',
@@ -2317,5 +2634,7 @@ function ClaudeVerifyResponseMock() {
 // real PNG captures land later. void-marked so TS does not complain about
 // the unused declaration.
 void ScreenshotPlaceholder
+void _InstallSlideshowRemoved
+void StepRow
 
 export default EmpireLanding

@@ -56,16 +56,15 @@ export function EmpireCapabilityLayer() {
   function goToInstall() {
     navigate('/empireworksreconstruction')
     // Defer the scroll to the next tick so the route lands before we scroll.
+    // Target the install panel directly (id="install-panel"). S205 iteration 4
+    // fix: prior version targeted #how-it-works (the cards section) which is
+    // wrong, the user wants the Bridge download.
     window.setTimeout(() => {
-      const target = document.getElementById('how-it-works')
+      const target = document.getElementById('install-panel')
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      } else {
-        // Fall back to scrolling to the install panel via its h2 anchor
-        const install = document.querySelector('h2')
-        install?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
-    }, 80)
+    }, 120)
   }
 
   return (
