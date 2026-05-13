@@ -49,6 +49,13 @@ interface BonusBlueprint {
    *  on the user's machine. Pro/Max desktop cannot host the runtime. Surfaces
    *  as a "Requires Code CLI" badge on the card. */
   requiresCodeCli?: boolean
+  /** When true, the pack installs via Claude Desktop or claude.ai with no
+   *  additional local tooling. Traces to claudeTier in pack frontmatter. */
+  bridgeCompatible: boolean
+  /** When true, this pack is the doorway from Desktop to Code CLI -- the
+   *  guide a user reads to set up Code CLI before the daemon-heavy packs.
+   *  Surfaces "Code CLI onramp" badge instead of "Code CLI required". */
+  isCodeOnramp?: boolean
 }
 
 const BLUEPRINTS: BonusBlueprint[] = [
@@ -64,6 +71,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'A 90-second tour of the eight blueprints, ordered by what builds on what.',
     desktopHint: 'Open in Claude Desktop with one click. Read the index, then click into a blueprint.',
     codeHint: 'One-liner drops the index into your skills folder. Claude surfaces it the next time you open a session.',
+    bridgeCompatible: true,
   },
   {
     id: 'bonus-01-notion-foundation',
@@ -77,6 +85,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'Four Notion databases plus a parent Operating Stack page. Relations live, with five example rows in each so you can see the shape.',
     desktopHint: 'Click Open in Claude Desktop. Claude pulls the skill, walks the four database creates through your Notion connection, then reads the live state back to confirm the relations wired correctly.',
     codeHint: 'Run the one-liner. The skill walks the database creation through your Notion connection. Three questions, ninety seconds, four databases land.',
+    bridgeCompatible: true,
   },
   {
     id: 'bonus-02-notion-operating-layer',
@@ -90,6 +99,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'Three more databases on top of the Foundation. Plus the flow that turns a meeting transcript into linked decisions, action items, and code projects.',
     desktopHint: 'Same install pattern as the Foundation. The skill checks for the Foundation first and prompts you to install it if you skipped ahead. After the create runs, you can watch the relations land in your Notion sidebar in under two minutes.',
     codeHint: 'One-liner drops the skill. Restart your session. Trigger phrase builds the three databases and runs the three example flows.',
+    bridgeCompatible: true,
   },
   {
     id: 'bonus-03-rag-setup',
@@ -97,6 +107,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     number: 'B-03',
     title: 'RAG Setup',
     requiresCodeCli: true,
+    bridgeCompatible: false,
     oneLine: 'A search layer that lets Claude answer from your own knowledge instead of from what it was trained on. A watcher on your filesystem indexes every file you create. A daily sync pulls your Notion content into the same index. Ask any question and Claude returns a ranked list of passages from your own writing, with the file path back to the source. The first time you watch Claude answer "what did I tell Steve about the proposal" with citations from a meeting note you forgot you wrote, the upgrade pays for itself.',
     scope: 'The search layer. A watcher on your filesystem and a daily Notion sync feed the index. Claude answers from your own knowledge, not from what it was trained on.',
     installMinutes: 105,
@@ -111,6 +122,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     number: 'B-04',
     title: 'Telegram Bridge',
     requiresCodeCli: true,
+    bridgeCompatible: false,
     oneLine: 'A Telegram bot tied to your laptop that lets you reach your full Claude setup from your phone. Text the bot from a jobsite, Claude reads your Notion and your knowledge base, runs whatever skills you have installed, and replies in seconds. The bridge holds your tier identity, your memory, your routing rules, all of it. Same Claude as the one on your laptop, addressable from any pocket.',
     scope: 'Lets you reach your full Claude setup from your phone. Text the bot from a jobsite, Claude reads your Notion and your knowledge base, replies in seconds with the same identity and rules as on your laptop.',
     installMinutes: 60,
@@ -131,6 +143,8 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'A working claude command in your terminal, your first cold-start file, the Notion connector wired up, and an em-dash blocker hook running.',
     desktopHint: 'Skip if you only use Claude Desktop. The CLI is for users who want a terminal-first workflow alongside Claude Desktop. If you want both, install this.',
     codeHint: 'Run the one-liner. The skill walks you through it: install command, login flow, first connector, first hook. Verify with one prompt at the end.',
+    bridgeCompatible: false,
+    isCodeOnramp: true,
   },
   {
     id: 'bonus-06-auto-memory-architecture',
@@ -144,6 +158,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'A memory folder layout, an index file Claude loads when a session starts, and a skill that fires on "remember" and writes to the right place.',
     desktopHint: 'Lighter version on desktop. Memory lives in your Project Knowledge with a manual paste pattern, and the desktop app auto-loads at session start. Read the markdown to see the shape; the full pattern lives on Code.',
     codeHint: 'Code is where this lives best. Memory files on disk, auto-loaded at session start, and a propagator skill that fires on the trigger phrases you already use.',
+    bridgeCompatible: true,
   },
   {
     id: 'bonus-07-hooks-and-daemons',
@@ -151,6 +166,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     number: 'B-07',
     title: 'Hooks Plus Daemons',
     requiresCodeCli: true,
+    bridgeCompatible: false,
     oneLine: 'The plumbing that keeps Claude reliable in the long run. Hooks fire before and after every tool call (file writes, Notion writes, email drafts) so your voice rules and routing rules block bad output at the OS exit-code level instead of asking the prompt nicely. Background jobs run on their own schedule with health checks that surface a flag if anything stops working. This is the pack that turns voice rules from advisory text into structural enforcement.',
     scope: 'The plumbing that keeps Claude reliable. Voice and routing rules block bad writes at the OS exit-code level. Background jobs stay alive with health checks. Hooks before and after every tool call.',
     installMinutes: 60,
@@ -798,17 +814,96 @@ export function EmpireBonusExtras() {
           Advanced visitors are expected to have already completed the
           preflight on the Foundation page. */}
 
-      <section className="mt-8 max-w-4xl mx-auto space-y-8">
-        {BLUEPRINTS.map((b, idx) => (
-          <BlueprintCard
-            key={b.id}
-            blueprint={b}
-            index={idx}
-            tier={tier}
-            completed={completedPacks.has(b.id)}
-            onPostInstall={firePostInstall}
-          />
-        ))}
+      {/* Section 1: Bridge-compatible packs (Desktop or claude.ai, no extra installs) */}
+      <section className="mt-8 max-w-4xl mx-auto" aria-labelledby="bridge-blueprints-heading">
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <span
+            id="bridge-blueprints-heading"
+            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            Works with your Bridge setup
+          </span>
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.14em] rounded-full px-2.5 py-1"
+            style={{ background: 'rgba(63,124,63,0.1)', color: 'rgb(63,124,63)', fontWeight: 600 }}
+          >
+            No extra installs
+          </span>
+        </div>
+        <div className="space-y-8">
+          {BLUEPRINTS.filter((b) => b.bridgeCompatible).map((b, idx) => (
+            <BlueprintCard
+              key={b.id}
+              blueprint={b}
+              index={idx}
+              tier={tier}
+              completed={completedPacks.has(b.id)}
+              onPostInstall={firePostInstall}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Divider: visual break + disclosure before advanced section */}
+      <div className="mt-16 max-w-4xl mx-auto">
+        <div
+          className="rounded-2xl px-6 py-5 md:px-8 md:py-6"
+          style={{ background: 'rgba(20,20,19,0.045)', border: '1px solid rgba(20,20,19,0.10)' }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div
+              className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] mt-0.5"
+              style={{ color: 'rgb(var(--color-accent))' }}
+            >
+              Next level
+            </div>
+            <div>
+              <p className="text-sm md:text-base font-medium mb-1" style={{ color: 'rgb(var(--color-fg))' }}>
+                The next four blueprints run daemons or filesystem watchers directly on your machine.
+              </p>
+              <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                They require Claude Code CLI installed on your laptop. Claude Desktop alone cannot host the background processes they ship. Start with B-05 to get the CLI working, then come back for B-03, B-04, and B-07.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: Code-CLI-required packs (B-05 first as onramp, then B-03, B-04, B-07) */}
+      <section className="mt-8 max-w-4xl mx-auto" aria-labelledby="advanced-blueprints-heading">
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <span
+            id="advanced-blueprints-heading"
+            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            After Code CLI is installed
+          </span>
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.14em] rounded-full px-2.5 py-1"
+            style={{ background: 'rgba(20,20,19,0.08)', color: 'rgb(var(--color-fg))', fontWeight: 600 }}
+          >
+            Claude Code CLI required
+          </span>
+        </div>
+        <div className="space-y-8">
+          {[
+            BLUEPRINTS.find((b) => b.isCodeOnramp),
+            ...BLUEPRINTS.filter((b) => !b.bridgeCompatible && !b.isCodeOnramp),
+          ]
+            .filter((b): b is BonusBlueprint => b !== undefined)
+            .map((b, idx) => (
+              <BlueprintCard
+                key={b.id}
+                blueprint={b}
+                index={idx}
+                tier={tier}
+                completed={completedPacks.has(b.id)}
+                onPostInstall={firePostInstall}
+              />
+            ))}
+        </div>
       </section>
 
       {/* Browser-only fallback panel. For users on Linux, Chromebooks,
@@ -945,7 +1040,11 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
       className="relative rounded-3xl p-8 md:p-10 border overflow-hidden"
       style={{
         borderColor: completed ? 'rgba(63, 124, 63, 0.32)' : 'rgba(20,20,19,0.12)',
-        background: completed ? 'rgba(63, 124, 63, 0.04)' : '#fbfaf3',
+        background: completed
+          ? 'rgba(63, 124, 63, 0.04)'
+          : blueprint.bridgeCompatible
+          ? '#fbfaf3'
+          : 'rgba(20,20,19,0.025)',
       }}
     >
       {/* Completion badge. Persistent green check that lands when the user
@@ -978,10 +1077,28 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         >
           {blueprint.installDisplay}
         </span>
-        {/* Code CLI Required badge. Renders only on packs that ship daemons
-            or hooks (B-03 RAG, B-04 Telegram, B-07 Hooks). These cannot run
-            on Pro/Max desktop and need Claude Code CLI on the user's machine.
-            Set per-pack via requiresCodeCli flag on the blueprint manifest. */}
+        {/* Code CLI onramp badge: B-05. This is the setup guide for Code CLI
+            -- not a daemon pack, but the doorway to the daemon packs.
+            isCodeOnramp traces to desktopHint "Skip if you only use Claude
+            Desktop" + codeHint as the primary install path. */}
+        {blueprint.isCodeOnramp ? (
+          <span
+            className="font-mono text-[10px] uppercase tracking-[0.18em] rounded-md px-2 py-1"
+            style={{
+              color: '#fbfaf3',
+              background: 'rgb(var(--color-accent))',
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+            }}
+            title="Start here. This blueprint walks you through installing Claude Code CLI so you can unlock the daemon-powered packs below."
+          >
+            Start here: Code CLI onramp
+          </span>
+        ) : null}
+        {/* Code CLI Required badge. Renders on packs that ship daemons or
+            hooks (B-03 RAG, B-04 Telegram, B-07 Hooks). These cannot run on
+            Pro/Max desktop. requiresCodeCli traces to frontmatter: B-03
+            filesystem watcher, B-04 launchd Python daemon, B-07 hooks + launchd. */}
         {blueprint.requiresCodeCli ? (
           <span
             className="font-mono text-[10px] uppercase tracking-[0.18em] rounded-md px-2 py-1"
