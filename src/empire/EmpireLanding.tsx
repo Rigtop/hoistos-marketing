@@ -69,7 +69,7 @@ import { PackCard } from './cards/PackCard'
 // shows in the Calendly URL bar.
 const CALENDLY_URL = 'https://calendly.com/eugeenbernan'
 
-const BRIDGE_VERSION = '1.0.2'
+const BRIDGE_VERSION = '1.0.3'
 const BRIDGE_DOWNLOAD_PATH = `/downloads/empireworks-bridge-${BRIDGE_VERSION}.mcpb`
 const SETUP_PROMPT = 'Set up my Foundation system with EmpireWorks Bridge.'
 const ACTIVATION_LINE =
@@ -271,7 +271,11 @@ export function EmpireLanding() {
                   Claude Desktop opens an extension screen. Click Install or Update, keep
                   the extension enabled, then continue back to this page.
                 </p>
-                <ExtensionInstallMock />
+                <ScreenshotPlaceholder
+                  src="/screenshots/empireworks-bridge/install-dialog-placeholder.png"
+                  alt="Claude Desktop extension install dialog showing EmpireWorks Bridge with an Install button"
+                  caption="Step 2: click Install in this Claude Desktop screen, then return here."
+                />
                 <InstallFacts />
               </div>
 
@@ -330,7 +334,11 @@ export function EmpireLanding() {
                   </div>
                   <CopyButton text={ACTIVATION_LINE} label="Copy line" />
                 </div>
-                <ProjectInstructionsMock />
+                <ScreenshotPlaceholder
+                  src="/screenshots/empireworks-bridge/project-instructions-placeholder.png"
+                  alt="Claude Desktop Project Instructions panel with the EmpireWorks Bridge activation line pasted in"
+                  caption="Step 5: paste the activation line into Project Instructions, then save."
+                />
                 <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
                 <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
                   Project Instructions are per Project. If you create another Claude Project
@@ -561,89 +569,47 @@ function PromptBlock({ children }: { children: string }) {
   )
 }
 
-function ExtensionInstallMock() {
+function ScreenshotPlaceholder({
+  src,
+  alt,
+  caption,
+}: {
+  src: string
+  alt: string
+  caption: string
+}) {
   return (
-    <div
-      className="mt-4 rounded-xl p-4 sm:p-5"
-      style={{
-        background: '#f8f7f2',
-        border: '1px solid rgb(var(--color-fg) / 0.1)',
-        boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.08)',
-      }}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <span className="h-3 w-3 rounded-full" style={{ background: '#ff5f57' }} />
-        <span className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
-        <span className="h-3 w-3 rounded-full" style={{ background: '#28c940' }} />
-        <span
-          className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em]"
-          style={{ color: 'rgb(var(--color-fg-subtle))' }}
-        >
-          Claude Desktop, extensions
+    <figure className="mt-4 m-0">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        style={{
+          display: 'block',
+          width: '100%',
+          maxWidth: '100%',
+          height: 'auto',
+          aspectRatio: '3 / 2',
+          objectFit: 'cover',
+          borderRadius: 12,
+          border: '1px solid rgb(var(--color-fg) / 0.1)',
+          boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.08)',
+        }}
+      />
+      <figcaption
+        className="mt-2 text-xs text-center leading-relaxed"
+        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+      >
+        {caption}{' '}
+        <span style={{ color: 'rgb(var(--color-accent) / 0.7)', fontStyle: 'italic' }}>
+          Preview screenshot, real capture shipping with v1.0.3 release.
         </span>
-      </div>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-2xl font-semibold"
-          style={{
-            background: '#ffffff',
-            border: '1px solid rgb(var(--color-fg) / 0.1)',
-            color: 'rgb(var(--color-fg))',
-          }}
-        >
-          E
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="text-base font-semibold">EmpireWorks Bridge</div>
-              <p className="mt-1 text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                Adds Bridge tools for setup, router lookup, pack reading, and updates.
-              </p>
-            </div>
-            <span
-              className="inline-flex min-h-9 items-center justify-center rounded-lg px-4 text-sm font-semibold"
-              style={{ background: 'rgb(var(--color-fg))', color: 'rgb(var(--color-bg))' }}
-            >
-              Install
-            </span>
-          </div>
-
-          <div
-            className="mt-4 rounded-lg p-3 text-sm leading-relaxed"
-            style={{
-              background: 'rgb(185 55 55 / 0.1)',
-              border: '1px solid rgb(185 55 55 / 0.25)',
-              color: 'rgb(130 36 36)',
-            }}
-          >
-            Claude may warn that extensions can access your computer. That is expected.
-            Only approve this installer if you trust the source.
-          </div>
-
-          <div
-            className="mt-4 flex flex-wrap items-center gap-2 text-xs"
-            style={{ color: 'rgb(var(--color-fg-muted))' }}
-          >
-            {['Enabled', '13 Bridge tools', 'Foundation setup', 'Router ready'].map((item) => (
-              <span
-                key={item}
-                className="rounded-full px-3 py-1"
-                style={{
-                  background: 'rgb(var(--color-bg))',
-                  border: '1px solid rgb(var(--color-fg) / 0.1)',
-                }}
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+      </figcaption>
+    </figure>
   )
 }
+
 
 function InstallFacts() {
   return (
@@ -736,55 +702,6 @@ function ClaudeProjectMock() {
   )
 }
 
-function ProjectInstructionsMock() {
-  return (
-    <div
-      className="mt-4 rounded-xl p-4"
-      style={{
-        background: '#ffffff',
-        border: '1px solid rgb(var(--color-fg) / 0.1)',
-        boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.07)',
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-[170px_1fr]">
-        <div className="rounded-lg p-3" style={{ background: 'rgb(var(--color-fg) / 0.035)' }}>
-          {['Project settings', 'Instructions', 'Knowledge', 'Tools'].map((item) => (
-            <div
-              key={item}
-              className="rounded-md px-3 py-2 text-sm"
-              style={{
-                background: item === 'Instructions' ? 'rgb(var(--color-accent) / 0.12)' : 'transparent',
-                color: item === 'Instructions' ? 'rgb(var(--color-fg))' : 'rgb(var(--color-fg-muted))',
-                fontWeight: item === 'Instructions' ? 600 : 400,
-              }}
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-        <div>
-          <div
-            className="font-mono text-[10px] uppercase tracking-[0.16em] mb-2"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
-          >
-            Project Instructions
-          </div>
-          <div
-            className="rounded-lg p-3 text-xs leading-relaxed"
-            style={{
-              background: 'rgb(var(--color-fg) / 0.045)',
-              border: '1px solid rgb(var(--color-fg) / 0.08)',
-              color: 'rgb(var(--color-fg-muted))',
-            }}
-          >
-            Paste the activation line here, then save. New chats in this Project will
-            know to call the Bridge router first.
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false)
