@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowRight, CheckCircle2, Download, ExternalLink, Globe2, Terminal } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Download, ExternalLink, Globe2, Sparkles, Terminal } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { type ClaudeTier, readTier, writeTier } from './lib/claude-deep-link'
 // EmpirePreflight import removed 2026-05-11: preflight moved to Foundation page.
@@ -845,30 +845,12 @@ export function EmpireBonusExtras() {
         </div>
       </section>
 
-      {/* Divider: visual break + disclosure before advanced section */}
-      <div className="mt-16 max-w-4xl mx-auto">
-        <div
-          className="rounded-2xl px-6 py-5 md:px-8 md:py-6"
-          style={{ background: 'rgba(20,20,19,0.045)', border: '1px solid rgba(20,20,19,0.10)' }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-            <div
-              className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] mt-0.5"
-              style={{ color: 'rgb(var(--color-accent))' }}
-            >
-              Next level
-            </div>
-            <div>
-              <p className="text-sm md:text-base font-medium mb-1" style={{ color: 'rgb(var(--color-fg))' }}>
-                The next four blueprints run daemons or filesystem watchers directly on your machine.
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                They require Claude Code CLI installed on your laptop. Claude Desktop alone cannot host the background processes they ship. Start with B-05 to get the CLI working, then come back for B-03, B-04, and B-07.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* CLI Power-Move hero break. Iteration 6 of S205. The Bridge gets you
+          into the game; Claude Code CLI is the 10x leverage tier. This
+          section makes that contrast vivid (Before / After columns) and
+          sells the dream of CLI as the move that separates a chatbot user
+          from someone who ships production systems on weekends. */}
+      <ClaudeCodeCLIHeroBreak />
 
       {/* Section 2: Code-CLI-required packs (B-05 first as onramp, then B-03, B-04, B-07) */}
       <section className="mt-8 max-w-4xl mx-auto" aria-labelledby="advanced-blueprints-heading">
@@ -950,6 +932,12 @@ export function EmpireBonusExtras() {
         </Link>
       </section>
 
+      {/* "Loved this? Tell Steve" CTA. Iteration 6 of S205. The Bridge + the
+          7 blueprints already shipped are barely a fraction of what HoistOS
+          has built. The other 100+ packs sit ready. Steve Hultgren is the
+          gate that decides what gets released next. Make the ask explicit. */}
+      <TellSteveCTA />
+
       <section className="mt-24 max-w-3xl mx-auto">
         <p
           className="font-mono text-xs uppercase tracking-[0.22em] mb-4"
@@ -962,6 +950,365 @@ export function EmpireBonusExtras() {
         </p>
       </section>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ClaudeCodeCLIHeroBreak.
+//
+// The visual divider between Bridge-installable blueprints (anyone with
+// Claude Desktop can run) and the Code-CLI-required blueprints (daemons,
+// hooks, filesystem watchers, agentic loops). Two-column Before/After grid +
+// a founder-voice testimonial + a "what unlocks" bullet list. Sells the
+// dream: CLI is the 10x leverage move that takes you from "prompts a chatbot"
+// to "ships production systems on weekends."
+//
+// S205 iteration 6 (2026-05-13) per Eugeen: "moving to Code CLI is the real
+// power user move and is the move that will 10x their entire claude
+// lifecycle. explain the benefits of CLI, and then sell the dream."
+// ---------------------------------------------------------------------------
+
+function ClaudeCodeCLIHeroBreak() {
+  const BEFORE = [
+    'Single chat at a time',
+    'Type prompts manually',
+    'No filesystem access',
+    'One-off solutions, every time',
+    'Memory limited to one chat',
+    'Manual copy-paste between tools',
+  ]
+  const AFTER = [
+    'Parallel agents running in tmux',
+    'Hooks intercept every write to enforce voice + safety rules',
+    'Read, write, and run anywhere on disk',
+    'Skills as code, reusable forever',
+    'Persistent architecture across every session',
+    'Daemons, watchers, and background workers',
+  ]
+
+  return (
+    <section
+      className="mt-20 max-w-5xl mx-auto"
+      aria-labelledby="cli-power-move-heading"
+    >
+      {/* Eyebrow + headline */}
+      <div className="text-center mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.5 }}
+          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+          style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          The 10x move
+        </motion.div>
+        <motion.h2
+          id="cli-power-move-heading"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="font-display text-[clamp(1.8rem,4.2vw,3.2rem)] leading-[1.08] tracking-[-0.015em] mb-4"
+        >
+          Claude Code CLI is the move
+          <br />
+          <span style={{ color: 'rgb(var(--color-accent))' }}>that 10x your entire stack.</span>
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.12 }}
+          className="text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
+          style={{ color: 'rgb(var(--color-fg-muted))' }}
+        >
+          The Bridge gets you in the game. Code CLI is what separates someone who
+          types prompts from someone who ships entire systems on weekends.
+        </motion.p>
+      </div>
+
+      {/* Before / After comparison */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+        <motion.div
+          initial={{ opacity: 0, x: -12 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+          className="rounded-2xl p-6 sm:p-7"
+          style={{
+            background: 'rgba(20,20,19,0.035)',
+            border: '1px solid rgba(20,20,19,0.1)',
+          }}
+        >
+          <div
+            className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            Before CLI
+          </div>
+          <h3 className="font-display text-xl sm:text-2xl leading-tight mb-4">
+            A chatbot you talk to.
+          </h3>
+          <ul className="space-y-2.5 list-none m-0 pl-0">
+            {BEFORE.map((line) => (
+              <li
+                key={line}
+                className="flex items-start gap-2.5 text-sm leading-relaxed"
+                style={{ color: 'rgb(var(--color-fg-muted))' }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block w-1.5 h-1.5 rounded-full mt-2 shrink-0"
+                  style={{ background: 'rgba(20,20,19,0.35)' }}
+                />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 12 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="rounded-2xl p-6 sm:p-7 relative overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(135deg, rgb(var(--color-accent) / 0.08), rgb(var(--color-accent) / 0.02))',
+            border: '1px solid rgb(var(--color-accent) / 0.32)',
+            boxShadow: '0 18px 40px -14px rgb(var(--color-accent) / 0.22)',
+          }}
+        >
+          <div
+            className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+            style={{ color: 'rgb(var(--color-accent))' }}
+          >
+            After CLI
+          </div>
+          <h3 className="font-display text-xl sm:text-2xl leading-tight mb-4">
+            An operating layer you run.
+          </h3>
+          <ul className="space-y-2.5 list-none m-0 pl-0">
+            {AFTER.map((line) => (
+              <li
+                key={line}
+                className="flex items-start gap-2.5 text-sm leading-relaxed"
+                style={{ color: 'rgb(var(--color-fg))' }}
+              >
+                <Sparkles
+                  className="w-3.5 h-3.5 mt-1 shrink-0"
+                  style={{ color: 'rgb(var(--color-accent))' }}
+                  aria-hidden="true"
+                />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      </div>
+
+      {/* Founder testimonial: Eugeen voice, sells the dream */}
+      <motion.blockquote
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="rounded-2xl p-6 sm:p-9 m-0 mb-8"
+        style={{
+          background: '#fbfaf3',
+          border: '1px solid rgba(20,20,19,0.1)',
+          boxShadow: '0 20px 44px -16px rgba(20,20,19,0.12)',
+        }}
+      >
+        <p
+          className="font-display text-lg sm:text-xl leading-relaxed m-0 mb-4 italic"
+          style={{ color: '#141413' }}
+        >
+          "CLI made my idea-to-execution flow so much faster. I went from prompting
+          one-off solutions to working directly with repos and installing real
+          compounding leverage on top of other people's work. This entire website
+          was built in a weekend with CLI. The Bridge is the door. CLI is the
+          house."
+        </p>
+        <footer
+          className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em]"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          <span
+            aria-hidden="true"
+            className="inline-block h-px w-8"
+            style={{ background: 'rgba(20,20,19,0.32)' }}
+          />
+          Eugeen Bernan, Perennial Empire
+        </footer>
+      </motion.blockquote>
+
+      {/* What unlocks for you */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.6 }}
+        className="rounded-2xl p-6 sm:p-8 text-center"
+        style={{
+          background:
+            'linear-gradient(135deg, rgb(var(--color-accent) / 0.10), rgb(var(--color-accent) / 0.02))',
+          border: '1px solid rgb(var(--color-accent) / 0.28)',
+        }}
+      >
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          What you unlock the day CLI lands
+        </div>
+        <p
+          className="text-base sm:text-lg leading-relaxed m-0 max-w-3xl mx-auto"
+          style={{ color: '#141413' }}
+        >
+          A Telegram bot that texts you from a jobsite and runs your full Claude
+          setup. Hooks that catch every banned phrase before a draft hits a thread.
+          A daemon that watches a Notion database and updates a daily briefing
+          automatically. A RAG search across every file you have ever written.
+          A multi-model jury that has GPT-5 review your work before it ships.
+          All of it, installable, all running on your laptop, all yours.
+        </p>
+      </motion.div>
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// TellSteveCTA.
+//
+// The closing ask. The 7 blueprints on this page plus the 11 Foundation packs
+// from the Bridge are the public release. The other 100+ packs (some shipped
+// to Perennial Empire, some still internal) are gated behind Steve Hultgren's
+// release call. Make the ask explicit, give the visitor two ways to nudge
+// Steve (calendly + email-mailto), and pitch the upside.
+//
+// S205 iteration 6 (2026-05-13).
+// ---------------------------------------------------------------------------
+
+function TellSteveCTA() {
+  const subject = encodeURIComponent(
+    'Release more EmpireWorks packs: I want the other 100+',
+  )
+  const body = encodeURIComponent(
+    'Hey Steve,\n\n' +
+      'Tried the EmpireWorks Bridge install and the bonus packs. I want the rest.\n\n' +
+      'Release the other 100+ packs to our VPs. Specifically interested in:\n  - \n  - \n  - \n\n' +
+      'Thanks,\n',
+  )
+  const mailto = `mailto:steve@empireworks.com?subject=${subject}&body=${body}`
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6 }}
+      className="mt-24 max-w-4xl mx-auto"
+    >
+      <div
+        className="rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden"
+        style={{
+          background:
+            'linear-gradient(135deg, rgb(var(--color-accent) / 0.14), rgb(var(--color-accent) / 0.04))',
+          border: '1px solid rgb(var(--color-accent) / 0.35)',
+          boxShadow: '0 28px 60px -20px rgb(var(--color-accent) / 0.32)',
+        }}
+      >
+        {/* Background sparkle */}
+        <motion.span
+          aria-hidden="true"
+          animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0, 0.4] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute inset-0 rounded-3xl pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(closest-side, rgb(var(--color-accent) / 0.22), transparent 70%)',
+            filter: 'blur(40px)',
+          }}
+        />
+        <div className="relative">
+          <div
+            className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+            style={{ color: 'rgb(var(--color-accent))' }}
+          >
+            Loved this?
+          </div>
+          <h2 className="font-display text-[clamp(1.8rem,4.2vw,3rem)] leading-[1.08] tracking-[-0.015em] mb-4">
+            Tell Steve. Get the other
+            <br />
+            <span style={{ color: 'rgb(var(--color-accent))' }}>100+ packs released.</span>
+          </h2>
+          <p
+            className="text-base sm:text-lg leading-relaxed mb-8 max-w-2xl mx-auto"
+            style={{ color: '#141413' }}
+          >
+            The Bridge plus these blueprints are a fraction of what HoistOS has
+            built. The rest are gated behind Steve's release call. Nudge him and
+            tell him which packs you want first. We will ship them next.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href={mailto}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-4 text-base font-semibold transition-all duration-300 min-h-12"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+                color: '#fbfaf3',
+                boxShadow: '0 14px 32px rgb(var(--color-accent) / 0.42)',
+                textDecoration: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow =
+                  '0 20px 42px rgb(var(--color-accent) / 0.62)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow =
+                  '0 14px 32px rgb(var(--color-accent) / 0.42)'
+              }}
+            >
+              Email Steve now
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </a>
+            <a
+              href="https://calendly.com/eugeenbernan"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-4 text-base font-semibold transition-all duration-300 min-h-12"
+              style={{
+                background: 'transparent',
+                color: '#141413',
+                border: '1px solid rgba(20,20,19,0.22)',
+                textDecoration: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(20,20,19,0.05)'
+                e.currentTarget.style.borderColor = 'rgba(20,20,19,0.4)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.borderColor = 'rgba(20,20,19,0.22)'
+              }}
+            >
+              Book a walkthrough with Eugeen
+            </a>
+          </div>
+          <p
+            className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em]"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            Edit the email before sending. Tell Steve which packs you want.
+          </p>
+        </div>
+      </div>
+    </motion.section>
   )
 }
 

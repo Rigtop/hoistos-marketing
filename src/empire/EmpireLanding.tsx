@@ -154,7 +154,7 @@ export function EmpireLanding() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.05 }}
-          className="font-display text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] mb-6"
+          className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.08] tracking-[-0.015em] mb-6"
         >
           Enterprise Level Claude.
           <br />
@@ -1309,10 +1309,33 @@ type SlideFrame = {
 }
 
 // ---------------------------------------------------------------------------
-// InstallFlow. The consolidated installer stepper. Iteration 4 of S205:
-// replaces the InstallSlideshow + 6 separate StepRow rows (which were two
-// sets of instructions side by side per Eugeen's "now there's 2 sets of
-// instructions" feedback) with a single source-of-truth stepper.
+// InstallFlow.
+//
+// REUSABLE TEMPLATE (S205 iteration 4-5, marked for future reuse):
+// This component is the canonical "guided multi-step onboarding" pattern for
+// HoistOS marketing pages. Drop it into any flow where a user has to do
+// N sequential things (download, install, paste, configure, verify) and you
+// want SaaS-grade UX without writing custom step-by-step machinery each time.
+//
+// To reuse for a new flow:
+//   1. Define your steps in a separate constant array shaped like InstallStep
+//      (or extend the type if your flow needs new fields like videos, embeds,
+//      etc.). The current useInstallSteps() returns the EmpireWorks Bridge
+//      install steps; swap it for whatever your flow needs.
+//   2. Each step can hold: a title, description, paste payloads with Copy
+//      buttons, a primary visual (download-cta / image / video / mock-only),
+//      and optional extras (e.g. InstallFacts).
+//   3. The visual rendering chain prefers video first, then screenshot, then
+//      a React mock fallback. Drop a .mov or .mp4 path on visualVideo and the
+//      component handles autoplay/loop/muted/playsInline + graceful fallback
+//      to .png + graceful fallback to the inline mock.
+//   4. The progress bar, Play/Pause toggle, prev/next, "Up next" hint, and
+//      AnimatePresence transitions are all built in. No additional wiring
+//      required.
+//
+// Iteration 4 origin: replaces the InstallSlideshow + 6 separate StepRow rows
+// (which were two sets of instructions side by side per Eugeen's "now there's
+// 2 sets of instructions" feedback) with a single source-of-truth stepper.
 //
 // Pattern: top progress bar with 6 clickable steps + Play/Pause toggle, body
 // shows the active step (visual + copy + paste blocks + facts), prev/next at
@@ -1329,6 +1352,9 @@ type InstallStep = {
   description: string
   /** What kind of visual to render in the body. */
   visualType: 'download-cta' | 'image' | 'mock-only'
+  /** Preferred video asset (used for steps with .mov captures). InstallStepVisual
+   *  tries this first, falls back to visualScreenshot, then visualFallback. */
+  visualVideo: string | null
   visualScreenshot: string | null
   visualFallback: React.ReactNode
   /** Optional paste payloads with their own Copy buttons. */
@@ -1346,6 +1372,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'One installer for everything. The Foundation packs install through this. The pack preview pages are reference reading, not separate installs.',
       visualType: 'download-cta',
+      visualVideo: null,
       visualScreenshot: null,
       visualFallback: null,
       copyBlocks: [],
@@ -1358,6 +1385,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'Claude Desktop shows a security callout. That is expected. Click Install (or Update) and keep the extension enabled.',
       visualType: 'image',
+      visualVideo: null,
       visualScreenshot: '/screenshots/empireworks-bridge/step-2-extension-page.png',
       visualFallback: <ClaudeInstallDialogMock />,
       copyBlocks: [],
@@ -1370,6 +1398,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'Open Claude Desktop. Pick or create the Project where the system will live. The setup prompt runs inside that Project, not in a loose chat.',
       visualType: 'image',
+      visualVideo: '/screenshots/empireworks-bridge/step-3-cowork-project.mov',
       visualScreenshot: '/screenshots/empireworks-bridge/step-3-cowork-project.png',
       visualFallback: <ClaudeProjectMock />,
       copyBlocks: [],
@@ -1382,6 +1411,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'Paste this one sentence into your Project chat. Claude asks to call setup_foundation. Click Allow. The Bridge writes the 11 Foundation packs locally and returns the activation line.',
       visualType: 'image',
+      visualVideo: null,
       visualScreenshot: '/screenshots/empireworks-bridge/step-4-paste-prompt.png',
       visualFallback: <CoworkSetupPromptMock />,
       copyBlocks: [{ label: 'Copy setup prompt', text: SETUP_PROMPT }],
@@ -1394,6 +1424,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'Open Project Instructions, paste the activation line, save. Every new chat in this Project loads the router automatically from this point on.',
       visualType: 'image',
+      visualVideo: '/screenshots/empireworks-bridge/step-5-instructions-saved.mov',
       visualScreenshot: '/screenshots/empireworks-bridge/step-5-instructions-saved.png',
       visualFallback: <ClaudeProjectInstructionsMock />,
       copyBlocks: [{ label: 'Copy activation line', text: ACTIVATION_LINE }],
@@ -1406,6 +1437,7 @@ function useInstallSteps(): InstallStep[] {
       description:
         'Paste this into the same Project chat. Claude calls verify_setup and reports back: Foundation is live, 11 packs installed, here is what you can ask me next.',
       visualType: 'image',
+      visualVideo: null,
       visualScreenshot: '/screenshots/empireworks-bridge/step-6-verify-response.png',
       visualFallback: <ClaudeVerifyResponseMock />,
       copyBlocks: [{ label: 'Copy verify prompt', text: VERIFY_PROMPT }],
@@ -1665,7 +1697,9 @@ function InstallFlow() {
 }
 
 function InstallStepVisual({ step }: { step: InstallStep }) {
-  const [err, setErr] = useState(false)
+  const [videoErr, setVideoErr] = useState(false)
+  const [imgErr, setImgErr] = useState(false)
+
   if (step.visualType === 'download-cta') {
     return (
       <div className="flex justify-center py-4">
@@ -1673,14 +1707,50 @@ function InstallStepVisual({ step }: { step: InstallStep }) {
       </div>
     )
   }
-  if (step.visualType === 'image' && step.visualScreenshot && !err) {
+
+  // Preference order: video -> image -> inline mock fallback. When a step has
+  // both a .mov and a .png, the video plays first; if it 404s, the screenshot
+  // shows; if THAT 404s, the inline Claude Desktop mock takes over. Lets us
+  // ship videos for some steps and still have everything else work cleanly.
+  if (step.visualType === 'image' && step.visualVideo && !videoErr) {
+    return (
+      <div
+        style={{
+          borderRadius: 12,
+          overflow: 'hidden',
+          border: '1px solid rgb(var(--color-fg) / 0.08)',
+          boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.08)',
+          background: '#ffffff',
+        }}
+      >
+        <video
+          src={step.visualVideo}
+          aria-label={step.title}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onError={() => setVideoErr(true)}
+          style={{
+            display: 'block',
+            width: '100%',
+            maxWidth: '100%',
+            height: 'auto',
+          }}
+        />
+      </div>
+    )
+  }
+
+  if (step.visualType === 'image' && step.visualScreenshot && !imgErr) {
     return (
       <img
         src={step.visualScreenshot}
         alt={step.title}
         loading="lazy"
         decoding="async"
-        onError={() => setErr(true)}
+        onError={() => setImgErr(true)}
         style={{
           display: 'block',
           width: '100%',
@@ -1693,6 +1763,7 @@ function InstallStepVisual({ step }: { step: InstallStep }) {
       />
     )
   }
+
   return <div>{step.visualFallback}</div>
 }
 
