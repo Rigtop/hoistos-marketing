@@ -84,8 +84,3 @@ Pull requests welcome. Before submitting:
 ## License
 
 MIT. See [LICENSE](./LICENSE).
-<<<<<<< HEAD
-// auto-deploy verify 1778637248
-=======
-// auto-deploy verify 1778637234
->>>>>>> overnight/2026-05-12/bridge-bonus-extras-reframe
