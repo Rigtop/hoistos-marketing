@@ -18,6 +18,7 @@
 
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
 
 interface PackPlaceholder {
   packId: string
@@ -27,10 +28,47 @@ interface PackPlaceholder {
   inputs: string[]
   delivers: string[]
   bootstrapPrompt: string
+  realCard?: FoundationCard
 }
 
-function buildPlaceholder(packId: string): PackPlaceholder {
-  // B3 swaps this for a real loader off empire-pack-v1/{packId}/manifest.json.
+function buildPack(packId: string): PackPlaceholder {
+  // S205 2026-05-13: lookup from FOUNDATION_CARDS first so the 11 real
+  // foundation packs render with their actual purpose / trigger / sample
+  // question / sample Claude response. Falls back to placeholder shape for
+  // unknown packs (advanced / power tiers without a card mapping yet).
+  const real = FOUNDATION_CARDS.find((c) => c.packId === packId)
+  if (real) {
+    return {
+      packId,
+      title: real.title,
+      tagline: real.purpose,
+      bestFor: 'Any VP or operator who wants this layer of behavior locked into every Claude chat.',
+      inputs: [
+        'The EmpireWorks Bridge installed in Claude Desktop.',
+        'A Claude Project with the activation line saved in Project Instructions.',
+        `The trigger context this pack listens for (see below).`,
+      ],
+      delivers: [
+        `${real.purpose}`,
+        `Triggers on: "${real.trigger}"`,
+        `Returns what Claude does, not what you have to type next.`,
+      ],
+      bootstrapPrompt:
+        `# ${real.badge} ${real.title}\n` +
+        `# Layer: ${real.layer}\n\n` +
+        `${real.purpose}\n\n` +
+        `Sample question you ask:\n  "${real.question}"\n\n` +
+        `What Claude returns:\n  ${real.claudeDoes}\n\n` +
+        `# Install path (do not run this pack separately):\n` +
+        `# 1. Install EmpireWorks Bridge in Claude Desktop.\n` +
+        `# 2. Open or create a Claude Project.\n` +
+        `# 3. Paste: Set up my Foundation system with EmpireWorks Bridge.\n` +
+        `# 4. Save the activation line in Project Instructions.\n` +
+        `# After install, the router auto-loads ${real.badge} when you type the trigger.`,
+      realCard: real,
+    }
+  }
+
   return {
     packId,
     title: prettifyId(packId),
@@ -61,8 +99,9 @@ function prettifyId(id: string): string {
 
 export function EmpirePackDetail() {
   const params = useParams<{ packId: string }>()
-  const packId = params.packId ?? 'proposal-builder'
-  const pack = buildPlaceholder(packId)
+  const packId = params.packId ?? 'foundation-01-constitution'
+  const pack = buildPack(packId)
+  const tone = pack.realCard ? LAYER_TOKENS[pack.realCard.layer] : null
 
   return (
     <div className="px-[6vw] pt-16 pb-32" style={{ color: 'rgb(var(--color-fg))' }}>
@@ -76,11 +115,26 @@ export function EmpirePackDetail() {
       </Link>
 
       <header className="max-w-3xl">
-        <div
-          className="font-mono text-xs uppercase tracking-[0.2em] mb-4"
-          style={{ color: 'rgb(var(--color-accent))' }}
-        >
-          Pack preview / {pack.packId}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span
+            className="font-mono text-xs uppercase tracking-[0.2em]"
+            style={{ color: 'rgb(var(--color-accent))' }}
+          >
+            {pack.realCard ? `${pack.realCard.badge} · Installed` : `Pack preview / ${pack.packId}`}
+          </span>
+          {pack.realCard && tone ? (
+            <span
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+              style={{ background: tone.bg, color: tone.color }}
+            >
+              <span
+                aria-hidden="true"
+                className="inline-block w-1.5 h-1.5 rounded-full"
+                style={{ background: tone.color }}
+              />
+              {pack.realCard.layer}
+            </span>
+          ) : null}
         </div>
         <h1 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] leading-[1.05]">
           {pack.title}
@@ -91,6 +145,54 @@ export function EmpirePackDetail() {
         >
           {pack.tagline}
         </p>
+
+        {pack.realCard ? (
+          <section className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'rgb(var(--color-fg) / 0.035)',
+                border: '1px solid rgb(var(--color-fg) / 0.08)',
+              }}
+            >
+              <div
+                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                style={{ color: 'rgb(var(--color-accent))' }}
+              >
+                You type
+              </div>
+              <p
+                className="text-sm m-0 leading-relaxed"
+                style={{
+                  color: 'rgb(var(--color-fg))',
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                }}
+              >
+                "{pack.realCard.question}"
+              </p>
+            </div>
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'rgb(var(--color-accent) / 0.05)',
+                border: '1px solid rgb(var(--color-accent) / 0.18)',
+              }}
+            >
+              <div
+                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                style={{ color: 'rgb(var(--color-accent))' }}
+              >
+                Claude returns
+              </div>
+              <p
+                className="text-sm m-0 leading-relaxed"
+                style={{ color: 'rgb(var(--color-fg-muted))' }}
+              >
+                {pack.realCard.claudeDoes}
+              </p>
+            </div>
+          </section>
+        ) : null}
       </header>
 
       <section className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">

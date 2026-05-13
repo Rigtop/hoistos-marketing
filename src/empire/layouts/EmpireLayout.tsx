@@ -62,33 +62,22 @@ export function EmpireLayout() {
           className="flex items-center gap-3 md:gap-5 group min-w-0"
           style={{ paddingLeft: 4, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup. PNG with 25% transparent margin wrapped in
-              an off-cream pill so the padding reads. Logo height drops from
-              56px to 40px on mobile so the lockup + HoistOS sub-mark fit
-              the narrow header without overflowing into the menu button. */}
-          <span
+          {/* EmpireWorks lockup. PNG with 25% transparent margin renders
+              directly on the header bg (no pill wrapper). The transparent
+              margin gives the breathing room. S205 2026-05-13: removed the
+              rgba off-cream pill that visually clipped RECONSTRUCTION. */}
+          <img
+            src="/brand/empireworks-lockup-v3.png"
+            alt="EmpireWorks Reconstruction"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: isMobile ? '3px 10px' : '4px 14px',
-              background: 'rgba(20,20,19,0.025)',
-              borderRadius: 10,
+              height: isMobile ? 40 : 56,
+              width: 'auto',
+              display: 'block',
+              objectFit: 'contain',
+              objectPosition: 'left center',
               flexShrink: 0,
             }}
-          >
-            <img
-              src="/brand/empireworks-lockup-v3.png"
-              alt="EmpireWorks Reconstruction"
-              style={{
-                height: isMobile ? 40 : 56,
-                width: 'auto',
-                display: 'block',
-                objectFit: 'contain',
-                objectPosition: 'left center',
-                flexShrink: 0,
-              }}
-            />
-          </span>
+          />
           {/* "on HoistOS" sub-mark is hidden on mobile to keep the lockup
               row narrow enough for the menu button. The HoistOS brand is
               repeated in the mobile menu drawer below. */}

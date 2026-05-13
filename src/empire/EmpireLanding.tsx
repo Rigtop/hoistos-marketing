@@ -20,10 +20,22 @@
  *   - All copy passes Hard Rule #11 (no em dashes).
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, ChevronDown, Copy } from 'lucide-react'
-import { motion } from 'motion/react'
+import {
+  ArrowRight,
+  BadgeCheck,
+  Brain,
+  Check,
+  ChevronDown,
+  Compass,
+  Copy,
+  Layers,
+  Search,
+  Shield,
+  Zap,
+} from 'lucide-react'
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
 
 /**
  * Audience flag detection. Default audience is "construction VPs" (the broad
@@ -76,14 +88,69 @@ const ACTIVATION_LINE =
   'At the start of every conversation, call the EmpireWorks Bridge get_router tool and follow the instructions it returns. For task-specific guidance, call read_installed_pack with the pack id named in the router.'
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
-const WHAT_YOU_GET = [
-  ['Rules', 'Your voice, title, company, and non-negotiables stay locked.'],
-  ['Memory', 'Corrections and decisions can compound instead of evaporating.'],
-  ['Routing', 'Claude knows where work should land before it writes.'],
-  ['Source checks', 'Factual answers check your trusted sources first.'],
-  ['Validation', 'Outputs get checked before they reach a client or team thread.'],
-  ['33 packs', 'Foundation starts first, then advanced packs can layer on later.'],
-] as const
+/**
+ * The 6 capability cards. Each card maps to one of the five operating layers
+ * (or the layering mechanism). Card data is intentionally rich so the premium
+ * CapabilityCard component (further down) can render: layer chip + icon +
+ * title + 1-line body + proof excerpt. The proof line is what makes the
+ * card non-generic, it shows what actually changes for the VP after install.
+ *
+ * S205 2026-05-13: upgraded from plain title+body tuples to this richer
+ * schema so the cards can carry visual-pro hover/tilt + a concrete proof
+ * line. Old shape preserved one revert away.
+ */
+type Capability = {
+  layer: 'Voice' | 'Memory' | 'Routing' | 'Sources' | 'Validation' | 'Stack'
+  Icon: typeof Shield
+  title: string
+  body: string
+  proof: string
+}
+
+const CAPABILITIES: Capability[] = [
+  {
+    layer: 'Voice',
+    Icon: Shield,
+    title: 'Rules locked',
+    body: 'Voice, title, company, banned phrases, and signing conventions enforced on every reply.',
+    proof: 'No em dashes. No canned openers. Signs as you, not "Best,".',
+  },
+  {
+    layer: 'Memory',
+    Icon: Brain,
+    title: 'Memory compounds',
+    body: 'Corrections, decisions, and people stay loaded across every chat. Forget evaporating context.',
+    proof: 'Tell Claude once. It carries forward forever, with citation.',
+  },
+  {
+    layer: 'Routing',
+    Icon: Compass,
+    title: 'Routing knows where',
+    body: 'Claude knows the right folder before you ask. Four files, four folders, no manual sorting.',
+    proof: 'Saves change order, GC follow-up, SOP, and daily report to four correct paths.',
+  },
+  {
+    layer: 'Sources',
+    Icon: Search,
+    title: 'Source-checked first',
+    body: 'Factual answers cite Notion, Gmail, and your file system. No invented contacts, no fake dates.',
+    proof: 'Returns a Source Sweep stamp with hit counts and the primary source quoted in full.',
+  },
+  {
+    layer: 'Validation',
+    Icon: BadgeCheck,
+    title: 'Validation gate',
+    body: 'Drafts hit a pre-send gate. Em dashes, misspelled names, banned phrases caught before you see them.',
+    proof: 'Catches the mistake that would have embarrassed you. Rewrites. Re-runs. Ships clean.',
+  },
+  {
+    layer: 'Stack',
+    Icon: Layers,
+    title: 'Packs stack on top',
+    body: 'Foundation lands first. Advanced packs (proposals, RFI, change orders, BD) layer on with no reinstall.',
+    proof: 'Same Bridge. Same install. You just ask for more.',
+  },
+]
 
 export function EmpireLanding() {
   const audience = useAudience()
@@ -135,11 +202,11 @@ export function EmpireLanding() {
           transition={{ duration: 0.7, delay: 0.05 }}
           className="font-display text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] mb-6"
         >
-          Supercharge Claude.
+          Enterprise Level Claude.
           <br />
-          Compounding productivity.
+          Compounding intelligence.
           <br />
-          <span style={{ color: 'rgb(var(--color-accent))' }}>Very easy install.</span>
+          <span style={{ color: 'rgb(var(--color-accent))' }}>Click, paste, done.</span>
         </motion.h1>
 
         <motion.p
@@ -149,36 +216,23 @@ export function EmpireLanding() {
           className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-7"
           style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
-          Claude stops opening cold. The Bridge gives Claude Desktop a local operating
-          layer with the rules, memory, source checks, validation, routing, and upgrade
-          packs it needs to become more useful for your business over time.
+          One paste. Voice, memory, sources, routing, validation. A Claude that knows
+          your business by tomorrow and keeps getting sharper every week after that.
         </motion.p>
 
+        {/* Capability grid: 6 premium tilt-cards with mouse-proximity 3D tilt,
+            radial-spotlight hover, animated lucide icon, and a per-card proof
+            line. S205 2026-05-13 rebuild: replaced flat divs with the
+            CapabilityCard component (defined below) for visual-pro parity
+            with MapCard + PackCard further down the page. */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto mb-12 text-left"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-12 text-left"
         >
-          {WHAT_YOU_GET.map(([title, body]) => (
-            <div
-              key={title}
-              className="rounded-xl p-4"
-              style={{
-                background: 'rgb(var(--color-fg) / 0.03)',
-                border: '1px solid rgb(var(--color-fg) / 0.08)',
-              }}
-            >
-              <div
-                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
-                style={{ color: 'rgb(var(--color-accent))' }}
-              >
-                {title}
-              </div>
-              <p className="text-sm leading-relaxed m-0" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                {body}
-              </p>
-            </div>
+          {CAPABILITIES.map((cap, i) => (
+            <CapabilityCard key={cap.layer} capability={cap} index={i} />
           ))}
         </motion.div>
 
@@ -271,11 +325,7 @@ export function EmpireLanding() {
                   Claude Desktop opens an extension screen. Click Install or Update, keep
                   the extension enabled, then continue back to this page.
                 </p>
-                <ScreenshotPlaceholder
-                  src="/screenshots/empireworks-bridge/install-dialog-placeholder.png"
-                  alt="Claude Desktop extension install dialog showing EmpireWorks Bridge with an Install button"
-                  caption="Step 2: click Install in this Claude Desktop screen, then return here."
-                />
+                <ClaudeInstallDialogMock />
                 <InstallFacts />
               </div>
 
@@ -334,11 +384,7 @@ export function EmpireLanding() {
                   </div>
                   <CopyButton text={ACTIVATION_LINE} label="Copy line" />
                 </div>
-                <ScreenshotPlaceholder
-                  src="/screenshots/empireworks-bridge/project-instructions-placeholder.png"
-                  alt="Claude Desktop Project Instructions panel with the EmpireWorks Bridge activation line pasted in"
-                  caption="Step 5: paste the activation line into Project Instructions, then save."
-                />
+                <ClaudeProjectInstructionsMock />
                 <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
                 <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
                   Project Instructions are per Project. If you create another Claude Project
@@ -364,6 +410,7 @@ export function EmpireLanding() {
                   <CopyButton text={VERIFY_PROMPT} label="Copy check" />
                 </div>
                 <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
+                <ClaudeVerifyResponseMock />
               </div>
             </div>
 
@@ -1320,5 +1367,510 @@ function AuroraBackdropLight() {
     </div>
   )
 }
+
+// ---------------------------------------------------------------------------
+// CapabilityCard. Premium card for the 6-capability grid above the install
+// steps. Mouse-proximity 3D tilt + radial-spotlight hover + animated icon.
+// Pattern lifted from MapCard / PackCard so the whole landing reads as one
+// premium surface, not "cards section vs hero section vs steps section."
+// ---------------------------------------------------------------------------
+
+function CapabilityCard({ capability, index }: { capability: Capability; index: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const rotX = useSpring(useTransform(my, [-1, 1], [4, -4]), { stiffness: 220, damping: 22 })
+  const rotY = useSpring(useTransform(mx, [-1, 1], [-4, 4]), { stiffness: 220, damping: 22 })
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    mx.set(((e.clientX - r.left) / r.width - 0.5) * 2)
+    my.set(((e.clientY - r.top) / r.height - 0.5) * 2)
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`)
+    el.style.setProperty('--my', `${e.clientY - r.top}px`)
+  }
+  function onLeave() {
+    mx.set(0)
+    my.set(0)
+  }
+
+  const Icon = capability.Icon
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
+      className="group relative rounded-2xl overflow-hidden p-5 sm:p-6"
+      data-card="capability"
+    >
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          background: 'rgb(var(--color-fg) / 0.025)',
+          border: '1px solid rgb(var(--color-fg) / 0.08)',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgb(var(--color-accent) / 0.12), transparent 50%)',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          boxShadow:
+            'inset 0 0 0 1px rgb(var(--color-accent) / 0.35), 0 14px 36px -10px rgb(var(--color-accent) / 0.22)',
+        }}
+      />
+
+      <div className="relative flex items-start justify-between gap-3 mb-4">
+        <motion.span
+          animate={{ y: [0, -3, 0] }}
+          transition={{ duration: 3.2, repeat: Infinity, delay: index * 0.18, ease: 'easeInOut' }}
+          className="inline-flex items-center justify-center rounded-xl"
+          style={{
+            width: 36,
+            height: 36,
+            background: 'rgb(var(--color-accent) / 0.12)',
+            color: 'rgb(var(--color-accent))',
+            border: '1px solid rgb(var(--color-accent) / 0.22)',
+          }}
+        >
+          <Icon className="w-4 h-4" aria-hidden="true" />
+        </motion.span>
+        <span
+          className="font-mono text-[9px] uppercase tracking-[0.22em] rounded-full px-2 py-1"
+          style={{
+            color: 'rgb(var(--color-accent))',
+            background: 'rgb(var(--color-accent) / 0.08)',
+          }}
+        >
+          {capability.layer}
+        </span>
+      </div>
+
+      <h3
+        className="relative font-display text-[1.15rem] sm:text-[1.2rem] leading-tight mb-2"
+        style={{ color: 'rgb(var(--color-fg))' }}
+      >
+        {capability.title}
+      </h3>
+
+      <p
+        className="relative text-sm leading-relaxed m-0 mb-3"
+        style={{ color: 'rgb(var(--color-fg-muted))' }}
+      >
+        {capability.body}
+      </p>
+
+      <div
+        className="relative pt-3 mt-1 flex items-start gap-2 border-t"
+        style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+      >
+        <Zap
+          className="w-3 h-3 mt-0.5 shrink-0"
+          style={{ color: 'rgb(var(--color-accent))' }}
+          aria-hidden="true"
+        />
+        <p
+          className="text-[11px] leading-snug m-0"
+          style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}
+        >
+          {capability.proof}
+        </p>
+      </div>
+    </motion.div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ClaudeInstallDialogMock. Inline mock of the Claude Desktop extension-install
+// dialog the VP sees in Step 2 right after they double-click the .mcpb file.
+// Pure React + Motion, no PNG screenshot. The shape mirrors the real Claude
+// Desktop dialog so the VP recognizes it. Replaces the prior placeholder PNG.
+// S205 2026-05-13.
+// ---------------------------------------------------------------------------
+
+function ClaudeDesktopChrome({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="overflow-hidden rounded-xl"
+      style={{
+        background: '#ffffff',
+        border: '1px solid rgb(var(--color-fg) / 0.1)',
+        boxShadow: '0 18px 40px rgb(var(--color-fg) / 0.08), 0 4px 12px rgb(var(--color-fg) / 0.04)',
+      }}
+    >
+      <div
+        className="flex items-center gap-2 px-4 py-3 border-b"
+        style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+      >
+        <span className="h-3 w-3 rounded-full" style={{ background: '#ff5f57' }} />
+        <span className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
+        <span className="h-3 w-3 rounded-full" style={{ background: '#28c940' }} />
+        <span
+          className="ml-3 font-mono text-[10px] uppercase tracking-[0.18em]"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          {title}
+        </span>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function ClaudeInstallDialogMock() {
+  return (
+    <motion.figure
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-4 m-0"
+    >
+      <ClaudeDesktopChrome title="Claude Desktop, Extensions">
+        <div className="p-5 sm:p-6">
+          <div
+            className="rounded-xl p-4 sm:p-5"
+            style={{
+              background: '#fbfaf3',
+              border: '1px solid rgb(var(--color-fg) / 0.08)',
+            }}
+          >
+            <div className="flex items-start gap-4">
+              {/* Faux app icon: orange rounded square with "E" inside */}
+              <div
+                aria-hidden="true"
+                className="shrink-0 rounded-xl flex items-center justify-center"
+                style={{
+                  width: 52,
+                  height: 52,
+                  background:
+                    'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+                  color: '#fbfaf3',
+                  fontWeight: 800,
+                  fontSize: 22,
+                  fontFamily: "'Newsreader', serif",
+                  boxShadow: '0 8px 18px rgb(var(--color-accent) / 0.25)',
+                }}
+              >
+                E
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="font-display text-base sm:text-lg leading-tight">
+                    EmpireWorks Bridge
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="inline-flex items-center justify-center rounded-md px-3.5 py-1.5 text-xs font-semibold"
+                    style={{
+                      background: '#141413',
+                      color: '#fbfaf3',
+                      minHeight: 32,
+                    }}
+                  >
+                    Install
+                  </motion.button>
+                </div>
+                <p
+                  className="mt-1 text-[13px] leading-relaxed m-0"
+                  style={{ color: 'rgb(var(--color-fg-muted))' }}
+                >
+                  Adds Bridge tools for setup, router lookup, pack reading, and updates.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="mt-4 rounded-lg p-3 text-xs leading-relaxed"
+              style={{
+                background: 'rgba(204,110,46,0.06)',
+                border: '1px solid rgba(204,110,46,0.25)',
+                color: '#7a3f08',
+              }}
+            >
+              Claude may warn that extensions can access your computer. That is expected.
+              Only approve this installer if you trust the source.
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {['Enabled', '13 Bridge tools', 'Foundation setup', 'Router ready'].map((chip, i) => (
+                <motion.span
+                  key={chip}
+                  initial={{ opacity: 0, y: 4 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: 0.15 + i * 0.06 }}
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px]"
+                  style={{
+                    background: 'rgb(var(--color-fg) / 0.06)',
+                    color: 'rgb(var(--color-fg))',
+                    border: '1px solid rgb(var(--color-fg) / 0.08)',
+                  }}
+                >
+                  <Check className="w-3 h-3" style={{ color: 'rgb(18,128,82)' }} aria-hidden="true" />
+                  {chip}
+                </motion.span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ClaudeDesktopChrome>
+      <figcaption
+        className="mt-2 text-xs text-center leading-relaxed"
+        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+      >
+        Step 2: click Install in this Claude Desktop dialog, then return here.
+      </figcaption>
+    </motion.figure>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ClaudeProjectInstructionsMock. Inline mock of the Project Instructions
+// panel for Step 5. Shows the activation line typed into a Claude Desktop
+// Project Settings > Instructions textarea, with a "Saved" indicator.
+// S205 2026-05-13.
+// ---------------------------------------------------------------------------
+
+function ClaudeProjectInstructionsMock() {
+  return (
+    <motion.figure
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-4 m-0"
+    >
+      <ClaudeDesktopChrome title="Claude Desktop, Project Settings">
+        <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr]">
+          <aside
+            className="border-b sm:border-b-0 sm:border-r p-3"
+            style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+          >
+            {['General', 'Instructions', 'Knowledge', 'Members', 'Permissions'].map((item) => {
+              const active = item === 'Instructions'
+              return (
+                <div
+                  key={item}
+                  className="mb-1 rounded-md px-3 py-2 text-sm"
+                  style={{
+                    background: active ? 'rgb(var(--color-accent) / 0.12)' : 'transparent',
+                    color: active ? 'rgb(var(--color-fg))' : 'rgb(var(--color-fg-muted))',
+                    fontWeight: active ? 600 : 400,
+                  }}
+                >
+                  {item}
+                </div>
+              )
+            })}
+          </aside>
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+              <div className="font-display text-base sm:text-lg leading-tight">
+                Project Instructions
+              </div>
+              <span
+                className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.18em]"
+                style={{ color: 'rgb(18,128,82)' }}
+              >
+                <Check className="w-3 h-3" aria-hidden="true" />
+                Saved 12:01 PM
+              </span>
+            </div>
+            <div
+              className="rounded-lg p-3 text-[12px] leading-relaxed"
+              style={{
+                background: '#fbfaf3',
+                border: '1px solid rgb(var(--color-fg) / 0.1)',
+                color: 'rgb(var(--color-fg))',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                minHeight: 110,
+              }}
+            >
+              <motion.span
+                initial={{ background: 'rgba(204,110,46,0.18)' }}
+                animate={{ background: 'rgba(204,110,46,0)' }}
+                transition={{ duration: 1.8, delay: 0.6 }}
+                style={{
+                  display: 'inline',
+                  padding: '0 4px',
+                  borderRadius: 4,
+                }}
+              >
+                At the start of every conversation, call the EmpireWorks Bridge
+                get_router tool and follow the instructions it returns. For task
+                specific guidance, call read_installed_pack with the pack id named
+                in the router.
+              </motion.span>
+            </div>
+            <div className="mt-3 flex items-center justify-end">
+              <span
+                className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-semibold"
+                style={{
+                  background: '#141413',
+                  color: '#fbfaf3',
+                  minHeight: 32,
+                }}
+              >
+                Save
+              </span>
+            </div>
+          </div>
+        </div>
+      </ClaudeDesktopChrome>
+      <figcaption
+        className="mt-2 text-xs text-center leading-relaxed"
+        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+      >
+        Step 5: paste the activation line into Project Instructions, then click Save.
+      </figcaption>
+    </motion.figure>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ClaudeVerifyResponseMock. Inline mock of Claude returning a clean
+// verify_setup tool call result in Step 6. The visible signal the VP needs
+// to know "yes, it worked." Closes the W6 verify-surface gap.
+// S205 2026-05-13.
+// ---------------------------------------------------------------------------
+
+function ClaudeVerifyResponseMock() {
+  return (
+    <motion.figure
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-4 m-0"
+    >
+      <ClaudeDesktopChrome title="Claude Desktop, your Project chat">
+        <div className="p-5 sm:p-6 space-y-4">
+          {/* Assistant tool call + response */}
+          <div className="flex items-start gap-3">
+            <div
+              aria-hidden="true"
+              className="shrink-0 rounded-lg flex items-center justify-center"
+              style={{
+                width: 28,
+                height: 28,
+                background: 'rgb(var(--color-fg) / 0.06)',
+                color: 'rgb(var(--color-fg))',
+                fontWeight: 700,
+                fontSize: 13,
+                fontFamily: "'Newsreader', serif",
+              }}
+            >
+              C
+            </div>
+            <div className="min-w-0 flex-1 space-y-3">
+              {/* Tool call card */}
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="rounded-lg p-3 inline-flex items-center gap-3"
+                style={{
+                  background: 'rgb(var(--color-fg) / 0.04)',
+                  border: '1px solid rgb(var(--color-fg) / 0.08)',
+                }}
+              >
+                <Check className="w-4 h-4" style={{ color: 'rgb(18,128,82)' }} aria-hidden="true" />
+                <span
+                  className="font-mono text-[12px]"
+                  style={{ color: 'rgb(var(--color-fg))' }}
+                >
+                  verify_setup
+                </span>
+                <span
+                  className="font-mono text-[10px] uppercase tracking-[0.18em]"
+                  style={{ color: 'rgb(18,128,82)' }}
+                >
+                  ok
+                </span>
+              </motion.div>
+
+              <p
+                className="text-[13px] leading-relaxed m-0"
+                style={{ color: 'rgb(var(--color-fg))' }}
+              >
+                <strong>Foundation is live.</strong> 11 packs installed at{' '}
+                <span style={{ fontFamily: 'ui-monospace, Menlo, monospace' }}>
+                  ~/Documents/Claude Architecture/
+                </span>
+                . Router and manifest ready. You can ask me to:
+              </p>
+
+              <ul className="space-y-2 m-0 pl-0 list-none">
+                {[
+                  'Draft any external email in your voice (F-01, F-10)',
+                  'Pull a fact from the Registry instead of guessing (F-02)',
+                  'Open a chat with status, top projects, and last session loaded (F-03)',
+                  'Save four files to four correct folders in one ask (F-06)',
+                ].map((line, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -6 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.25 + i * 0.07 }}
+                    className="flex items-start gap-2 text-[12px] leading-relaxed"
+                    style={{ color: 'rgb(var(--color-fg-muted))' }}
+                  >
+                    <span
+                      className="inline-block w-1.5 h-1.5 mt-1.5 rounded-full shrink-0"
+                      style={{ background: 'rgb(var(--color-accent))' }}
+                    />
+                    <span>{line}</span>
+                  </motion.li>
+                ))}
+              </ul>
+
+              <p
+                className="text-[12px] leading-relaxed m-0 italic"
+                style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              >
+                Type any of the above, or describe a real task. I will route it to the right
+                pack and report back.
+              </p>
+            </div>
+          </div>
+        </div>
+      </ClaudeDesktopChrome>
+      <figcaption
+        className="mt-2 text-xs text-center leading-relaxed"
+        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+      >
+        Step 6 success: this is what a clean install looks like. If anything is off, Claude
+        names the gap on the same line.
+      </figcaption>
+    </motion.figure>
+  )
+}
+
+// ScreenshotPlaceholder is no longer called (replaced by the three inline
+// Claude Desktop mocks above). Kept in the file as a fast-revert helper if
+// real PNG captures land later. void-marked so TS does not complain about
+// the unused declaration.
+void ScreenshotPlaceholder
 
 export default EmpireLanding
