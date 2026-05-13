@@ -30,12 +30,12 @@ import {
   ChevronDown,
   Compass,
   Copy,
+  Download,
   Layers,
   Search,
   Shield,
-  Zap,
 } from 'lucide-react'
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
 
 /**
  * Audience flag detection. Default audience is "construction VPs" (the broad
@@ -89,21 +89,31 @@ const ACTIVATION_LINE =
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
 /**
- * The 6 capability cards. Each card maps to one of the five operating layers
- * (or the layering mechanism). Card data is intentionally rich so the premium
- * CapabilityCard component (further down) can render: layer chip + icon +
- * title + 1-line body + proof excerpt. The proof line is what makes the
- * card non-generic, it shows what actually changes for the VP after install.
+ * The 6 capability cards. Surface is intentionally minimal: icon + layer chip
+ * + title + tagline + Learn more arrow. Click opens CapabilityModal (below)
+ * with the full dream-pitch: Monday-morning vision, explicit pack mapping
+ * from empireworks-bridge/packs/*, compounding angle, proof line.
  *
- * S205 2026-05-13: upgraded from plain title+body tuples to this richer
- * schema so the cards can carry visual-pro hover/tilt + a concrete proof
- * line. Old shape preserved one revert away.
+ * S205 iteration 2 (2026-05-13): split surface vs deep content into separate
+ * fields so the card stays calm on first read but the modal sells the vision
+ * when a VP clicks in. Reduced surface density per Eugeen's "less busy on
+ * the surface" feedback.
  */
 type Capability = {
   layer: 'Voice' | 'Memory' | 'Routing' | 'Sources' | 'Validation' | 'Stack'
   Icon: typeof Shield
   title: string
+  /** One-line tagline shown on the resting card. < 80 chars. */
+  tagline: string
+  /** Two- to three-sentence body shown in the modal hero. */
   body: string
+  /** Concrete Monday-morning scenario the VP will recognize. */
+  mondayMorning: string
+  /** Why this compounds week over week. */
+  compounding: string
+  /** Which actual bridge packs power this layer (real bridge content). */
+  packs: { badge: string; name: string }[]
+  /** Single proof line (italic, shown bottom of modal). */
   proof: string
 }
 
@@ -112,48 +122,107 @@ const CAPABILITIES: Capability[] = [
     layer: 'Voice',
     Icon: Shield,
     title: 'Rules locked',
-    body: 'Voice, title, company, banned phrases, and signing conventions enforced on every reply.',
+    tagline: 'Your voice on every reply.',
+    body: 'Your voice, your title, your company name, your banned phrases, and your signing conventions get enforced on every Claude reply. No more reading drafts to police em dashes or "Best,". Claude polices itself.',
+    mondayMorning:
+      'Monday morning, you ask Claude to draft a follow-up to your largest GC on a stalled RFI. The reply lands clean. No em dashes. No "I hope this email finds you well." Company name in full. Signs with your first name. You forward it without reading twice.',
+    compounding:
+      'Every voice correction you make to Claude becomes a permanent rule. The Constitution updates. Next month the drafts get sharper because the rules tightened. Year one you stop policing the line entirely.',
+    packs: [
+      { badge: 'F-01', name: 'Operating Constitution' },
+      { badge: 'F-10', name: 'Email Playbook (audience-aware)' },
+    ],
     proof: 'No em dashes. No canned openers. Signs as you, not "Best,".',
   },
   {
     layer: 'Memory',
     Icon: Brain,
     title: 'Memory compounds',
-    body: 'Corrections, decisions, and people stay loaded across every chat. Forget evaporating context.',
+    tagline: 'Tell it once. Forever.',
+    body: 'Corrections, decisions, people, projects, vendors, and roles stay loaded across every Claude chat. The thing you taught Claude on Tuesday is still true in chat 47 on Friday. The thing you decided last month is one question away.',
+    mondayMorning:
+      'You open a fresh chat at 7:42 AM, type one word: "status." Claude returns a 5-line briefing: top 3 projects pulled from your Registry, voice locked, last session\'s open items pulled from the Briefing field. You have not re-explained your role to Claude since chat 12. You hit reply on three threads before coffee.',
+    compounding:
+      'Every correction compounds. Every fact lands in the Registry. Every decision lands in the Log. Week 1: a tool. Week 12: a system that remembers your business better than half your team. Year 1: an institutional memory layer your senior people can lean on.',
+    packs: [
+      { badge: 'F-02', name: 'Facts Registry (canonical names + roles)' },
+      { badge: 'F-03', name: 'Cold Start Protocol (warm open every chat)' },
+      { badge: 'F-04', name: 'Decision Log (recallable months later)' },
+      { badge: 'F-07', name: 'Memory Architecture (corrections compound)' },
+    ],
     proof: 'Tell Claude once. It carries forward forever, with citation.',
   },
   {
     layer: 'Routing',
     Icon: Compass,
     title: 'Routing knows where',
-    body: 'Claude knows the right folder before you ask. Four files, four folders, no manual sorting.',
+    tagline: 'Right folder, every time.',
+    body: 'Claude knows the right folder before you ask. Change orders go to /change-orders. GC follow-ups go to /correspondence. RFIs go to /rfi. SOPs go to /sop. You stop typing paths. Claude stops asking.',
+    mondayMorning:
+      'You type "save the change order, the GC follow-up, the safety SOP, and tomorrow\'s daily report." Claude saves four files to four different folders. Each landed correctly. You did not name a path. You did not approve four save prompts. Three minutes later you are onto the next thing.',
+    compounding:
+      'Skills get built on top of the routing layer. By month three, you have a /change-order skill, a /proposal skill, a /daily-report skill. Same Bridge. Same routing. Your division operates on rails. Onboarding gets cut in half.',
+    packs: [
+      { badge: 'F-06', name: 'Routing Rules (folder routing engine)' },
+      { badge: 'F-05', name: 'Skill Builder (build skills in 8 minutes)' },
+    ],
     proof: 'Saves change order, GC follow-up, SOP, and daily report to four correct paths.',
   },
   {
     layer: 'Sources',
     Icon: Search,
     title: 'Source-checked first',
-    body: 'Factual answers cite Notion, Gmail, and your file system. No invented contacts, no fake dates.',
+    tagline: 'Citation, not hallucination.',
+    body: 'Factual questions hit your trusted sources before Claude\'s training. Notion. Gmail. Your file system. Your RAG corpus. Your canonical contracts. Claude returns a stamped Source Sweep showing the hit count per surface and the primary source quoted in full.',
+    mondayMorning:
+      'You ask "who is our compliance contact at the GC on the renovation project, and what did we agree on the schedule slip last Thursday?" Claude returns "Source Sweep: Notion 2 hits, Gmail 1 hit, RAG 4 hits, primary source: Gmail thread with the GC PM 2026-05-08" and quotes the exact line you agreed to. You forward the quote. The GC stops re-asking.',
+    compounding:
+      'Every email, every Notion update, every meeting transcript that lands in your stack becomes citable. The Source Sweep gets richer every week. Your "I think we said..." problem dies. Your audit trail gets free.',
+    packs: [{ badge: 'F-08', name: 'Pre-Answer Source Sweep (citation gate)' }],
     proof: 'Returns a Source Sweep stamp with hit counts and the primary source quoted in full.',
   },
   {
     layer: 'Validation',
     Icon: BadgeCheck,
     title: 'Validation gate',
-    body: 'Drafts hit a pre-send gate. Em dashes, misspelled names, banned phrases caught before you see them.',
+    tagline: 'The pre-send safety net.',
+    body: 'Every external-facing draft hits a validation gate before you see it. Em dashes, misspelled names, banned phrases, missing disclosures, wrong audience tier, broken citations: all caught by the gate. Claude rewrites, re-runs, and ships clean.',
+    mondayMorning:
+      'You ask Claude to draft a follow-up to your top GC contact on the abatement slip, mention you are out Friday. Claude drafts it. Catches an em dash in paragraph two. Catches "Spenser" should be "Spencer". Rewrites both. Re-runs the gate. The version you see is the version that would not have embarrassed you.',
+    compounding:
+      'Every validator catch becomes a rule. The gate gets smarter every week. Year one, the validation gate runs on every email, every proposal, every Notion update, every external deliverable. The "oh no I sent that" problem dies.',
+    packs: [
+      { badge: 'F-09', name: 'Output Validator (pre-send gate)' },
+      { badge: 'F-11', name: 'Notion Write Gate (post-write verify)' },
+    ],
     proof: 'Catches the mistake that would have embarrassed you. Rewrites. Re-runs. Ships clean.',
   },
   {
     layer: 'Stack',
     Icon: Layers,
     title: 'Packs stack on top',
-    body: 'Foundation lands first. Advanced packs (proposals, RFI, change orders, BD) layer on with no reinstall.',
+    tagline: 'Foundation now. Everything else, later.',
+    body: 'Foundation lands first. 11 packs across 5 operating layers. Once that is rolling, advanced packs (proposal builder, RFI flow, change orders, meeting capture, document prep, contract risk, multi-model jury, RAG search) layer onto the same Bridge with no reinstall. You just ask for more.',
+    mondayMorning:
+      'Three weeks after Foundation lands, you type "I want Claude to write proposals in our voice on our letterhead". The Bridge installs A-01 Proposal Builder in 60 seconds. Five minutes after that you have shipped your first AI-drafted proposal to a real client. No new setup. No new account. No new install.',
+    compounding:
+      '33 packs available today. New packs ship every month. Your division\'s competitive moat is the stack you build, not the model you pay for. Year one you have a custom AI operating layer no GC competitor can match.',
+    packs: [
+      { badge: 'A-01', name: 'Proposal Builder (branded, your division)' },
+      { badge: 'A-02', name: 'Meeting Transcript to Action Items' },
+      { badge: 'A-03', name: 'Contract Risks in Plain English' },
+      { badge: 'BIZ-01', name: 'Notion + MCP Setup' },
+      { badge: 'BIZ-02', name: 'Email to Notion Pipeline' },
+      { badge: 'P-02', name: 'RAG Knowledge Search' },
+      { badge: 'P-04', name: 'Multi-Model Jury (GPT-5 adversarial review)' },
+    ],
     proof: 'Same Bridge. Same install. You just ask for more.',
   },
 ]
 
 export function EmpireLanding() {
   const audience = useAudience()
+  const [openCapability, setOpenCapability] = useState<Capability['layer'] | null>(null)
 
   function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
@@ -162,6 +231,27 @@ export function EmpireLanding() {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }
+
+  // Lock body scroll when the capability modal is open. ESC closes too.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (openCapability) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      const onEsc = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setOpenCapability(null)
+      }
+      window.addEventListener('keydown', onEsc)
+      return () => {
+        document.body.style.overflow = prev
+        window.removeEventListener('keydown', onEsc)
+      }
+    }
+  }, [openCapability])
+
+  const activeCap = openCapability
+    ? CAPABILITIES.find((c) => c.layer === openCapability) ?? null
+    : null
 
   return (
     <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))' }}>
@@ -220,11 +310,11 @@ export function EmpireLanding() {
           your business by tomorrow and keeps getting sharper every week after that.
         </motion.p>
 
-        {/* Capability grid: 6 premium tilt-cards with mouse-proximity 3D tilt,
-            radial-spotlight hover, animated lucide icon, and a per-card proof
-            line. S205 2026-05-13 rebuild: replaced flat divs with the
-            CapabilityCard component (defined below) for visual-pro parity
-            with MapCard + PackCard further down the page. */}
+        {/* Capability grid: 6 premium cards. Surface is intentionally minimal
+            (icon + title + tagline + Learn more arrow). Click any card to
+            open the dream-pitch modal (Monday-morning scenario + pack
+            mapping + compounding angle). Iteration 2 fix per Eugeen's
+            "less busy on the surface" feedback. */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -232,7 +322,12 @@ export function EmpireLanding() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-12 text-left"
         >
           {CAPABILITIES.map((cap, i) => (
-            <CapabilityCard key={cap.layer} capability={cap} index={i} />
+            <CapabilityCard
+              key={cap.layer}
+              capability={cap}
+              index={i}
+              onOpen={() => setOpenCapability(cap.layer)}
+            />
           ))}
         </motion.div>
 
@@ -278,140 +373,80 @@ export function EmpireLanding() {
               className="divide-y rounded-xl overflow-hidden"
               style={{ border: '1px solid rgb(var(--color-fg) / 0.08)' }}
             >
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
+              <StepRow index={1} label="Download the Bridge" centered>
                 <div className="mx-auto max-w-2xl text-center">
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Step 1 of 6
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Download the Bridge for Claude Desktop</h3>
-                    <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      This is the one installer. The Foundation pack pages below are previews,
-                      not separate installs.
-                    </p>
-                  <a
-                    href={BRIDGE_DOWNLOAD_PATH}
-                    download
-                    className="mx-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition"
-                    style={{
-                      background: 'rgb(var(--color-accent))',
-                      color: 'rgb(var(--color-bg))',
-                      boxShadow: '0 8px 24px rgb(var(--color-accent) / 0.26)',
-                    }}
+                  <p
+                    className="text-sm leading-relaxed mb-5"
+                    style={{ color: 'rgb(var(--color-fg-muted))' }}
                   >
-                    Download Bridge for Claude Desktop
-                    <span aria-hidden="true">↓</span>
-                  </a>
-                  <div
-                    className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em]"
-                    style={{ color: 'rgb(var(--color-fg-subtle))' }}
-                  >
-                    EmpireWorks Bridge v{BRIDGE_VERSION}, 4 MB, macOS or Windows
-                  </div>
+                    This is the one installer. The Foundation pack pages below are previews,
+                    not separate installs.
+                  </p>
+                  <DownloadBridgeCTA />
                 </div>
-              </div>
+              </StepRow>
 
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
-                <div
-                  className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                  style={{ color: 'rgb(var(--color-accent))' }}
-                >
-                  Step 2 of 6
-                </div>
-                <h3 className="text-lg font-semibold mb-1">Double-click it and click Install</h3>
+              <StepRow index={2} label="Double-click it and click Install">
                 <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
                   Claude Desktop opens an extension screen. Click Install or Update, keep
-                  the extension enabled, then continue back to this page.
+                  the extension enabled, then come back here.
                 </p>
                 <ClaudeInstallDialogMock />
                 <InstallFacts />
-              </div>
+              </StepRow>
 
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
-                <div
-                  className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                  style={{ color: 'rgb(var(--color-accent))' }}
-                >
-                  Step 3 of 6
-                </div>
-                <h3 className="text-lg font-semibold mb-1">Create or open a Claude Project</h3>
+              <StepRow index={3} label="Create or open a Claude Project">
                 <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
                   Open Claude Desktop, choose Projects, then create or select the Project
                   where you want this system to live. Start the setup prompt inside that
                   Project, not in a loose chat.
                 </p>
                 <ClaudeProjectMock />
-              </div>
+              </StepRow>
 
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Step 4 of 6
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Paste one setup prompt</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      Paste this into the Project chat. Claude will ask to call
-                      setup_foundation. Click Allow. The Bridge writes the 11 Foundation
-                      packs locally, writes the router, then gives you the activation line.
-                    </p>
-                  </div>
-                  <CopyButton text={SETUP_PROMPT} label="Copy setup" />
-                </div>
+              <StepRow
+                index={4}
+                label="Paste one setup prompt"
+                rightSlot={<CopyButton text={SETUP_PROMPT} label="Copy setup" />}
+              >
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                  Paste this into the Project chat. Claude will ask to call
+                  setup_foundation. Click Allow. The Bridge writes the 11 Foundation
+                  packs locally, writes the router, then gives you the activation line.
+                </p>
                 <PromptBlock>{SETUP_PROMPT}</PromptBlock>
-              </div>
+              </StepRow>
 
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Step 5 of 6
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Paste the activation line into Project Instructions</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      Open Project settings, choose Instructions, paste the activation line,
-                      and save. This makes every new chat inside that Claude Project load the
-                      router automatically.
-                    </p>
-                  </div>
-                  <CopyButton text={ACTIVATION_LINE} label="Copy line" />
-                </div>
+              <StepRow
+                index={5}
+                label="Paste the activation line into Project Instructions"
+                rightSlot={<CopyButton text={ACTIVATION_LINE} label="Copy line" />}
+              >
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                  Open Project settings, choose Instructions, paste the activation line,
+                  and save. This makes every new chat inside that Claude Project load the
+                  router automatically.
+                </p>
                 <ClaudeProjectInstructionsMock />
                 <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
                 <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
                   Project Instructions are per Project. If you create another Claude Project
                   later, paste the same activation line into that Project too.
                 </p>
-              </div>
+              </StepRow>
 
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Step 6 of 6
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Run the check</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      Paste this into the same Project chat. A clean result means the Bridge,
-                      Foundation files, manifest, and router are live.
-                    </p>
-                  </div>
-                  <CopyButton text={VERIFY_PROMPT} label="Copy check" />
-                </div>
+              <StepRow
+                index={6}
+                label="Run the check"
+                rightSlot={<CopyButton text={VERIFY_PROMPT} label="Copy check" />}
+              >
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                  Paste this into the same Project chat. A clean result means the Bridge,
+                  Foundation files, manifest, and router are live.
+                </p>
                 <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
                 <ClaudeVerifyResponseMock />
-              </div>
+              </StepRow>
             </div>
 
             <div
@@ -596,6 +631,15 @@ export function EmpireLanding() {
           (behavior layer). This section frames the dashboard module as
           the next leg of HoistOS, fitted to whoever installs it. */}
       <ModuleOneTeaser audience={audience} />
+
+      {/* Capability deep-dive modal. Opens when a VP clicks Learn more on
+          any of the 6 cards above. Sells the Monday-morning scenario,
+          shows the exact bridge packs that power the layer, and frames
+          the compounding angle. Iteration 2 of S205. */}
+      <CapabilityModalRender
+        capability={activeCap}
+        onClose={() => setOpenCapability(null)}
+      />
     </div>
   )
 }
@@ -1375,14 +1419,199 @@ function AuroraBackdropLight() {
 // premium surface, not "cards section vs hero section vs steps section."
 // ---------------------------------------------------------------------------
 
-function CapabilityCard({ capability, index }: { capability: Capability; index: number }) {
-  const ref = useRef<HTMLDivElement>(null)
+// ---------------------------------------------------------------------------
+// StepRow. The visual chrome for each row inside the install panel. Adds a
+// circular numbered badge that pulses on intersection, a Step N of 6 mono
+// label, h3 title, optional right-side slot (used for Copy buttons), and
+// hover-lift. Replaces the prior raw div-with-Step-N-of-6 pattern so all 6
+// steps share the same visual rhythm. Iteration 2 polish per Eugeen's
+// "smoother instruction steps with better buttons and more visually
+// appealing" feedback.
+// ---------------------------------------------------------------------------
+
+function StepRow({
+  index,
+  label,
+  children,
+  rightSlot,
+  centered = false,
+}: {
+  index: number
+  label: string
+  children: React.ReactNode
+  rightSlot?: React.ReactNode
+  centered?: boolean
+}) {
+  const bg =
+    index % 2 === 1 ? 'rgb(var(--color-bg) / 0.7)' : 'rgb(var(--color-bg) / 0.55)'
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.55, delay: 0.05 * (index - 1), ease: [0.22, 1, 0.36, 1] }}
+      className="p-5 sm:p-6 group transition-colors"
+      style={{ background: bg }}
+    >
+      <div
+        className={
+          'flex flex-col gap-4 sm:flex-row sm:items-start ' +
+          (centered ? 'sm:justify-center' : 'sm:justify-between')
+        }
+      >
+        <div className={centered ? 'mx-auto max-w-2xl text-center' : 'flex items-start gap-4 flex-1 min-w-0'}>
+          {!centered ? (
+            <motion.span
+              aria-hidden="true"
+              initial={{ scale: 0.6, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.4, delay: 0.1 * (index - 1), ease: 'backOut' }}
+              className="inline-flex items-center justify-center rounded-full shrink-0 group-hover:scale-110 transition-transform duration-300"
+              style={{
+                width: 40,
+                height: 40,
+                background:
+                  'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+                color: '#fbfaf3',
+                fontWeight: 700,
+                fontSize: 16,
+                fontFamily: "'Newsreader', serif",
+                boxShadow: '0 8px 18px rgb(var(--color-accent) / 0.28)',
+              }}
+            >
+              {index}
+            </motion.span>
+          ) : null}
+          <div className={centered ? '' : 'min-w-0 flex-1'}>
+            <div
+              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5"
+              style={{ color: 'rgb(var(--color-accent))' }}
+            >
+              Step {index} of 6
+            </div>
+            <h3 className="text-lg sm:text-xl font-semibold leading-tight m-0 mb-3" style={{ color: 'rgb(var(--color-fg))' }}>
+              {label}
+            </h3>
+            {centered ? null : children}
+          </div>
+        </div>
+        {rightSlot ? (
+          <div className="shrink-0 sm:ml-4 sm:mt-1">{rightSlot}</div>
+        ) : null}
+      </div>
+      {centered ? <div className="mt-4">{children}</div> : null}
+    </motion.div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DownloadBridgeCTA. The single most-important button on the page. Bigger
+// than the prior version, with a constant accent glow + arrow icon, and a
+// version + size badge underneath. Iteration 2 polish: this is the moment
+// where the VP commits to the install, and the visual weight should match
+// that. Real-target verify (R069) lives upstream in the .mcpb pipeline.
+// ---------------------------------------------------------------------------
+
+function DownloadBridgeCTA() {
+  return (
+    <motion.div
+      className="relative inline-flex flex-col items-center"
+      initial={{ opacity: 0, scale: 0.94 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Pulsing ring behind the CTA. Pure motion, no JS timers. */}
+      <motion.span
+        aria-hidden="true"
+        animate={{ scale: [1, 1.08, 1], opacity: [0.35, 0, 0.35] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(closest-side, rgb(var(--color-accent) / 0.55), transparent 70%)',
+          filter: 'blur(18px)',
+        }}
+      />
+      <a
+        href={BRIDGE_DOWNLOAD_PATH}
+        download
+        className="relative inline-flex items-center justify-center gap-3 rounded-2xl px-7 py-4 text-base sm:text-lg font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        style={{
+          background:
+            'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
+          color: '#fbfaf3',
+          boxShadow:
+            '0 18px 40px rgb(var(--color-accent) / 0.38), 0 4px 12px rgb(var(--color-accent) / 0.18), inset 0 1px 0 rgba(255,255,255,0.15)',
+          minHeight: 56,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)'
+          e.currentTarget.style.boxShadow =
+            '0 22px 48px rgb(var(--color-accent) / 0.55), 0 6px 16px rgb(var(--color-accent) / 0.22), inset 0 1px 0 rgba(255,255,255,0.18)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)'
+          e.currentTarget.style.boxShadow =
+            '0 18px 40px rgb(var(--color-accent) / 0.38), 0 4px 12px rgb(var(--color-accent) / 0.18), inset 0 1px 0 rgba(255,255,255,0.15)'
+        }}
+      >
+        <Download className="w-5 h-5" aria-hidden="true" />
+        <span>Download Bridge for Claude Desktop</span>
+      </a>
+      <div className="relative mt-3 flex items-center gap-2 flex-wrap justify-center">
+        <span
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] rounded-full px-2.5 py-1"
+          style={{
+            background: 'rgb(var(--color-fg) / 0.04)',
+            color: 'rgb(var(--color-fg-muted))',
+            border: '1px solid rgb(var(--color-fg) / 0.08)',
+          }}
+        >
+          v{BRIDGE_VERSION}
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] rounded-full px-2.5 py-1"
+          style={{
+            background: 'rgb(var(--color-fg) / 0.04)',
+            color: 'rgb(var(--color-fg-muted))',
+            border: '1px solid rgb(var(--color-fg) / 0.08)',
+          }}
+        >
+          4 MB
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] rounded-full px-2.5 py-1"
+          style={{
+            background: 'rgb(var(--color-fg) / 0.04)',
+            color: 'rgb(var(--color-fg-muted))',
+            border: '1px solid rgb(var(--color-fg) / 0.08)',
+          }}
+        >
+          macOS or Windows
+        </span>
+      </div>
+    </motion.div>
+  )
+}
+
+function CapabilityCard({
+  capability,
+  index,
+  onOpen,
+}: {
+  capability: Capability
+  index: number
+  onOpen: () => void
+}) {
+  const ref = useRef<HTMLButtonElement>(null)
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
-  const rotX = useSpring(useTransform(my, [-1, 1], [4, -4]), { stiffness: 220, damping: 22 })
-  const rotY = useSpring(useTransform(mx, [-1, 1], [-4, 4]), { stiffness: 220, damping: 22 })
+  const rotX = useSpring(useTransform(my, [-1, 1], [3, -3]), { stiffness: 220, damping: 22 })
+  const rotY = useSpring(useTransform(mx, [-1, 1], [-3, 3]), { stiffness: 220, damping: 22 })
 
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+  function onMove(e: React.MouseEvent<HTMLButtonElement>) {
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -1399,8 +1628,10 @@ function CapabilityCard({ capability, index }: { capability: Capability; index: 
   const Icon = capability.Icon
 
   return (
-    <motion.div
+    <motion.button
       ref={ref}
+      type="button"
+      onClick={onOpen}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
       style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
@@ -1408,51 +1639,55 @@ function CapabilityCard({ capability, index }: { capability: Capability; index: 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
-      className="group relative rounded-2xl overflow-hidden p-5 sm:p-6"
+      className="group relative rounded-2xl overflow-hidden p-6 sm:p-7 text-left w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       data-card="capability"
+      aria-label={`${capability.title}. Click to see how this changes Monday morning.`}
     >
+      {/* Base surface */}
       <span
         aria-hidden="true"
-        className="absolute inset-0 rounded-2xl pointer-events-none"
+        className="absolute inset-0 rounded-2xl pointer-events-none transition-colors duration-300"
         style={{
           background: 'rgb(var(--color-fg) / 0.025)',
           border: '1px solid rgb(var(--color-fg) / 0.08)',
         }}
       />
+      {/* Radial-spotlight on hover */}
       <span
         aria-hidden="true"
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
           background:
-            'radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgb(var(--color-accent) / 0.12), transparent 50%)',
+            'radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgb(var(--color-accent) / 0.14), transparent 50%)',
         }}
       />
+      {/* Accent border + lift on hover */}
       <span
         aria-hidden="true"
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
           boxShadow:
-            'inset 0 0 0 1px rgb(var(--color-accent) / 0.35), 0 14px 36px -10px rgb(var(--color-accent) / 0.22)',
+            'inset 0 0 0 1px rgb(var(--color-accent) / 0.4), 0 18px 40px -12px rgb(var(--color-accent) / 0.28)',
         }}
       />
 
-      <div className="relative flex items-start justify-between gap-3 mb-4">
+      <div className="relative flex items-start justify-between gap-3 mb-5">
         <motion.span
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 3.2, repeat: Infinity, delay: index * 0.18, ease: 'easeInOut' }}
-          className="inline-flex items-center justify-center rounded-xl"
+          className="inline-flex items-center justify-center rounded-xl group-hover:scale-110 transition-transform duration-300"
           style={{
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             background: 'rgb(var(--color-accent) / 0.12)',
             color: 'rgb(var(--color-accent))',
             border: '1px solid rgb(var(--color-accent) / 0.22)',
           }}
         >
-          <Icon className="w-4 h-4" aria-hidden="true" />
+          <Icon className="w-5 h-5" aria-hidden="true" />
         </motion.span>
         <span
-          className="font-mono text-[9px] uppercase tracking-[0.22em] rounded-full px-2 py-1"
+          className="font-mono text-[9px] uppercase tracking-[0.22em] rounded-full px-2.5 py-1"
           style={{
             color: 'rgb(var(--color-accent))',
             background: 'rgb(var(--color-accent) / 0.08)',
@@ -1463,36 +1698,308 @@ function CapabilityCard({ capability, index }: { capability: Capability; index: 
       </div>
 
       <h3
-        className="relative font-display text-[1.15rem] sm:text-[1.2rem] leading-tight mb-2"
+        className="relative font-display text-[1.35rem] sm:text-[1.45rem] leading-tight mb-2"
         style={{ color: 'rgb(var(--color-fg))' }}
       >
         {capability.title}
       </h3>
 
       <p
-        className="relative text-sm leading-relaxed m-0 mb-3"
+        className="relative text-sm leading-relaxed m-0"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
       >
-        {capability.body}
+        {capability.tagline}
       </p>
 
       <div
-        className="relative pt-3 mt-1 flex items-start gap-2 border-t"
-        style={{ borderColor: 'rgb(var(--color-fg) / 0.08)' }}
+        className="relative mt-6 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] transition-all duration-300 group-hover:gap-2.5"
+        style={{ color: 'rgb(var(--color-accent))' }}
       >
-        <Zap
-          className="w-3 h-3 mt-0.5 shrink-0"
+        See the dream
+        <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+      </div>
+    </motion.button>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// CapabilityModalRender. The dream-pitch modal that opens when a VP clicks
+// "See the dream" on any capability card. Mounted at the EmpireLanding
+// level so only one modal is alive at a time. Lock body scroll + ESC close
+// are handled by the parent useEffect.
+// ---------------------------------------------------------------------------
+
+function CapabilityModalRender({
+  capability,
+  onClose,
+}: {
+  capability: Capability | null
+  onClose: () => void
+}) {
+  return (
+    <AnimatePresence>
+      {capability ? (
+        <motion.div
+          key="cap-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          style={{
+            background: 'rgba(20,20,19,0.55)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+          }}
+          onClick={onClose}
+          role="presentation"
+        >
+          <motion.div
+            key="cap-modal-inner"
+            initial={{ y: 40, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 30, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl"
+            style={{
+              background: '#fbfaf3',
+              color: '#141413',
+              boxShadow:
+                '0 40px 100px -20px rgba(20,20,19,0.45), 0 12px 30px rgba(20,20,19,0.15)',
+              border: '1px solid rgba(20,20,19,0.08)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${capability.title} deep-dive`}
+          >
+            <ModalBody capability={capability} onClose={onClose} />
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  )
+}
+
+function ModalBody({ capability, onClose }: { capability: Capability; onClose: () => void }) {
+  const Icon = capability.Icon
+  return (
+    <div className="p-6 sm:p-9">
+      {/* Close + nav */}
+      <div className="flex items-center justify-between mb-6">
+        <span
+          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] rounded-full px-3 py-1.5"
+          style={{
+            color: 'rgb(var(--color-accent))',
+            background: 'rgb(var(--color-accent) / 0.1)',
+            border: '1px solid rgb(var(--color-accent) / 0.22)',
+          }}
+        >
+          Operating layer: {capability.layer}
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="inline-flex items-center justify-center rounded-full transition"
+          style={{
+            width: 36,
+            height: 36,
+            background: 'rgba(20,20,19,0.06)',
+            color: '#141413',
+            border: '1px solid rgba(20,20,19,0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(204,110,46,0.12)'
+            e.currentTarget.style.borderColor = 'rgba(204,110,46,0.35)'
+            e.currentTarget.style.color = 'rgb(var(--color-accent))'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(20,20,19,0.06)'
+            e.currentTarget.style.borderColor = 'rgba(20,20,19,0.1)'
+            e.currentTarget.style.color = '#141413'
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Hero block: icon + title */}
+      <div className="flex items-start gap-4 mb-6">
+        <span
+          aria-hidden="true"
+          className="inline-flex items-center justify-center rounded-2xl shrink-0"
+          style={{
+            width: 56,
+            height: 56,
+            background:
+              'linear-gradient(135deg, rgb(var(--color-accent) / 0.18), rgb(var(--color-accent) / 0.06))',
+            color: 'rgb(var(--color-accent))',
+            border: '1px solid rgb(var(--color-accent) / 0.28)',
+            boxShadow: '0 12px 24px rgb(var(--color-accent) / 0.18)',
+          }}
+        >
+          <Icon className="w-7 h-7" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-display text-[clamp(1.6rem,3.5vw,2.2rem)] leading-tight m-0">
+            {capability.title}
+          </h2>
+          <p
+            className="text-base leading-relaxed mt-2 m-0"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
+          >
+            {capability.body}
+          </p>
+        </div>
+      </div>
+
+      {/* Monday morning vision */}
+      <div
+        className="rounded-2xl p-5 sm:p-6 mb-5"
+        style={{
+          background:
+            'linear-gradient(135deg, rgb(var(--color-accent) / 0.07), rgb(var(--color-accent) / 0.02))',
+          border: '1px solid rgb(var(--color-accent) / 0.22)',
+        }}
+      >
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          Monday morning, after install
+        </div>
+        <p
+          className="text-base leading-relaxed m-0"
+          style={{ color: '#141413' }}
+        >
+          {capability.mondayMorning}
+        </p>
+      </div>
+
+      {/* Compounding angle */}
+      <div className="rounded-2xl p-5 sm:p-6 mb-5"
+        style={{
+          background: 'rgba(20,20,19,0.04)',
+          border: '1px solid rgba(20,20,19,0.08)',
+        }}
+      >
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          Why this compounds
+        </div>
+        <p
+          className="text-base leading-relaxed m-0"
+          style={{ color: '#3a3a36' }}
+        >
+          {capability.compounding}
+        </p>
+      </div>
+
+      {/* Pack mapping: the receipts */}
+      <div className="mb-6">
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          Powered by these packs in your Claude
+        </div>
+        <ul className="space-y-2 list-none m-0 pl-0">
+          {capability.packs.map((p) => (
+            <li
+              key={p.badge}
+              className="flex items-center gap-3 rounded-xl p-3"
+              style={{
+                background: '#ffffff',
+                border: '1px solid rgba(20,20,19,0.08)',
+              }}
+            >
+              <span
+                className="inline-flex items-center justify-center rounded-md font-mono text-[10px] uppercase tracking-[0.18em] shrink-0"
+                style={{
+                  minWidth: 56,
+                  padding: '4px 8px',
+                  background: 'rgb(var(--color-accent) / 0.12)',
+                  color: 'rgb(var(--color-accent))',
+                  fontWeight: 700,
+                }}
+              >
+                {p.badge}
+              </span>
+              <span className="text-sm leading-snug" style={{ color: '#141413' }}>
+                {p.name}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Proof footer */}
+      <div
+        className="flex items-start gap-3 rounded-xl p-4 mb-5"
+        style={{
+          background: 'rgb(18, 128, 82, 0.06)',
+          border: '1px solid rgb(18, 128, 82, 0.25)',
+        }}
+      >
+        <Check
+          className="w-4 h-4 mt-0.5 shrink-0"
+          style={{ color: 'rgb(18,128,82)' }}
           aria-hidden="true"
         />
         <p
-          className="text-[11px] leading-snug m-0"
-          style={{ color: 'rgb(var(--color-fg-subtle))', fontStyle: 'italic' }}
+          className="text-sm leading-snug m-0 italic"
+          style={{ color: '#1a5d3f' }}
         >
           {capability.proof}
         </p>
       </div>
-    </motion.div>
+
+      {/* CTAs */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            onClose()
+            const target = document.getElementById('how-it-works')
+            if (target) target.scrollIntoView({ behavior: 'smooth' })
+          }}
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition flex-1 min-h-11"
+          style={{
+            background: 'rgb(var(--color-accent))',
+            color: '#fbfaf3',
+            boxShadow: '0 10px 22px rgb(var(--color-accent) / 0.28)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)'
+            e.currentTarget.style.boxShadow = '0 14px 28px rgb(var(--color-accent) / 0.42)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 10px 22px rgb(var(--color-accent) / 0.28)'
+          }}
+        >
+          Take me to install
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition min-h-11"
+          style={{
+            background: 'transparent',
+            color: '#141413',
+            border: '1px solid rgba(20,20,19,0.18)',
+          }}
+        >
+          Back to the layers
+        </button>
+      </div>
+    </div>
   )
 }
 
