@@ -38,10 +38,18 @@ lineCount: 720
 dependencies: ["B-05"]
 estimatedActivationMinutes: 75
 personalizationQuestionCount: 2
-version: 1.0.0
+version: 1.1.0
 requiresCodeCli: true
-createdBy: HoistOS Bonus Extras v1.0
-fingerprint: bonus-07-hooks-and-daemons-v1.0.0
+createdBy: HoistOS Bonus Extras v1.1 (Oliver B-05 bug-report propagation 2026-05-12)
+fingerprint: bonus-07-hooks-and-daemons-v1.1.0
+patchHistory:
+  v1.1.0:
+    date: 2026-05-12
+    source: "Propagation of Oliver B-05 bug B3 (macOS BSD-grep \\xHH limit)"
+    patches:
+      - "Banned-pattern hook rewritten to use `perl -CSD` instead of `grep -qE`. BSD grep silently no-ops on `\\xHH` hex escapes in POSIX ERE; the previous hook could not actually enforce em-dash or en-dash bans on macOS."
+      - "Example banned-patterns.txt now includes `[\\x{2014}\\x{2013}]` (em-dash and en-dash codepoints). Voice rule is now structurally enforced as advertised."
+      - "Added implementation note explaining the BSD-grep limitation and `perl -CSD` choice."
 ---
 
 > **This pack requires Claude Code CLI on your machine.** Pro, Max, or Team desktop alone cannot host the PreToolUse hooks or the launchd daemons this pack installs. Hooks live at `~/.claude/hooks/` and daemons at `~/Library/LaunchAgents/`, both Code-only surfaces. Install B-05 (Code CLI Setup) first.
@@ -189,6 +197,8 @@ Already installed by B-05. Blocks any Write or Edit whose content includes U+201
 
 Generalization of em-dash blocker. Reads a list of banned patterns from a config file (`~/.claude/hooks/banned-patterns.txt`), blocks Write/Edit content that matches any. Operator extends the list by editing the config file; hook auto-picks up new patterns on next call.
 
+**Implementation note:** uses `perl -CSD` for pattern matching, not `grep -qE`. macOS BSD grep does NOT interpret `\xHH` hex escapes in POSIX ERE (the `[\xE2\x80\x94]` form silently no-ops on real em dashes) and does NOT support `-P` (PCRE). Perl with `-CSD` supports proper Unicode codepoint matching via `\x{HHHH}` syntax, which the example config below uses to enforce the em-dash and en-dash rules. ASCII word patterns (`\bsynergy\b`) work identically under both engines.
+
 ### Hook 3: Notion-write-verify (PostToolUse on Notion MCP tools)
 
 After every Notion MCP write (`notion-create-pages`, `notion-update-page`, etc.), this hook injects a system reminder forcing Claude to fetch the just-written row, diff against expected state, and report PASS or FAIL. Prevents the "API returned 200" false-positive trap.
@@ -291,6 +301,9 @@ loads it via launchctl bootstrap, confirms via launchctl list.
 ```bash
 #!/bin/bash
 # PreToolUse hook for Write/Edit/MultiEdit. Blocks content matching banned patterns.
+# Uses perl -CSD (macOS default) for proper Unicode codepoint matching via \x{HHHH}.
+# Supports both ASCII patterns (e.g., \bsynergy\b) and Unicode (e.g., [\x{2014}\x{2013}]).
+# Does NOT use grep -qE: BSD grep on macOS silently no-ops on \xHH hex escapes inside POSIX ERE.
 
 INPUT=$(cat)
 
@@ -307,7 +320,9 @@ VIOLATIONS=()
 while IFS= read -r pattern; do
   # Skip empty lines and comments
   [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
-  if echo "$CONTENT" | grep -qE "$pattern"; then
+  # Use perl -CSD for Unicode-safe matching. Pattern is passed via env var so
+  # backslashes and special chars survive shell expansion.
+  if PATTERN="$pattern" perl -CSD -e 'exit 0 if <STDIN> =~ /$ENV{PATTERN}/; exit 1' <<< "$CONTENT"; then
     VIOLATIONS+=("$pattern")
   fi
 done < "$PATTERNS_FILE"
@@ -328,8 +343,13 @@ exit 0
 ```
 # Banned patterns. One regex per line. Lines starting with # are comments.
 # Add or remove patterns. Hook auto-picks up changes on next call.
+# Patterns are PCRE (interpreted by `perl -CSD`); supports both ASCII regex
+# and Unicode codepoints via \x{HHHH}.
 
-# Voice rules
+# Voice rules: em dash (U+2014) and en dash (U+2013). NEVER use these.
+[\x{2014}\x{2013}]
+
+# Voice rules: AI-jargon banned words
 \bsynergy\b
 \bleverage\b
 \bgame[ -]changing\b
@@ -689,9 +709,12 @@ The four blueprints together form the structural-enforcement layer. Hooks block 
 
 ```
 # PACK PROVENANCE
-# hoistos-bonus-07-hooks-and-daemons v1.0.0
-# Sprint: bonus-extras-v1
+# hoistos-bonus-07-hooks-and-daemons v1.1.0
+# Sprint: bonus-extras-v1 (v1.1 patches applied 2026-05-12 from Oliver B-05 bug-report propagation)
 # Generated: 2026-05-09 by HoistOS Bonus Extras v1.0
-# Canonical source: Anthropic PreToolUse / PostToolUse hooks; macOS launchd plist; Anthropic Code settings.json registration
-# Fingerprint: bonus-07-hooks-and-daemons-v1.0.0
+# Patched: 2026-05-12 (BSD-grep \xHH limit fix: hook rewritten using perl -CSD;
+#          em-dash + en-dash codepoints added to default banned-patterns.txt)
+# Canonical source: Anthropic PreToolUse / PostToolUse hooks; macOS launchd plist;
+#                   Anthropic Code settings.json registration; perl -CSD for Unicode
+# Fingerprint: bonus-07-hooks-and-daemons-v1.1.0
 ```

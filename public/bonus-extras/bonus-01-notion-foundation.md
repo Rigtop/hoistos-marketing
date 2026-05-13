@@ -87,7 +87,7 @@ The cheap fix is to install the foundation today, not next quarter. Sixty second
 |---|
 | Notion workspace, free tier or paid (free tier is enough for this blueprint) |
 | Permission to create new databases in that workspace (you are the owner, or an admin granted you DB-creation rights) |
-| Notion MCP wired into Claude. On Pro/Max: `claude.ai` Connectors panel, click Notion, OAuth flow, grant access. On Code CLI: run `claude mcp add notion` per the B-05 blueprint. |
+| Notion MCP wired into Claude. On Pro/Max web/desktop: `claude.ai` Connectors panel, click Notion, OAuth flow, grant access. On Code CLI: type `/mcp` inside a Claude Code session. Notion is auto-bridged from your claude.ai connector; authenticate with Enter. Per the B-05 blueprint Step 4, fall back to `claude mcp add --transport http notion https://mcp.notion.com/mcp` ONLY if Notion is not in your claude.ai bridged list. |
 | 60 to 90 minutes of focused time. Most of that is spent admiring the result; the actual install takes 5 minutes after the questions are answered. |
 
 If any item is missing, fix it first. Specifically: if Notion MCP is not wired, install B-05 first if you are on Code, or open `claude.ai` Connectors and enable Notion if you are on Pro/Max. The blueprint cannot create databases without the MCP.
@@ -471,7 +471,7 @@ You should see Claude create the People row, wire the Company relation, wire bot
 
 Symptom: VP types "set up my Notion foundation". Claude responds with "Notion MCP is not wired."
 
-Recovery: on Pro/Max, open `claude.ai`, click Settings, click Connectors, find Notion in the list, click Connect, complete the OAuth flow with your Notion workspace. On Code CLI, run `claude mcp add notion` per the B-05 blueprint, then restart Claude Code. Re-type the trigger.
+Recovery: on Pro/Max web/desktop, open `claude.ai`, click Settings, click Connectors, find Notion in the list, click Connect, complete the OAuth flow with your Notion workspace. On Code CLI, type `/mcp` inside a Claude Code session, navigate to Notion (auto-bridged from your claude.ai connector), press Enter to authenticate. If genuinely absent from the bridge, fall back to `claude mcp add --transport http notion https://mcp.notion.com/mcp` per the B-05 blueprint Step 4, then hard-restart Claude Code (`/exit`, then `claude` again). Re-type the trigger.
 
 ### Break 2: parent page creation succeeded, DB creation partially failed
 
