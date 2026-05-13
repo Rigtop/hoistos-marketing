@@ -22,7 +22,7 @@
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Copy } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Copy } from 'lucide-react'
 import { motion } from 'motion/react'
 
 /**
@@ -76,9 +76,25 @@ const ACTIVATION_LINE =
   'At the start of every conversation, call the EmpireWorks Bridge get_router tool and follow the instructions it returns. For task-specific guidance, call read_installed_pack with the pack id named in the router.'
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
+const WHAT_YOU_GET = [
+  ['Rules', 'Your voice, title, company, and non-negotiables stay locked.'],
+  ['Memory', 'Corrections and decisions can compound instead of evaporating.'],
+  ['Routing', 'Claude knows where work should land before it writes.'],
+  ['Source checks', 'Factual answers check your trusted sources first.'],
+  ['Validation', 'Outputs get checked before they reach a client or team thread.'],
+  ['33 packs', 'Foundation starts first, then advanced packs can layer on later.'],
+] as const
 
 export function EmpireLanding() {
   const audience = useAudience()
+
+  function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault()
+    const target = document.getElementById('how-it-works')
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   return (
     <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))' }}>
@@ -123,7 +139,7 @@ export function EmpireLanding() {
           <br />
           Compounding productivity.
           <br />
-          <span style={{ color: 'rgb(var(--color-accent))' }}>Installed once.</span>
+          <span style={{ color: 'rgb(var(--color-accent))' }}>Very easy install.</span>
         </motion.h1>
 
         <motion.p
@@ -138,38 +154,239 @@ export function EmpireLanding() {
           packs it needs to become more useful for your business over time.
         </motion.p>
 
-        {/* Primary download CTA, visible above the fold */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="flex flex-col items-center gap-3 mb-12"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto mb-12 text-left"
         >
-          <a
-            href={BRIDGE_DOWNLOAD_PATH}
-            download
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-7 py-3 text-base font-semibold transition"
-            style={{
-              background: 'rgb(var(--color-accent))',
-              color: 'rgb(var(--color-bg))',
-              boxShadow: '0 10px 28px rgb(var(--color-accent) / 0.30)',
-            }}
-          >
-            Download Bridge for Claude Desktop
-            <span aria-hidden="true">↓</span>
-          </a>
-          <div
-            className="font-mono text-[10px] uppercase tracking-[0.16em]"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
-          >
-            EmpireWorks Bridge v{BRIDGE_VERSION} · 4 MB · macOS or Windows
-          </div>
-          <p className="text-sm max-w-sm mx-auto" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
-            Three prompts. Five minutes. Foundation installed and wired.
-          </p>
+          {WHAT_YOU_GET.map(([title, body]) => (
+            <div
+              key={title}
+              className="rounded-xl p-4"
+              style={{
+                background: 'rgb(var(--color-fg) / 0.03)',
+                border: '1px solid rgb(var(--color-fg) / 0.08)',
+              }}
+            >
+              <div
+                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                style={{ color: 'rgb(var(--color-accent))' }}
+              >
+                {title}
+              </div>
+              <p className="text-sm leading-relaxed m-0" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                {body}
+              </p>
+            </div>
+          ))}
         </motion.div>
 
-        {/* EmpireWorks-personalized welcome card. Only renders for ?steve=1 traffic. */}
+        {/* Guided Bridge setup. Novice path only: Desktop extension, one
+            setup prompt, one Project Instructions paste, one verification. */}
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-4xl mx-auto mb-12"
+        >
+          <div
+            className="relative rounded-2xl p-6 sm:p-8 text-left"
+            style={{
+              border: '1px solid rgb(var(--color-accent) / 0.35)',
+              boxShadow:
+                '0 30px 80px -16px rgb(var(--color-fg) / 0.18), 0 6px 18px rgb(var(--color-fg) / 0.06)',
+              background:
+                'linear-gradient(135deg, rgb(var(--color-accent) / 0.06), rgb(var(--color-accent) / 0.02))',
+            }}
+          >
+            <div
+              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3 text-center"
+              style={{ color: 'rgb(var(--color-accent))' }}
+            >
+              One guided setup, no pack-by-pack install
+            </div>
+            <h2
+              className="font-display text-[clamp(1.7rem,4vw,2.8rem)] leading-tight mb-3 text-center"
+              style={{ color: 'rgb(var(--color-fg))' }}
+            >
+              Install once. Let Claude do the wiring.
+            </h2>
+            <p
+              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
+            >
+              The Bridge is the installer. The steps below show exactly what to click,
+              what to paste, and what Claude should report back when Foundation is live.
+            </p>
+
+            <div
+              className="divide-y rounded-xl overflow-hidden"
+              style={{ border: '1px solid rgb(var(--color-fg) / 0.08)' }}
+            >
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
+                <div className="mx-auto max-w-2xl text-center">
+                    <div
+                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                      style={{ color: 'rgb(var(--color-accent))' }}
+                    >
+                      Step 1 of 6
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1">Download the Bridge for Claude Desktop</h3>
+                    <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                      This is the one installer. The Foundation pack pages below are previews,
+                      not separate installs.
+                    </p>
+                  <a
+                    href={BRIDGE_DOWNLOAD_PATH}
+                    download
+                    className="mx-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition"
+                    style={{
+                      background: 'rgb(var(--color-accent))',
+                      color: 'rgb(var(--color-bg))',
+                      boxShadow: '0 8px 24px rgb(var(--color-accent) / 0.26)',
+                    }}
+                  >
+                    Download Bridge for Claude Desktop
+                    <span aria-hidden="true">↓</span>
+                  </a>
+                  <div
+                    className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em]"
+                    style={{ color: 'rgb(var(--color-fg-subtle))' }}
+                  >
+                    EmpireWorks Bridge v{BRIDGE_VERSION}, 4 MB, macOS or Windows
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
+                <div
+                  className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                  style={{ color: 'rgb(var(--color-accent))' }}
+                >
+                  Step 2 of 6
+                </div>
+                <h3 className="text-lg font-semibold mb-1">Double-click it and click Install</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                  Claude Desktop opens an extension screen. Click Install or Update, keep
+                  the extension enabled, then continue back to this page.
+                </p>
+                <ScreenshotPlaceholder
+                  src="/screenshots/empireworks-bridge/install-dialog-placeholder.png"
+                  alt="Claude Desktop extension install dialog showing EmpireWorks Bridge with an Install button"
+                  caption="Step 2: click Install in this Claude Desktop screen, then return here."
+                />
+                <InstallFacts />
+              </div>
+
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
+                <div
+                  className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                  style={{ color: 'rgb(var(--color-accent))' }}
+                >
+                  Step 3 of 6
+                </div>
+                <h3 className="text-lg font-semibold mb-1">Create or open a Claude Project</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                  Open Claude Desktop, choose Projects, then create or select the Project
+                  where you want this system to live. Start the setup prompt inside that
+                  Project, not in a loose chat.
+                </p>
+                <ClaudeProjectMock />
+              </div>
+
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div
+                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                      style={{ color: 'rgb(var(--color-accent))' }}
+                    >
+                      Step 4 of 6
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1">Paste one setup prompt</h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                      Paste this into the Project chat. Claude will ask to call
+                      setup_foundation. Click Allow. The Bridge writes the 11 Foundation
+                      packs locally, writes the router, then gives you the activation line.
+                    </p>
+                  </div>
+                  <CopyButton text={SETUP_PROMPT} label="Copy setup" />
+                </div>
+                <PromptBlock>{SETUP_PROMPT}</PromptBlock>
+              </div>
+
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div
+                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                      style={{ color: 'rgb(var(--color-accent))' }}
+                    >
+                      Step 5 of 6
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1">Paste the activation line into Project Instructions</h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                      Open Project settings, choose Instructions, paste the activation line,
+                      and save. This makes every new chat inside that Claude Project load the
+                      router automatically.
+                    </p>
+                  </div>
+                  <CopyButton text={ACTIVATION_LINE} label="Copy line" />
+                </div>
+                <ScreenshotPlaceholder
+                  src="/screenshots/empireworks-bridge/project-instructions-placeholder.png"
+                  alt="Claude Desktop Project Instructions panel with the EmpireWorks Bridge activation line pasted in"
+                  caption="Step 5: paste the activation line into Project Instructions, then save."
+                />
+                <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
+                <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
+                  Project Instructions are per Project. If you create another Claude Project
+                  later, paste the same activation line into that Project too.
+                </p>
+              </div>
+
+              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div
+                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+                      style={{ color: 'rgb(var(--color-accent))' }}
+                    >
+                      Step 6 of 6
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1">Run the check</h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
+                      Paste this into the same Project chat. A clean result means the Bridge,
+                      Foundation files, manifest, and router are live.
+                    </p>
+                  </div>
+                  <CopyButton text={VERIFY_PROMPT} label="Copy check" />
+                </div>
+                <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
+              </div>
+            </div>
+
+            <div
+              className="mt-5 rounded-xl p-4 text-sm leading-relaxed"
+              style={{
+                background: 'rgb(var(--color-fg) / 0.04)',
+                border: '1px solid rgb(var(--color-fg) / 0.08)',
+                color: 'rgb(var(--color-fg-muted))',
+              }}
+            >
+              <strong style={{ color: 'rgb(var(--color-fg))' }}>Browser note:</strong>{' '}
+              Claude browser can preview the pack pages, but it cannot run the Bridge or
+              reach local files. The real install path is Claude Desktop. File reads, file
+              writes, moves, hooks, daemons, and Claude Code workflows still require the
+              right local tool approval or connector.
+            </div>
+          </div>
+        </motion.div>
+
+        {/* EmpireWorks-personalized welcome card. Only renders for ?steve=1
+            traffic. Lands a same-room note from Eugeen so the demo feels
+            built for the people in front of the screen, not for everyone. */}
         {audience === 'empireworks' ? (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -200,180 +417,104 @@ export function EmpireLanding() {
             </p>
           </motion.div>
         ) : null}
-      </section>
 
-      {/* Guided Bridge setup. Three phases: install, setup, activate. */}
-      <section className="max-w-4xl mx-auto mt-16 px-0">
-        <motion.div
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.12 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        {/* Old 120-word wall removed 2026-05-11 (S199 polish pass).
+            Replaced upstream by the 2-line h1 + subhead + 3-step strip.
+            The user gets the journey preview in 12 words; the cards
+            below carry the detail per pack. */}
+
+        {/* Scroll cue: nudges VP down to see how it works before the CTA */}
+        <motion.a
+          href="#how-it-works"
+          onClick={scrollToCards}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="inline-flex flex-col items-center gap-3 group cursor-pointer"
+          aria-label="Scroll to learn how it works"
         >
-          <div
-            className="relative rounded-2xl p-6 sm:p-8 text-left"
+          <span
+            className="font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-300"
+            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          >
+            How it works
+          </span>
+          <motion.span
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 group-hover:scale-110"
             style={{
-              border: '1px solid rgb(var(--color-accent) / 0.35)',
-              boxShadow:
-                '0 30px 80px -16px rgb(var(--color-fg) / 0.18), 0 6px 18px rgb(var(--color-fg) / 0.06)',
-              background:
-                'linear-gradient(135deg, rgb(var(--color-accent) / 0.06), rgb(var(--color-accent) / 0.02))',
+              borderColor: 'rgb(var(--color-accent) / 0.4)',
+              color: 'rgb(var(--color-accent))',
+              background: 'rgb(var(--color-accent) / 0.04)',
             }}
           >
-            <div
-              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3 text-center"
-              style={{ color: 'rgb(var(--color-accent))' }}
-            >
-              One guided setup, no pack-by-pack install
-            </div>
-            <h2
-              className="font-display text-[clamp(1.7rem,4vw,2.8rem)] leading-tight mb-3 text-center"
-              style={{ color: 'rgb(var(--color-fg))' }}
-            >
-              Install once. Let Claude do the wiring.
-            </h2>
-            <p
-              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
-              style={{ color: 'rgb(var(--color-fg-muted))' }}
-            >
-              The Bridge is the installer. Three phases: download it, run setup in a Claude
-              Project, then paste one activation line.
-            </p>
-
-            <div
-              className="divide-y rounded-xl overflow-hidden"
-              style={{ border: '1px solid rgb(var(--color-fg) / 0.08)' }}
-            >
-              {/* Phase 1: Install */}
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
-                <div
-                  className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                  style={{ color: 'rgb(var(--color-accent))' }}
-                >
-                  Phase 1 of 3
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Double-click the file, then click Install</h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                  Claude Desktop opens an extension screen. Click Install or Update, keep the
-                  extension enabled, then come back to this page.
-                </p>
-                <p
-                  className="mt-3 text-xs leading-relaxed rounded-lg px-3 py-2"
-                  style={{
-                    display: 'inline-block',
-                    background: 'rgb(185 55 55 / 0.07)',
-                    border: '1px solid rgb(185 55 55 / 0.18)',
-                    color: 'rgb(130 36 36)',
-                  }}
-                >
-                  Claude may warn that extensions can access your computer. That is expected
-                  for an extension that writes to your local Claude folder.
-                </p>
-              </div>
-
-              {/* Phase 2: Run setup */}
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.55)' }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Phase 2 of 3
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Run setup inside a Claude Project</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      Open Claude Desktop. Create or open a Project (not a loose chat). Paste
-                      this prompt, then click Allow when Claude asks to run setup_foundation.
-                      The Bridge writes the 11 Foundation packs, writes the router, and returns
-                      the activation line.
-                    </p>
-                  </div>
-                  <CopyButton text={SETUP_PROMPT} label="Copy setup" />
-                </div>
-                <PromptBlock>{SETUP_PROMPT}</PromptBlock>
-              </div>
-
-              {/* Phase 3: Activate and verify */}
-              <div className="p-5 sm:p-6" style={{ background: 'rgb(var(--color-bg) / 0.7)' }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div
-                      className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
-                      style={{ color: 'rgb(var(--color-accent))' }}
-                    >
-                      Phase 3 of 3
-                    </div>
-                    <h3 className="text-lg font-semibold mb-1">Paste the activation line, then run the check</h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                      Open Project settings, choose Instructions, paste the activation line,
-                      and save. Then run the check prompt in the same Project chat.
-                    </p>
-                  </div>
-                  <CopyButton text={ACTIVATION_LINE} label="Copy line" />
-                </div>
-                <ProjectInstructionsMock />
-                <PromptBlock>{ACTIVATION_LINE}</PromptBlock>
-                <p className="mt-3 text-xs leading-relaxed" style={{ color: 'rgb(var(--color-fg-subtle))' }}>
-                  Project Instructions are per Project. Paste the same line into any other
-                  Claude Project you create later.
-                </p>
-                <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-                    Run the check in the same Project chat. A clean result means Bridge,
-                    Foundation, and router are live.
-                  </p>
-                  <CopyButton text={VERIFY_PROMPT} label="Copy check" />
-                </div>
-                <PromptBlock>{VERIFY_PROMPT}</PromptBlock>
-              </div>
-            </div>
-
-            <div
-              className="mt-5 rounded-xl p-4 text-sm leading-relaxed"
-              style={{
-                background: 'rgb(var(--color-fg) / 0.04)',
-                border: '1px solid rgb(var(--color-fg) / 0.08)',
-                color: 'rgb(var(--color-fg-muted))',
-              }}
-            >
-              <strong style={{ color: 'rgb(var(--color-fg))' }}>Browser note:</strong>{' '}
-              Claude browser can preview the pack pages, but it cannot run the Bridge or
-              reach local files. The real install path is Claude Desktop. File reads, file
-              writes, moves, hooks, daemons, and Claude Code workflows still require the
-              right local tool approval or connector.
-            </div>
-          </div>
-        </motion.div>
-
+            <ChevronDown className="w-5 h-5" aria-hidden="true" />
+          </motion.span>
+        </motion.a>
       </section>
 
-      {/* Value cards: what the Bridge installs. Exploratory, not primary CTA. */}
       {/* Cards: single-column vertical stack, premium effects.
           BranchCard merged into PackCard 2026-05-11 (Eugeen polish pass):
           the two cards were saying the same thing (drop-in upgrade + cut
           for your division) so we collapsed to MapCard + PackCard only. */}
-      <section className="mt-24 max-w-3xl mx-auto space-y-8">
-        <p
-          className="font-mono text-[11px] uppercase tracking-[0.22em] text-center"
-          style={{ color: 'rgb(var(--color-fg-subtle))' }}
-        >
-          What gets installed
-        </p>
+      <section id="how-it-works" className="mt-28 max-w-3xl mx-auto space-y-8 scroll-mt-24">
         <MapCard />
         <PackCard />
       </section>
 
-      {/* Subtle link to Foundation preview. Not a primary action. */}
-      <section className="mt-8 max-w-3xl mx-auto text-center">
-        <Link
-          to="/empireworksreconstruction/foundation"
-          className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em]"
+      {/* CTA, now post-cards. The conversion ask after value has been shown. */}
+      <section className="mt-24 max-w-3xl mx-auto text-center">
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.6 }}
+          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          See what got installed
-          <ArrowRight className="w-3 h-3" aria-hidden="true" />
-        </Link>
+          Ready when you are
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="flex justify-center"
+        >
+          <Link
+            to="/empireworksreconstruction/foundation"
+            className="group relative inline-flex items-center gap-3 rounded-2xl px-10 py-5 text-lg md:text-xl font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={{
+              background: 'rgb(var(--color-accent))',
+              color: 'rgb(var(--color-bg))',
+              boxShadow: '0 12px 40px rgb(var(--color-accent) / 0.35)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 16px 56px rgb(var(--color-accent) / 0.55)'
+              e.currentTarget.style.transform = 'translateY(-2px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 12px 40px rgb(var(--color-accent) / 0.35)'
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
+          >
+            <span>Preview Foundation packs</span>
+            <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          Preview only. The guided Bridge setup installs Foundation in one pass.
+        </motion.p>
       </section>
 
       {/* NOTE: origin framing (Steve Hultgren) + IP confidentiality lock */}
@@ -428,56 +569,6 @@ function PromptBlock({ children }: { children: string }) {
   )
 }
 
-function ProjectInstructionsMock() {
-  return (
-    <div
-      className="mt-4 rounded-xl p-4"
-      style={{
-        background: '#ffffff',
-        border: '1px solid rgb(var(--color-fg) / 0.1)',
-        boxShadow: '0 14px 34px rgb(var(--color-fg) / 0.07)',
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-[170px_1fr]">
-        <div className="rounded-lg p-3" style={{ background: 'rgb(var(--color-fg) / 0.035)' }}>
-          {['Project settings', 'Instructions', 'Knowledge', 'Tools'].map((item) => (
-            <div
-              key={item}
-              className="rounded-md px-3 py-2 text-sm"
-              style={{
-                background: item === 'Instructions' ? 'rgb(var(--color-accent) / 0.12)' : 'transparent',
-                color: item === 'Instructions' ? 'rgb(var(--color-fg))' : 'rgb(var(--color-fg-muted))',
-                fontWeight: item === 'Instructions' ? 600 : 400,
-              }}
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-        <div>
-          <div
-            className="font-mono text-[10px] uppercase tracking-[0.16em] mb-2"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
-          >
-            Project Instructions
-          </div>
-          <div
-            className="rounded-lg p-3 text-xs leading-relaxed"
-            style={{
-              background: 'rgb(var(--color-fg) / 0.045)',
-              border: '1px solid rgb(var(--color-fg) / 0.08)',
-              color: 'rgb(var(--color-fg-muted))',
-            }}
-          >
-            Paste the activation line here, then save. New chats in this Project will
-            know to call the Bridge router first.
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function ScreenshotPlaceholder({
   src,
   alt,
@@ -518,8 +609,7 @@ function ScreenshotPlaceholder({
     </figure>
   )
 }
-// Kept for real-screenshot upgrade path (v1.0.4 capture pass).
-void ScreenshotPlaceholder
+
 
 function InstallFacts() {
   return (
@@ -550,8 +640,6 @@ function InstallFacts() {
     </div>
   )
 }
-// Kept for phase-by-phase install path revert if needed.
-void InstallFacts
 
 function ClaudeProjectMock() {
   return (
@@ -613,8 +701,7 @@ function ClaudeProjectMock() {
     </div>
   )
 }
-// Kept for Claude Project navigation mock revert if needed.
-void ClaudeProjectMock
+
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false)

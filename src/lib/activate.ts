@@ -154,12 +154,18 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
   const mobile = isMobile()
 
   // Try to fetch the pack body so the clipboard carries the full SKILL.md.
+  // R068: on fetch failure do NOT seed the clipboard with a URL-fetch prompt.
+  // Claude refuses URL-fetch-then-install instructions as indirect prompt injection.
+  // Surface the error and bail so the VP can retry or use the manual download path.
   let body: string
   try {
     body = await fetchPackBody(packUrl)
   } catch {
-    // If the fetch fails, fall back to a public-URL-fetch seed prompt.
-    body = `Fetch the file at ${packUrl} and install it as a skill in this project. Then walk me through activation.`
+    toast.error(
+      'Could not load pack content. Check your connection and try again.',
+      { duration: 5000 },
+    )
+    return 'fallback_download'
   }
 
   // Tier A: Desktop launch, only if the user has explicitly opted in.
