@@ -7,9 +7,9 @@
  *
  * Sections (top to bottom):
  *   1. Hero (eyebrow, h1, lede).
- *   2. Foundation Packs (10, "Start Here"). Single-column, click-to-expand
- *      with Framer Motion layout transition. Activation zone copies the
- *      bootstrap markdown to clipboard, opens claude.ai, fires a toast.
+ *   2. Foundation Packs (11, "Start Here"). Single-column, click-to-expand
+ *      with Framer Motion layout transition. These cards preview what the
+ *      Bridge installs, they are no longer pack-by-pack install CTAs.
  *   3. Divider into "Or read the journey from start to today".
  *   4. Chronological 30-row compact table. Each row click-to-expand.
  *
@@ -39,8 +39,6 @@ import type { TimelineDMoment } from '../empire/content/timeline-d-real'
 // Component file kept on disk for future revert; no longer rendered.
 import {
   buildCodeCliInstallCommand,
-  // buildDeepLinkForPack removed S200 (Danny test fail). Kept the import
-  // surface in claude-deep-link.ts for code-CLI buildCodeCliInstallCommand.
   readTier,
   writeTier,
   type ClaudeTier,
@@ -223,6 +221,20 @@ const FOUNDATION_PACKS: FoundationPack[] = [
     companions: ['email-drafter', 'email-playbook-gate', 'voice-tier-resolver'],
     estimatedMinutes: 7,
   },
+  {
+    id: 'foundation-11-notion-write-gate',
+    title: 'Notion Write Gate. Claude verifies its own Notion writes.',
+    explanation:
+      'A write protocol Claude follows before and after every Notion update. It declares the target state, writes the row, reads it back, diffs the live result, and retries if anything missed. Done stops meaning the API returned 200. Done means Claude just inspected the row and confirmed it matches.',
+    why:
+      'Notion can accept a write while the visible row still stays wrong because of formulas, missing required properties, relation drift, or block targeting mistakes. This pack closes the silent failure loop.',
+    helps:
+      'Tasks close cleanly. Meeting notes land with required fields. Decision rows get verified after edit. If a write fails three times, Claude escalates instead of pretending the state is clean.',
+    activate:
+      'The Notion write-gate skill plus declare, diff, and remediate companions. Five minutes to install. Every Notion write gets a read-back stamp.',
+    companions: ['notion-write-with-verify', 'declare-expected-state', 'notion-state-diff'],
+    estimatedMinutes: 5,
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -246,7 +258,7 @@ const NARRATIVE_V2: Record<string, NarrativeOverride> = {
   'first-scheduled-task-2am': {
     v2Title: 'Set the audit to fire at 2 AM on the 5th.',
     v2Explanation:
-      'Wrote the scheduled trigger ninety seconds after Cowork released the feature. First job I ever built that ran without me alive.',
+      'Wrote the scheduled trigger ninety seconds after Claude released the feature. First job I ever built that ran without me alive.',
     v2Story:
       'Memory Architect was running on demand and I kept forgetting to fire it. Three weeks, zero runs. I set 02:00 ET on the 5th, ran one test, then waited. April 5 came and the report was waiting for me at breakfast.',
   },
@@ -255,14 +267,14 @@ const NARRATIVE_V2: Record<string, NarrativeOverride> = {
     v2Explanation:
       'It optimized my whole LinkedIn profile, headline through five experience entries. 90 minutes of paste-and-click became 12 minutes of supervision.',
     v2Story:
-      'For years AI wrote the words and I clicked the buttons. The day Cowork opened Chrome, filled the LinkedIn editor, and hit Save itself, the ceiling moved. The new ceiling is anything a human can click.',
+      'For years AI wrote the words and I clicked the buttons. The day Claude opened Chrome, filled the LinkedIn editor, and hit Save itself, the ceiling moved. The new ceiling is anything a human can click.',
   },
   'sent-emails-voice-fingerprint': {
     v2Title: 'Fed it 200 sent emails so it sounded like me.',
     v2Explanation:
       'Every draft used to sound like Claude wearing my name tag. Six months of my Sent folder fixed that in one session.',
     v2Story:
-      'I was hand-editing every email, every time. Tone, signature, opener, closer. I dumped 200 sent messages from September through March into Cowork and let it extract the rules itself. By the third week I stopped catching mismatches.',
+      'I was hand-editing every email, every time. Tone, signature, opener, closer. I dumped 200 sent messages from September through March into Claude and let it extract the rules itself. By the third week I stopped catching mismatches.',
   },
   'gp-tracker-from-bailey-ave': {
     v2Title: 'A VP grabbed my GP tracker and used it the same day.',
@@ -281,7 +293,7 @@ const NARRATIVE_V2: Record<string, NarrativeOverride> = {
   'cross-platform-protocol': {
     v2Title: 'Two Claudes were drifting. I made them share notes.',
     v2Explanation:
-      "Bernie on the Mac mini and Cowork on the laptop kept forgetting each other's corrections. One Decision Log became the bus they both read.",
+      "Bernie on the Mac mini and Claude on the laptop kept forgetting each other's corrections. One Decision Log became the bus they both read.",
     v2Story:
       "Same name, two brains, different routing rules. I'd correct one and the other would repeat the same mistake on Tuesday. Three shared Global files plus one Decision Log fixed it. Tell one, both reflect by the next cycle.",
   },
@@ -528,12 +540,11 @@ async function copyPackAndOpenClaude(
   }
 }
 
-// Desktop-app install. Fires claude://claude.ai/new (no q= param, no
-// instructions in URL) to open the Claude desktop app with a blank new
-// chat. User pastes (Cmd+V) into the desktop composer. Same clipboard
-// mechanic, different surface than the browser path.
+// Desktop-app install. Opens the Claude Desktop app with a blank new chat.
+// User pastes into the desktop composer. Same clipboard mechanic, different
+// surface than the browser path.
 //
-// Why dual-path: Max users who run Cowork in the desktop app get a
+// Why dual-path: Max users who run Claude in the desktop app get a
 // materially different experience there (persistent threads, native
 // app feel) than claude.ai web. The desktop path preserves that.
 //
@@ -556,7 +567,7 @@ async function copyPackAndOpenDesktop(
     try {
       void navigator.clipboard.writeText(cached)
       if (onModalOpen) onModalOpen(label)
-      else toast.success(`${label} copied. Switch to Claude desktop. Press Cmd+V. Hit Return.`)
+      else toast.success(`${label} copied. Switch to Claude Desktop. Press Cmd+V. Hit Return.`)
       return
     } catch {
       // Fall through to async fetch.
@@ -571,7 +582,7 @@ async function copyPackAndOpenDesktop(
   try {
     await navigator.clipboard.writeText(text)
     if (onModalOpen) onModalOpen(label)
-    else toast.success(`${label} copied. Switch to Claude desktop. Press Cmd+V. Hit Return.`)
+    else toast.success(`${label} copied. Switch to Claude Desktop. Press Cmd+V. Hit Return.`)
   } catch {
     toast.error(
       'Clipboard blocked. Click the install button again. The pack is now cached and the second click usually works.',
@@ -850,7 +861,7 @@ function InstallSuccessModal({
                   fontStyle: 'italic',
                 }}
               >
-                Tip: Cmd+V works in either the Claude desktop app or the
+                Tip: Cmd+V works in either the Claude Desktop app or the
                 browser tab. Pick your preference.
               </div>
               <button
@@ -929,6 +940,40 @@ function CompanionChips({ items }: { items: [string, string, string] }) {
   )
 }
 
+function FoundationPreviewNote({ packId }: { packId: string }) {
+  return (
+    <div
+      style={{
+        borderRadius: 14,
+        background: BRAND.signalSoft,
+        border: '1px solid rgba(204,110,46,0.22)',
+        padding: '16px 18px',
+        color: BRAND.ink2,
+        fontSize: 15,
+        lineHeight: 1.55,
+      }}
+    >
+      <strong style={{ color: BRAND.ink }}>Preview only.</strong> This pack is already
+      included in the Bridge Foundation setup. The installed pack id is{' '}
+      <code
+        style={{
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          fontSize: 13,
+          color: BRAND.ink,
+          background: '#FFFFFF',
+          border: `1px solid ${BRAND.rule2}`,
+          borderRadius: 6,
+          padding: '2px 6px',
+        }}
+      >
+        {packId}
+      </code>
+      . Use this page to understand what landed, then let the Bridge router call the
+      right pack when a real task needs it.
+    </div>
+  )
+}
+
 function Dot() {
   return (
     <span
@@ -956,7 +1001,7 @@ function ActivationZone({
   tier: ClaudeTier
 }) {
   // Dual-button install model (restored 2026-05-11 PM per Eugeen): the
-  // desktop button matters because Cowork on the Claude desktop app is
+  // desktop button matters because Claude Desktop is
   // a materially different surface than claude.ai web (persistent
   // threads, native app feel). Browser button preserved for users
   // without the desktop app + Linux + locked-down corporate machines.
@@ -1016,9 +1061,9 @@ function ActivationZone({
               transition: 'transform 0.18s ease, box-shadow 0.18s ease',
             }}
             data-install-path="desktop-paste"
-            title="Copies the full pack to your clipboard, opens the Claude desktop app. Paste with Cmd+V."
+            title="Copies the full pack to your clipboard, opens the Claude Desktop app. Paste with Cmd+V."
           >
-            <span>Install in Claude desktop</span>
+            <span>Install in Claude Desktop</span>
             <span style={{ opacity: 0.78, fontSize: 13, fontWeight: 500 }}>
               ~{estimatedMinutes} min
             </span>
@@ -1154,7 +1199,7 @@ function TierPicker({
   onPick: (next: ClaudeTier) => void
 }) {
   // Two-button picker after May 2026 elegance pass: Pro and Max collapse
-  // into Desktop because Cowork is included on every paid plan and the
+  // into Desktop because the behavior is identical on every paid plan and the
   // install behavior is identical. Splitting them surfaced no real choice.
   const options: Array<{ id: ClaudeTier; label: string; sub: string }> = [
     { id: 'desktop', label: 'Desktop', sub: 'Pro, Max, or Team' },
@@ -1237,13 +1282,11 @@ function FoundationCard({
   index,
   open,
   onToggle,
-  tier,
 }: {
   pack: FoundationPack
   index: number
   open: boolean
   onToggle: () => void
-  tier: ClaudeTier
 }) {
   const num = String(index + 1).padStart(2, '0')
   const isMobile = useIsMobile()
@@ -1336,7 +1379,7 @@ function FoundationCard({
                 whiteSpace: 'nowrap',
               }}
             >
-              {pack.estimatedMinutes} min{open ? ' to install' : ''}
+              {open ? 'Bridge included' : 'Included'}
             </span>
             <span
               style={{
@@ -1346,7 +1389,7 @@ function FoundationCard({
                 letterSpacing: '0.04em',
               }}
             >
-              {open ? 'tap to close' : 'tap to open'}
+              {open ? 'tap to close' : 'tap to preview'}
             </span>
           </div>
         </div>
@@ -1413,7 +1456,7 @@ function FoundationCard({
                 whiteSpace: 'nowrap',
               }}
             >
-              {pack.estimatedMinutes} min{open ? ' to install' : ''}
+              {open ? 'Bridge included' : 'Included'}
             </span>
             <span
               style={{
@@ -1423,7 +1466,7 @@ function FoundationCard({
                 letterSpacing: '0.04em',
               }}
             >
-              {open ? 'tap to close' : 'foundation pack'}
+              {open ? 'tap to close' : 'foundation preview'}
             </span>
           </div>
         </div>
@@ -1484,16 +1527,11 @@ function FoundationCard({
                 <DetailBlock heading="Why this matters" body={pack.why} />
                 <DetailBlock heading="How it helps you specifically" body={pack.helps} />
                 <DetailBlock
-                  heading="What you'll get when you click activate"
-                  body={pack.activate}
+                  heading="How Claude uses it after Bridge setup"
+                  body="This pack is installed by setup_foundation. When a task needs it, the router names the pack id and Claude reads the installed pack through the Bridge instead of asking you to install anything else."
                 />
                 <CompanionChips items={pack.companions} />
-                <ActivationZone
-                  packId={pack.id}
-                  label={pack.title}
-                  estimatedMinutes={pack.estimatedMinutes}
-                  tier={tier}
-                />
+                <FoundationPreviewNote packId={pack.id} />
               </div>
             </div>
           </motion.div>
@@ -1967,8 +2005,8 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
           }}
         >
           Three months of corrections, voice rules, and routing decisions running Perennial
-          Empire, distilled into ten installable packs. Drop them into your Claude. Stays
-          forever.
+          Empire, distilled into 11 Foundation packs. Install the bridge first, then browse
+          the individual packs whenever you need the detail.
         </p>
       </section>
 
@@ -1998,7 +2036,7 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
           Start <em style={{ color: BRAND.signal, fontStyle: 'italic' }}>here</em>.
         </h2>
         <span style={{ fontSize: 13, color: BRAND.ink4, fontStyle: 'italic' }}>
-          Ten foundation packs. Install in any order. Each takes 5 to 10 minutes.
+          Eleven foundation packs. Install with the bridge first, then browse individual packs as needed.
         </span>
       </div>
 
@@ -2017,7 +2055,7 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
       >
         {/* Step-1-2-3 strip on Foundation page. Compressed copy after
             S200 Eugeen feedback: prior version had a redundant explainer
-            paragraph + stale "Click Open in Cowork" step copy. Trimmed
+            paragraph + stale "Click Open in Claude" step copy. Trimmed
             to the steps themselves with corrected install action label. */}
         <div
           style={{
@@ -2032,13 +2070,13 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
           {[
             {
               n: 1,
-              title: 'Pick any pack',
-              sub: 'Install order does not matter',
+              title: 'Install the bridge',
+              sub: 'Foundation lands as one tier',
             },
             {
               n: 2,
-              title: 'Click Install in Claude',
-              sub: 'Pack copies, Claude opens, you paste',
+              title: 'Browse individual packs',
+              sub: 'Read what each pack adds',
             },
             {
               n: 3,
@@ -2158,14 +2196,13 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
             onToggle={() =>
               setOpenFoundation((cur) => (cur === p.id ? null : p.id))
             }
-            tier={tier}
           />
         ))}
       </section>
 
       {/* Next-step banner: Foundation done? Continue to Bonus Extras.
           Standard SaaS onboarding pattern. The user lands here from
-          Overview, scrolls through the 10 foundation cards, then sees
+          Overview, scrolls through the 11 foundation cards, then sees
           a clear "what's next" prompt instead of running into an
           unrelated chronological table or dead end. */}
       <div

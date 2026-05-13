@@ -1,5 +1,5 @@
 /**
- * MapCard. Premium card visualizing the chronological AI-native journey.
+ * MapCard. Premium card visualizing the origin story after install.
  *
  * Design intent (R054 Visual Pro Max Fidelity):
  *   - Animated mini-timeline rail with 7 milestone dots, last 3 marked as
@@ -145,15 +145,15 @@ export function MapCard() {
           className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
-          The map
+          Why it works
         </div>
         <h3 className="font-display text-[1.75rem] leading-tight mb-4" style={{ color: 'rgb(var(--color-fg))' }}>
-          Perennial Empire's AI-native journey
+          Built from a real operating system
         </h3>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          Every moment that turned Perennial Empire from a construction company into an AI-native operation, in order.
-          Most rows are the story of how I got here. The signal-orange ones are upgrades you can drop into your own
-          Claude in five to ten minutes. Scroll the timeline. Click any orange row.
+          The Bridge is not a folder of prompts. It is the packaging layer around the
+          rules, files, memory, validators, and source checks I use at Perennial Empire.
+          The timeline is there if you want the backstory. Setup comes first.
         </p>
       </div>
     </motion.div>

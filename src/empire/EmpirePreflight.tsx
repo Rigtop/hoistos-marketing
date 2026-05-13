@@ -2,13 +2,8 @@
  * EmpirePreflight. The "Before You Install" checklist that lives between the
  * tier picker and the blueprint grid on the Bonus Extras page.
  *
- * Why this exists: the install button fires a `claude://cowork/new?q=...` URL
- * scheme that only works when (a) the user is on a paid Claude plan, (b) the
- * Claude desktop app is installed, and (c) the desktop app has been opened
- * and signed in at least once so the OS registers the URL handler. Without
- * those three preconditions the button silently no-ops and the user thinks
- * the page is broken. The preflight surfaces them as an explicit, inline,
- * collapsible checklist before the user clicks anything.
+ * Historical component. The live flow now uses EmpireWorks Bridge first and
+ * copy/paste fallback second. Kept on disk for reference only.
  *
  * Tone: the page reads like a friend walking you through it. Plain English,
  * no jargon. Each step is one short paragraph, sometimes a CTA, sometimes
@@ -40,10 +35,8 @@ interface EmpirePreflightProps {
 }
 
 /**
- * Five-step preflight. Step 1 confirms paid plan. Step 2 ships Claude desktop.
- * Step 3 nudges the first sign-in (registers the URL scheme). Step 4 confirms
- * tier so the install button matches. Step 5 explains what the button does
- * and surfaces the troubleshooting accordion.
+ * Five-step preflight. Removed from the live page after the Bridge-first
+ * packaging pass.
  */
 export function EmpirePreflight({ tier, onScrollToPicker }: EmpirePreflightProps) {
   // Both vars retained for back-compat with prop types after Step 4 removal.

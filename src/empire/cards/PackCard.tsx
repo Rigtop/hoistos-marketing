@@ -15,10 +15,10 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { useEffect, useRef, useState } from 'react'
 
 const SEQUENCE = [
-  { actor: 'you', text: 'Paste activation pack' },
-  { actor: 'claude', text: 'What is your division?' },
-  { actor: 'you', text: 'EmpireWorks Reconstruction' },
-  { actor: 'claude', text: 'What trade do you focus on?' },
+  { actor: 'you', text: 'Set up my Foundation system.' },
+  { actor: 'claude', text: 'Calling setup_foundation.' },
+  { actor: 'you', text: 'Allowed.' },
+  { actor: 'claude', text: 'Foundation installed. Router ready.' },
 ] as const
 
 export function PackCard() {
@@ -172,14 +172,14 @@ export function PackCard() {
           The pack
         </div>
         <h3 className="font-display text-[1.75rem] leading-tight mb-4" style={{ color: 'rgb(var(--color-fg))' }}>
-          A drop-in upgrade, cut for your division
+          Foundation installs in one pass
         </h3>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          Each pack is one block of text. Click Install, Claude opens with the prompt prefilled. Claude asks you
-          three to seven questions about your role, your trade, your team, your projects, then writes custom skills
-          you can use right away. The packs started as templates I built for myself running Perennial Empire. By
-          the end you have something nobody else has: a Claude that knows your work, not mine. Five to ten minutes
-          from click to working.
+          The first install is not 11 separate downloads. Claude calls the Bridge,
+          installs Foundation, writes the router, and returns the activation line.
+          The pack pages stay useful as previews and fallback reference, but the
+          product path is Bridge first. By the end you have a Claude that knows your
+          work, not mine.
         </p>
       </div>
     </motion.div>

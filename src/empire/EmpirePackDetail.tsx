@@ -1,5 +1,5 @@
 /**
- * EmpirePackDetail. Per-pack landing page with the Activate-in-Claude CTA.
+ * EmpirePackDetail. Per-pack preview page.
  *
  * Owner: Empire Wireframe S197 (B1 Tab, Phase 2)
  * Routing reference: src/empire/AppRouter.tsx maps "/empire/pack/:packId" to
@@ -7,20 +7,17 @@
  * pack content from empire-pack-v1/ (C1+C2+C3 outputs); tonight's stub uses
  * placeholder copy keyed on the URL param.
  *
- * The Activate flow:
- *   1. VP lands here.
- *   2. Reads what the pack does + what they get.
- *   3. Hits "Activate in Claude" which copies the bootstrap prompt to clipboard
- *      and opens claude.ai in a new tab.
- *   4. Pastes the prompt. Answers twelve questions. Receives a custom skill.
+ * The Bridge flow:
+ *   1. VP installs EmpireWorks Bridge.
+ *   2. Claude calls setup_foundation.
+ *   3. Foundation packs install in one pass.
+ *   4. This page remains a preview and fallback reference, not a primary CTA.
  *
  * Hard Rule #11: no em dashes anywhere in this module.
  */
 
-import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Copy, ExternalLink, CheckCircle2 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 
 interface PackPlaceholder {
   packId: string
@@ -38,20 +35,20 @@ function buildPlaceholder(packId: string): PackPlaceholder {
     packId,
     title: prettifyId(packId),
     tagline:
-      'A drop-in pack for Claude.ai. Three to seven questions, one custom skill, five minutes of your time.',
+      'A Bridge-installed pack preview. Read what it does, then use the guided Bridge setup to install Foundation in one pass.',
     bestFor:
-      'Any VP who keeps writing the same prompt three different ways and wants it locked down.',
+      'Any operator who wants Claude to load the right rules and workflow guidance without reinstalling packs one by one.',
     inputs: [
-      'Your role and the task you want to automate.',
-      'One real example from your last week of work.',
-      'The shape of the output you want, line by line.',
+      'The EmpireWorks Bridge installed in Claude Desktop.',
+      'The Foundation setup prompt run inside a Claude Project.',
+      'The Project Instructions activation line saved for that Project.',
     ],
     delivers: [
-      'A custom skill tuned for your role, not mine.',
-      'The same prompt saved so you can rerun it any time the inputs change.',
-      'A short check so you can grade the skill against your own work.',
+      'A pack Claude can read only when the router says the task needs it.',
+      'Less context pasted into every chat.',
+      'A reference page humans can audit before trusting the setup.',
     ],
-    bootstrapPrompt: `# Empire activation pack: ${prettifyId(packId)}\n\nLoad the full pack from /packs/${packId}.md if you can reach it. If not, follow this short bootstrap.\n\nWhat happens next:\n1. Three to seven questions about your role and the task you want to automate.\n2. A custom skill written to fit your answers.\n3. Saved to ~/.claude/skills/ if you're on Code, or paste instructions for the Claude.ai web app.\n4. A quick test run so you see it works before you walk away.`,
+    bootstrapPrompt: `# EmpireWorks Bridge pack preview: ${prettifyId(packId)}\n\nThis page is reference material. Do not install this pack separately if you are using the Bridge.\n\nPrimary setup:\n1. Install EmpireWorks Bridge in Claude Desktop.\n2. Open or create a Claude Project.\n3. Paste: Set up my Foundation system with EmpireWorks Bridge.\n4. Save the activation line in Project Instructions.\n\nWhen a task needs this pack, the router names ${packId} and Claude reads the installed pack through the Bridge.`,
   }
 }
 
@@ -66,18 +63,6 @@ export function EmpirePackDetail() {
   const params = useParams<{ packId: string }>()
   const packId = params.packId ?? 'proposal-builder'
   const pack = buildPlaceholder(packId)
-  const [copied, setCopied] = useState(false)
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(pack.bootstrapPrompt)
-      setCopied(true)
-      toast.success('Bootstrap copied. Paste into Claude.ai.')
-      setTimeout(() => setCopied(false), 3500)
-    } catch {
-      toast.error('Clipboard blocked. Select the prompt below and copy manually.')
-    }
-  }
 
   return (
     <div className="px-[6vw] pt-16 pb-32" style={{ color: 'rgb(var(--color-fg))' }}>
@@ -95,7 +80,7 @@ export function EmpirePackDetail() {
           className="font-mono text-xs uppercase tracking-[0.2em] mb-4"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
-          Activation pack / {pack.packId}
+          Pack preview / {pack.packId}
         </div>
         <h1 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] leading-[1.05]">
           {pack.title}
@@ -173,43 +158,33 @@ export function EmpirePackDetail() {
       >
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="max-w-xl">
-            <h2 className="font-display text-2xl mb-2">Activate in Claude</h2>
+            <h2 className="font-display text-2xl mb-2">Included in the Bridge setup</h2>
             <p
               className="text-sm leading-relaxed"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              Click copy, open claude.ai in a new tab, paste, and answer the
-              questions. Five minutes. Best for: {pack.bestFor}
+              Do not install this pack separately. Run the guided Bridge setup from the
+              overview page. Best for: {pack.bestFor}
             </p>
           </div>
           <div className="flex gap-3">
-            <button type="button" className="btn btn-primary px-5" onClick={handleCopy}>
-              {copied ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" aria-hidden="true" />
-                  Copy bootstrap prompt
-                </>
-              )}
-            </button>
-            <a
-              href="https://claude.ai/new"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost px-5"
-            >
-              Open claude.ai
-              <ExternalLink className="w-4 h-4" aria-hidden="true" />
-            </a>
+            <Link to="/empireworksreconstruction" className="btn btn-primary px-5">
+              Start guided setup
+            </Link>
+            <Link to="/empireworksreconstruction/foundation" className="btn btn-ghost px-5">
+              Back to previews
+            </Link>
           </div>
         </div>
 
+        <div
+          className="mt-6 font-mono text-[10px] uppercase tracking-[0.18em]"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          Reference prompt
+        </div>
         <pre
-          className="mt-6 text-xs leading-relaxed whitespace-pre-wrap rounded-xl p-5 overflow-x-auto"
+          className="mt-3 text-xs leading-relaxed whitespace-pre-wrap rounded-xl p-5 overflow-x-auto"
           style={{
             background: 'rgb(var(--color-bg))',
             border: '1px solid rgb(var(--color-border))',

@@ -9,7 +9,7 @@ foundationId: I-00
 introId: I-00
 holyShitMomentHeadline: "Sixty seconds and you know exactly which tier you are on, what installs the smoothest, and what to install first. No confusion, no friction, no wrong-path fix-up later."
 holyShitMomentDescription: "VP opens chat in their Project, types 'what tier am I on?'. Claude answers with the right tier in one line. VP types 'what should I install first?'. Claude returns the F-01 through F-03 sequence, named, in install order. Sixty seconds. The VP knows where to start. Zero confusion."
-canonicalSourceRef: "Anthropic Help Center on the three Claude product tiers (Pro web, Max desktop, Code CLI). Anthropic Help Center on the claude:// URL scheme for desktop app deep links. Anthropic Code documentation on the curl install.sh path for Claude Code (May 2026)."
+canonicalSourceRef: "Anthropic Help Center on the three Claude product tiers (Pro web, Max desktop, Code CLI). Anthropic Help Center on Claude desktop installation. Anthropic Code documentation on the curl install.sh path for Claude Code (May 2026)."
 v2Augmentations:
   multi_skill_bundle: true
   construction_vp_scenarios: false
@@ -53,7 +53,7 @@ fingerprint: intro-00-tier-guide-v2.0.0
 This pack runs solo. You do not need any other pack installed for the core flow to work. If F-01 (Operating Constitution) is installed, voice rules apply automatically. If F-02 (Facts Registry) is installed, your canonical names get surfaced. If F-08 (Source Sweep) is installed, every factual claim gets a source-stamp. None of those are gates; install in any order, mix and match.
 ## Canonical-source reference
 
-Three sources anchor this pack. Anthropic's Help Center documents the three product tiers (Pro web at the published monthly tier, Max desktop at $100 to $200 per month, Code CLI on free or paid plans depending on usage). The same Help Center documents the `claude://` URL scheme that the desktop app registers on install. Anthropic's Code documentation publishes the canonical install command (`curl -fsSL https://claude.ai/install.sh | bash`) and the canonical skills directory at `~/.claude/skills/`.
+Three sources anchor this pack. Anthropic's Help Center documents the three product tiers (Pro web at the published monthly tier, Max desktop at $100 to $200 per month, Code CLI on free or paid plans depending on usage). The same Help Center documents Claude desktop installation. Anthropic's Code documentation publishes the canonical install command (`curl -fsSL https://claude.ai/install.sh | bash`) and the canonical skills directory at `~/.claude/skills/`.
 This pack is the simplified read-before-install layer. It does not replace the Help Center. It tells you, in plain English, which tier you are on and which install path each of the next 11 packs uses on your tier. Five minutes here saves five hours of friction later.
 
 ## Why this is foundational
@@ -67,9 +67,9 @@ This pack closes that mismatch. It tells the VP, on minute one, which tier they 
 
 Most VPs assume Claude is one product. It is three products at three different price points. Picking the right tier costs you 5 minutes of reading. Picking the wrong tier costs you 5 hours of friction, three rounds of "it didn't work," and one weekend lost to "actually let me try a different path."
 
-The three products are: Pro web (browser only, paste-based install, the gentle entry tier), Max desktop (browser plus a native desktop app on your Mac or Windows, deep-link install via `claude://`, premium tier), and Code CLI (a `claude` command in your Terminal that runs on your laptop, file-based install via `curl install.sh`, engineer tier). Same Anthropic. Same Claude. Three different ways to install a pack.
+The three products are: Pro web (browser only, paste-based install, the gentle entry tier), Max desktop (browser plus a native desktop app on your Mac or Windows, paste into desktop, premium tier), and Code CLI (a `claude` command in your Terminal that runs on your laptop, file-based install via `curl install.sh`, engineer tier). Same Anthropic. Same Claude. Three different ways to install a pack.
 
-Most VPs assume "tier" means "feature gating." That is wrong. All three tiers run the same Claude underneath. Your pack content is identical across tiers. Your daily use feels identical after install. The difference is install path and skills storage. Pro pastes into Project Knowledge in a browser. Max does the same plus a native desktop app you can deep-link into. Code stores skills as files at `~/.claude/skills/<name>/SKILL.md` and reads them at session start. Same outcome. Three doors.
+Most VPs assume "tier" means "feature gating." That is wrong. All three tiers run the same Claude underneath. Your pack content is identical across tiers. Your daily use feels identical after install. The difference is install path and skills storage. Pro pastes into Project Knowledge in a browser. Max does the same plus a native desktop app you can paste into. Code stores skills as files at `~/.claude/skills/<name>/SKILL.md` and reads them at session start. Same outcome. Three doors.
 The cheap fix is to read four paragraphs and run a 3-question diagnostic. The expensive miss is to skip this pack, install F-01 on the wrong tier, and spend two hours figuring out why "your skills did not register." Five minutes here. Move on.
 
 ## What changes for you
@@ -78,7 +78,7 @@ The cheap fix is to read four paragraphs and run a 3-question diagnostic. The ex
 |---|---|
 | You see install buttons on the pack catalog page and you do not know which one applies to you | You know your tier in 60 seconds. You know which install path each pack takes. |
 | You start F-01 on Pro web, then halfway through it says "edit `~/.claude/skills/`" and you panic | The pack body shows you only the path that matches your tier. The other paths are explicitly labeled. |
-| You install F-01 on Pro, then ask "but how do I get the same on my Mac mini," with no clear answer | You know that Pro is paste-based, Max is deep-link, Code is curl. Each has a published path. You pick one and go. |
+| You install F-01 on Pro, then ask "but how do I get the same on my Mac mini," with no clear answer | You know that Pro is paste-based, Max is desktop paste, Code is curl. Each has a published path. You pick one and go. |
 | You assume "Code" is for engineers and you skip it | You know that Code is the highest-leverage tier if you are willing to install once. Worth it for VPs who type a lot. |
 | You install a pack, nothing changes, you assume "Claude is broken" | You know the 5 most common gotchas and the recovery for each. The pack works. The install was wrong. |
 
@@ -101,13 +101,13 @@ This is the whole picture in one table. Read each column before you install anyt
 |---|---|---|---|
 | Monthly price (May 2026, USD) | published Pro tier | $100 to $200 per month | free for low usage, paid plans available |
 | Where Claude lives | `claude.ai` in your browser | `claude.ai` in your browser PLUS a native desktop app on your Mac or Windows | a `claude` command in your Terminal |
-| How you install a pack | paste the Project Knowledge block into a Project on `claude.ai` | same as Pro, OR deep-link into the desktop app via `claude://` (the URL scheme the app registers on install) | run `curl -fsSL https://claude.ai/install.sh \| bash`, then save SKILL.md files to `~/.claude/skills/<name>/SKILL.md` |
+| How you install a pack | paste the Project Knowledge block into a Project on `claude.ai` | same as Pro, OR paste the pack body into the desktop app | run `curl -fsSL https://claude.ai/install.sh \| bash`, then save SKILL.md files to `~/.claude/skills/<name>/SKILL.md` |
 | Where skills live | inside Project Knowledge as text sections | inside Project Knowledge OR in the desktop app's skills panel | as files at `~/.claude/skills/<skill-name>/SKILL.md` |
-| What works on this tier | Project Knowledge, custom system prompts, all skills as text | everything Pro has, plus desktop app integration, deep-links, MCP connectors via OAuth | everything Max has, plus filesystem access, hooks, sub-agents, custom MCP servers, slash commands you build yourself |
+| What works on this tier | Project Knowledge, custom system prompts, all skills as text | everything Pro has, plus desktop app integration and MCP connectors via OAuth | everything Max has, plus filesystem access, hooks, sub-agents, custom MCP servers, slash commands you build yourself |
 | What does NOT work on this tier | no filesystem access, no `~/.claude/`, no hooks, no sub-agents | no filesystem access from the desktop app itself (the Claude desktop app's skills loader is not the same as `~/.claude/skills/`); use Code if you need filesystem skills | needs a laptop with a Terminal; not available on iPad or phone-only setups |
-| Per-pack install time (typical) | 3 to 5 minutes (paste, save) | 3 to 5 minutes paste, OR 30 seconds via deep-link | 1 to 2 minutes (curl + save files + restart session) |
+| Per-pack install time (typical) | 3 to 5 minutes (paste, save) | 3 to 5 minutes paste | 1 to 2 minutes (curl + save files + restart session) |
 | Fast path for first-time users | Pro is the fast path. Lowest friction. Default if uncertain. | Max is fast if you have it. Otherwise default to Pro and upgrade later. | Code is highest leverage but assumes you have run a Terminal command in the last year. If you have not, default to Pro. |
-| Recommended for | every VP who reads on a browser | VPs who want the desktop app for native notifications and deep-linking | VPs who type a lot, run their own scripts, or want filesystem-based skills with hooks |
+| Recommended for | every VP who reads on a browser | VPs who want the desktop app for native notifications and Bridge installs | VPs who type a lot, run their own scripts, or want filesystem-based skills with hooks |
 
 Three tiers. Same Claude underneath. Three different doors. Pick yours, then continue.
 
@@ -162,10 +162,10 @@ The table below is the most common confusion source. Read it twice.
 
 | Aspect | Pro web | Max desktop | Code CLI |
 |---|---|---|---|
-| How you get the pack into Claude | paste into Project Knowledge on `claude.ai` | paste OR deep-link via `claude://` URL | curl install + save files |
+| How you get the pack into Claude | paste into Project Knowledge on `claude.ai` | paste into Claude desktop, or install through EmpireWorks Bridge | curl install + save files |
 | Where the skills live physically | inside the Project Knowledge text on `claude.ai` | same as Pro plus desktop app local storage | filesystem at `~/.claude/skills/` |
-| What you click to install | the "Project knowledge" panel on `claude.ai`, paste, click Save | same as Pro, OR click `claude://` link in your browser to deep-link into the desktop app | run `curl install.sh` once, then save SKILL.md files manually |
-| Time per pack | 3-5 minutes | 3-5 minutes paste, 30 seconds deep-link | 1-2 minutes |
+| What you click to install | the "Project knowledge" panel on `claude.ai`, paste, click Save | same as Pro, OR install EmpireWorks Bridge and call its tools | run `curl install.sh` once, then save SKILL.md files manually |
+| Time per pack | 3-5 minutes | 3-5 minutes paste, Bridge bulk install for tiers | 1-2 minutes |
 | Restart needed | no | no | yes (restart Claude Code session for new skills to load) |
 
 The pack body is identical across tiers. The install method differs. After install, daily use feels identical. Confidence: high.
@@ -202,17 +202,17 @@ Each pack has a "Three-prompt verification suite" section. Run those three promp
 
 ## Install path: Max desktop
 
-You have the Claude desktop app on your Mac or Windows. Two paths work for you: the browser-paste path (same as Pro) and the deep-link path (faster).
+You have the Claude desktop app on your Mac or Windows. Two paths work for you: the browser-paste path (same as Pro) and the Bridge path (best).
 
 ### Path A: browser-paste (same as Pro)
 
 Follow the Pro path above. Open `claude.ai` in your browser, paste into Project Knowledge, save. The desktop app reads the same Projects when you are signed in to the same account.
 
-### Path B: deep-link (faster, Max-specific)
+### Path B: EmpireWorks Bridge (best)
 
-Some pack catalog pages include a `claude://` deep-link button that opens the desktop app directly. Click it. The app opens, and the pack content pre-fills into the appropriate panel (Project Knowledge or skills).
+On the EmpireWorks Reconstruction landing page, download EmpireWorks Bridge. Install it in Claude Desktop, then ask Claude to call `install_tier` with `tier="foundation"`. The bridge writes packs to your local architecture folder and gives you the Project Custom Instructions block.
 
-> **Caveat:** the `claude://` URL scheme requires the desktop app to be installed and registered as the handler. If clicking the deep-link does nothing, the app is not installed (or not running, or the OS did not register the handler). Fall back to Path A.
+> **Caveat:** Bridge installs require Claude Desktop. If desktop is unavailable, fall back to Path A.
 
 ### What happens to skills on Max
 
@@ -220,7 +220,7 @@ The Claude desktop app has its own skills loader, but it does not read `~/.claud
 
 If you want filesystem skills (`~/.claude/skills/<name>/SKILL.md` with hooks and sub-agents), you need Code CLI in addition to the desktop app. Many VPs run both: Max for daily browsing-shape work, Code CLI for filesystem-shape work. Confidence: high.
 
-**Estimated time per pack:** 3 to 5 minutes paste, 30 seconds for deep-link if available.
+**Estimated time per pack:** 3 to 5 minutes paste, or a bulk Foundation install through the bridge.
 
 ## Install path: Code CLI
 
@@ -386,7 +386,7 @@ The user pastes a pack body or a SKILL.md and asks any of:
 | Tier | If pack body says "Artifact 1: Project Knowledge block" | If pack body says "SKILL.md for X" |
 |---|---|---|
 | Pro web | "Paste below your existing Project Knowledge content. Click Save." | "Paste BELOW the Project Knowledge block, as a section. Click Save. The skill activates on the next chat in this Project." |
-| Max desktop | Same as Pro. (If a `claude://` deep-link is published for this pack on the catalog page, mention that as a faster alternative.) | Same as Pro. |
+| Max desktop | Same as Pro, or Bridge tool install when the bridge is available. | Same as Pro. |
 | Code CLI | "Save the body to `~/.claude/CLAUDE.md` (append, do not overwrite). Restart Claude Code session." | "Save to `~/.claude/skills/<name>/SKILL.md` where `<name>` matches the `name:` field in the SKILL.md frontmatter. Restart Claude Code session." |
 
 3. Return ONE install path (the one that matches the user's tier). Do not show all three.
@@ -452,7 +452,7 @@ For the user's tier, append the install path:
 | Tier | What to do for each pack |
 |---|---|
 | Pro web | "For each pack: open the pack source, copy the Project Knowledge block, paste into your Project Knowledge panel on claude.ai, save." |
-| Max desktop | Same as Pro, OR click the `claude://` deep-link if available. |
+| Max desktop | Same as Pro, or install through EmpireWorks Bridge if available. |
 | Code CLI | "For each pack: open the pack source, copy the SKILL.md blocks, save to `~/.claude/skills/<name>/SKILL.md`. Restart session after each pack." |
 
 ## What success looks like
@@ -473,7 +473,7 @@ If the user asks me to recommend a pack that does not exist in Wave 1 yet (e.g.,
 | Tier | Install path |
 |---|---|
 | Pro | Open your Project on `claude.ai`, click "Project knowledge", paste Artifact 1 (the Tier Guide block) at the top of Project Knowledge. Then paste Artifacts 2, 3, 4 (the three skills) as additional sections in the same Project Knowledge. Click Save. Done. |
-| Max | Same as Pro. The desktop app reads the same Project Knowledge when signed in. If a `claude://` deep-link is published for this pack on the catalog page, you can use that instead. |
+| Max | Same as Pro. The desktop app reads the same Project Knowledge when signed in. If EmpireWorks Bridge is installed, use the bridge tools instead. |
 | Code | Save Artifact 1 to `~/.claude/CLAUDE.md` (append at top, do not overwrite existing content). Save Artifacts 2, 3, 4 to `~/.claude/skills/tier-detector/SKILL.md`, `~/.claude/skills/install-path-router/SKILL.md`, `~/.claude/skills/first-pack-recommender/SKILL.md`. Restart Claude Code session. |
 
 **Critical install path note (C3 jury fix):** the Code-tier path for skills is `~/.claude/skills/<skill-name>/SKILL.md`. NOT `~/Documents/Claude/skills/...` (that is the v1 typo, fixed in v2). NOT `~/Library/Application Support/Claude/...` (that path is for the Claude desktop app's loader, which is a different code path and does not read user-installed SKILL.md files). The directory name MUST match the `name:` field in the SKILL.md frontmatter exactly.
@@ -544,11 +544,11 @@ Symptom: VP installed Code CLI, but typing `claude` in Terminal returns `command
 
 Recovery: the install put the binary at `~/.local/bin/claude` or `~/bin/claude`, depending on your OS and shell. Check the install output for the suggested PATH line. Common fix on Mac with zsh: add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc`, then `source ~/.zshrc`. On Windows WSL: similar but in `~/.bashrc`. Restart Terminal. Type `claude` again. If still failing, run `which claude` to confirm the binary exists; if it returns nothing, re-run the curl install.
 
-### Break 3: VP clicked `claude://` deep-link, nothing happened
+### Break 3: VP clicked desktop install, nothing happened
 
-Symptom: VP on what they think is Max desktop clicked a `claude://` link on a catalog page, the browser showed no action or asked which app to open.
+Symptom: VP on what they think is Max desktop clicked an install button on a catalog page, the browser showed no action or did not open Claude desktop.
 
-Recovery: the desktop app is not installed (or not registered as the URL handler). Two options. Option A: install the Claude desktop app from `claude.ai/download`, restart your browser, click the deep-link again. Option B: fall back to the Pro path, paste the pack body manually into Project Knowledge in your browser. Either works; the desktop app is a convenience, not a requirement.
+Recovery: the desktop app is not installed or did not open. Two options. Option A: install the Claude desktop app from `claude.ai/download`, restart your browser, then try again. Option B: fall back to the Pro path, paste the pack body manually into Project Knowledge in your browser. Either works; the desktop app is a convenience, not a requirement.
 
 ### Break 4: VP on Pro saw "edit `~/.claude/skills/`" in a pack body and panicked
 
@@ -629,11 +629,11 @@ These are the gotchas that span all three tiers, separate from the per-tier brea
 **Cause:** the install put the binary somewhere your shell does not search by default.
 **Fix:** check the curl install output for a "Add this to your PATH" line. Common: add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` (Mac) or `~/.bashrc` (Linux). Then `source ~/.zshrc` or restart Terminal. Type `claude` again. If still failing, run `find ~ -name "claude" -type f 2>/dev/null` to locate the binary; once found, add its parent directory to PATH.
 
-### Gotcha 3: "I clicked claude:// but nothing happened"
+### Gotcha 3: "I clicked desktop install but nothing happened"
 
 **Tier:** Max.
 **Cause:** the desktop app is not installed (or not registered as the URL handler with your OS).
-**Fix:** install the Claude desktop app from `claude.ai/download`. Restart your browser. Click the `claude://` link again. If still nothing, fall back to the Pro path (paste manually). The desktop app is a convenience layer; the Pro path always works on Max accounts.
+**Fix:** install the Claude desktop app from `claude.ai/download`. Restart your browser. Try again. If still nothing, fall back to the Pro path (paste manually). The desktop app is a convenience layer; the Pro path always works on Max accounts.
 
 ### Gotcha 4: "I'm on Pro and the pack says 'edit ~/.claude/'"
 
@@ -666,12 +666,12 @@ The four packs together (I-00 + F-01 + F-02 + F-03) are the operating-system fou
 | 1 | Multi-skill bundle | PASS | 1 Project Knowledge block + 3 companion skills (tier-detector, install-path-router, first-pack-recommender). |
 | 2 | Construction-VP scenarios threaded through | N/A | Tier Guide is tier-and-install scoped, not role-scoped. Skeleton-rule allowed (no project names, no persona names). |
 | 3 | Three-prompt verification suite | PASS | Smoke (tier-detector), real-task (install-path-router), stress (tier-mismatch refusal). Success and failure named per prompt. |
-| 4 | Failure recovery paths for top 5 breakages | PASS | PK did not save, curl install missing PATH, claude:// no handler, Pro saw `~/.claude/` path, save+chat ordering. |
+| 4 | Failure recovery paths for top 5 breakages | PASS | PK did not save, curl install missing PATH, desktop app unavailable, Pro saw `~/.claude/` path, save+chat ordering. |
 | 5 | Onboarding tutorial for first 3 uses | PASS | Tier confirm, pack-specific install ask, tier-mismatch handling. |
 | 6 | Role-conditional question branching | N/A | Tier Guide is universal (no role branches). The three skills work identically for any role. |
 | 7 | C3 jury install path fix | PASS | Critical install path note explicitly cites `~/.claude/skills/<skill-name>/SKILL.md`, NOT `~/Documents/Claude/skills/`, NOT `~/Library/Application Support/Claude/skills/`. |
 | 8 | Polished holy-shit moment | PASS | 60 seconds, two questions, tier known + first-three-packs known, foundation installed by 5 PM. |
-| 9 | Canonical-source reference | PASS | Section 1 cites Anthropic Help Center on three product tiers, `claude://` URL scheme, and the curl install.sh path. |
+| 9 | Canonical-source reference | PASS | Section 1 cites Anthropic Help Center on three product tiers, Claude desktop installation, and the curl install.sh path. |
 | 10 | Why-this-is-foundational callout | PASS | Section 2 names the multiplier: every downstream pack lands cleaner; friction collapses across 11 installs. |
 | 11 | Cross-reference between Foundation Packs | PASS | Cross-reference table maps I-00 against F-01, F-02, F-03 with both directions of dependency. |
 
@@ -684,6 +684,6 @@ The four packs together (I-00 + F-01 + F-02 + F-03) are the operating-system fou
 # hoistos-intro-00-tier-guide v2.0.0
 # Sprint: empire-wireframe-v7
 # Generated: 2026-05-09 by HoistOS Empire Activation v2.0
-# Canonical source: Anthropic Help Center (three product tiers + claude:// URL scheme + curl install.sh)
+# Canonical source: Anthropic Help Center (three product tiers + Claude desktop + curl install.sh)
 # Fingerprint: intro-00-tier-guide-v2.0.0
 ```

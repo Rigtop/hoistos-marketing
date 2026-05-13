@@ -229,9 +229,9 @@ manifest = {
             "instructions": "Paste each SKILL.md block into the Project Knowledge text box. Save.",
         },
         "max_desktop": {
-            "install_method": "deep_link_or_paste",
-            "destination": "claude://prompt?q=<URL-encoded-pack-content>",
-            "instructions": "Click the deep-link button on hoistos.com or paste the SKILL.md as Pro tier.",
+            "install_method": "clipboard_or_paste",
+            "destination": "Claude desktop blank chat or claude.ai web",
+            "instructions": "Copy the pack body from hoistos.com or paste the SKILL.md as Pro tier.",
         },
         "code": {
             "install_method": "filesystem",
@@ -276,7 +276,7 @@ readme_lines.append("")
 readme_lines.append("| Tier | Who it is | Install file |")
 readme_lines.append("|---|---|---|")
 readme_lines.append("| Pro (claude.ai web) | Most operators. $20/month. Project Knowledge paste install. | INSTALL-PRO.md |")
-readme_lines.append("| Max (claude.ai desktop app) | Power web users. $200/month. Deep-link install or paste. | INSTALL-MAX.sh |")
+readme_lines.append("| Max (Claude desktop app) | Power web users. Desktop blank-chat launch or paste. | INSTALL-MAX.sh |")
 readme_lines.append("| Code (Claude Code CLI) | Engineers. Filesystem skill install at `~/.claude/skills/`. | INSTALL-CODE.sh |")
 readme_lines.append("")
 readme_lines.append("Not sure which tier you have? If you log into claude.ai in a browser, you are Pro or Max. If you run `claude` in a terminal, you are Code. Both can be true. Pick whichever you use most.")
@@ -287,9 +287,9 @@ readme_lines.append("### Pro tier (Project Knowledge paste)")
 readme_lines.append("")
 readme_lines.append("Open `INSTALL-PRO.md`. It walks you through opening claude.ai, finding your Project, and pasting each `SKILL.md` block into Project Knowledge. About 5 minutes per pack. Save after each paste so the work is not lost on a tab close.")
 readme_lines.append("")
-readme_lines.append("### Max desktop tier (deep link or paste)")
+readme_lines.append("### Max desktop tier (copy and paste)")
 readme_lines.append("")
-readme_lines.append("Run `bash INSTALL-MAX.sh` from a terminal. It opens hoistos.com so you can use the per-pack `claude://` deep-link buttons, which install one pack at a time straight into your Claude desktop app. If the deep link does not register, fall back to the Pro paste flow.")
+readme_lines.append("Run `bash INSTALL-MAX.sh` from a terminal. It opens hoistos.com so you can use the per-pack copy buttons. The page opens Claude desktop to a blank chat, copies the pack, and you paste with Cmd+V or Ctrl+V.")
 readme_lines.append("")
 readme_lines.append("### Code tier (filesystem)")
 readme_lines.append("")
@@ -304,7 +304,7 @@ for p in packs:
     readme_lines.append(f"| `{p['id']}` | {tier_badge(p)} | {skills_str} | {p['install_minutes']} |")
 readme_lines.append("")
 readme_lines.append("Total install time if you do every pack: about " +
-                    f"{sum(p['install_minutes'] for p in packs)} minutes. Realistically you do not install all 34 in one sitting. Pick 3 from the Foundation tier, run them this week, come back for more.")
+                    f"{sum(p['install_minutes'] for p in packs)} minutes. Realistically you do not install all {len(packs)} in one sitting. Pick 3 from the Foundation tier, run them this week, come back for more.")
 readme_lines.append("")
 readme_lines.append("## 4. Verify install")
 readme_lines.append("")
@@ -320,7 +320,7 @@ readme_lines.append("On Code tier you can also run `bash setup-verify.sh` from i
 readme_lines.append("")
 readme_lines.append("## 5. Get help")
 readme_lines.append("")
-readme_lines.append("Stuck on a pack? Open the pack's `.md` file in `packs/`. Each one ships with a `Common breaks and how to fix` section. If that does not solve it, the timeline page on `hoistos.com` has the same content with screenshots and the `claude://` deep links for one-click activation.")
+readme_lines.append("Stuck on a pack? Open the pack's `.md` file in `packs/`. Each one ships with a `Common breaks and how to fix` section. If that does not solve it, the timeline page on `hoistos.com` has the same content with copy buttons and browser fallback.")
 readme_lines.append("")
 readme_lines.append("Routing manifest: `routing-manifest.json` lists every pack, every skill name, every install path, every tier default. If you want to script the install, that is the file to read.")
 readme_lines.append("")
@@ -378,9 +378,9 @@ max_lines = []
 max_lines.append("#!/usr/bin/env bash")
 max_lines.append("# INSTALL-MAX.sh")
 max_lines.append("# Max desktop tier install: opens hoistos.com so you can use the per-pack")
-max_lines.append("# claude:// deep links to install one pack at a time into your Claude desktop app.")
-max_lines.append("# If your machine does not have the claude:// scheme registered (no Claude desktop")
-max_lines.append("# app installed, or browser blocked it), fall back to the Pro paste flow.")
+max_lines.append("# copy buttons and paste each pack into Claude desktop.")
+max_lines.append("# If your machine does not have Claude desktop installed, fall back to the")
+max_lines.append("# browser paste flow.")
 max_lines.append("set -euo pipefail")
 max_lines.append("")
 max_lines.append('URL="https://hoistos.com/empireworksreconstruction/timeline"')
@@ -388,8 +388,8 @@ max_lines.append('BUNDLE_DIR="$(cd "$(dirname "$0")" && pwd)"')
 max_lines.append("")
 max_lines.append('echo "HoistOS Empire Pack v2 - Max desktop install"')
 max_lines.append('echo ""')
-max_lines.append('echo "This installer opens the timeline page so you can use the claude:// deep links"')
-max_lines.append('echo "for one-click install into your Claude desktop app."')
+max_lines.append('echo "This installer opens the timeline page so you can use copy buttons"')
+max_lines.append('echo "and paste each pack into your Claude desktop app."')
 max_lines.append('echo ""')
 max_lines.append('echo "Bundle location: $BUNDLE_DIR"')
 max_lines.append('echo "Opening: $URL"')
@@ -402,7 +402,7 @@ max_lines.append('else')
 max_lines.append('  echo "No open command found. Manually open: $URL"')
 max_lines.append('fi')
 max_lines.append('echo ""')
-max_lines.append('echo "Fallback: if claude:// does not register, use INSTALL-PRO.md instead."')
+max_lines.append('echo "Fallback: if Claude desktop is unavailable, use INSTALL-PRO.md instead."')
 max_lines.append('echo "It paste-installs each pack into Project Knowledge on claude.ai."')
 max_lines.append("")
 (stage_dir / "INSTALL-MAX.sh").write_text("\n".join(max_lines), encoding="utf-8")

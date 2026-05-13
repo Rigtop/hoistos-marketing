@@ -1,14 +1,6 @@
 /**
  * Empire Wireframe V4 / H6 Activate-in-Claude flow.
  *
- * Replaces the broken `.zip` download path with a 3-tier activation:
- *
- *   Tier A (Desktop with claude:// installed): claude:// deep link, 1 click
- *   Tier B (Web fallback, default):            clipboard + open new tab + toast
- *   Tier C (Mobile):                           universal link + advisory banner
- *
- * Spec: v4/artifacts/H4/download-launch-ux.md Sections 2-3.
- *
  * Tier B (the most common path) fetches the pack markdown, copies the full
  * SKILL.md to clipboard, opens claude.ai/new in a new tab, then shows a toast
  * telling the VP to paste with Cmd-V. This eliminates the file-system
@@ -31,7 +23,7 @@ export interface ActivateOptions {
   packUrl: string
   /** beg | mid | adv | pow */
   tier?: PackTier
-  /** the live origin where SKILL.md is hosted, used for desktop deep-link seed */
+  /** legacy option, no longer used by the blank-launch flow */
   publicOrigin?: string
 }
 
@@ -45,15 +37,8 @@ export function isMobile(): boolean {
 }
 
 /**
- * Probe whether claude:// scheme is registered. Best-effort: we attempt the
- * navigation and detect the document blur. If no blur fires within timeoutMs
- * the scheme is presumed unhandled and the fallback flow runs.
- *
- * For Phase 1 we keep this conservative and DEFAULT to the web flow unless
- * the user explicitly opts into desktop on a return visit (localStorage flag
- * `claude.preferDesktop`). This avoids false-positive scheme failures (which
- * leave the user on a broken page) at the cost of one extra click for
- * Desktop-installed VPs.
+ * Return whether this browser prefers opening the Claude desktop app after
+ * the pack body is copied to the clipboard.
  */
 export function preferDesktopDeepLink(): boolean {
   try {
@@ -64,7 +49,7 @@ export function preferDesktopDeepLink(): boolean {
 }
 
 /**
- * Mark this device as preferring desktop deep links from this point forward.
+ * Mark this device as preferring Claude desktop launch from this point forward.
  * Surfaced via a small toggle in the toast follow-up flow (defer to V5 UI).
  */
 export function setPreferDesktopDeepLink(value: boolean): void {
@@ -168,25 +153,6 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
 
   const mobile = isMobile()
 
-  // Tier C: mobile fallback. Mobile Claude only routes to Code today, so we
-  // open the universal link with a seed prompt and let the user know.
-  if (mobile) {
-    try {
-      const seed = `I want to install the Perennial Empire pack at ${packUrl}. Open it for me, summarize what it does, and walk me through the setup.`
-      const url = `https://claude.ai/code/new?q=${encodeURIComponent(seed)}`
-      window.open(url, '_blank', 'noopener')
-      toast.success('Mobile activation is limited. Open this on desktop for the full pack experience.', {
-        duration: 6000,
-      })
-      trackFunnel('toast_shown', { slug, tier, path_taken: 'mobile_deeplink' })
-      markActivated(slug)
-      window.dispatchEvent(new Event('scrolophyte:activated'))
-      return 'mobile_deeplink'
-    } catch {
-      /* fall through to clipboard path on mobile too */
-    }
-  }
-
   // Try to fetch the pack body so the clipboard carries the full SKILL.md.
   let body: string
   try {
@@ -196,17 +162,13 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
     body = `Fetch the file at ${packUrl} and install it as a skill in this project. Then walk me through activation.`
   }
 
-  // Tier A: Desktop deep link (only if the user has explicitly opted in).
-  // The 14k-char URL cap means we cannot carry the full SKILL.md. We send a
-  // seed that tells Claude to fetch the public URL.
+  // Tier A: Desktop launch, only if the user has explicitly opted in.
+  // The full body is already on the clipboard. The app opens to a blank chat.
   if (preferDesktopDeepLink() && !mobile) {
     try {
-      const seed = `Fetch ${packUrl} and install it as a skill in this project. Then activate it and walk me through the setup.`
-      const desktopUrl = `claude://claude.ai/new?q=${encodeURIComponent(seed)}`
+      const desktopUrl = 'claude://claude.ai/new'
       trackFunnel('desktop_deeplink_fired', { slug, tier })
       window.location.href = desktopUrl
-      // Optimistic: also copy the full body so the user can paste if the
-      // scheme is unhandled and Claude does not fetch the URL.
       await writeClipboard(body)
       markActivated(slug)
       window.dispatchEvent(new Event('scrolophyte:activated'))
@@ -240,7 +202,9 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
 
   if (copied) {
     toast.success(
-      'Prompt copied. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
+      mobile
+        ? 'Prompt copied. Mobile support is limited. Paste in Claude, or open this on desktop for the full pack experience.'
+        : 'Prompt copied. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
       { duration: 7000 },
     )
   } else if (opened) {

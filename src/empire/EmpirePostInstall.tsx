@@ -4,7 +4,7 @@
  * Three problems this solves:
  *   1. The user clicks install and gets a single toast that disappears in 8s.
  *      They have no idea what to do next, whether it worked, or what to try
- *      if Cowork did not open. The new panel stays on screen until dismissed.
+ *      if Claude Desktop did not open. The new panel stays on screen until dismissed.
  *   2. There is no record that they installed anything. Cards do not show
  *      green checks. The user cannot see their own progress. The new panel
  *      offers a "Working through it" button that marks the pack complete.
@@ -12,13 +12,15 @@
  *      what to do next based on what is already complete.
  *
  * Voice: friend walking you through it. No emoji clutter. No enterprise
- * help-doc tone. The panel reads as if a coworker is sitting next to you
+ * help-doc tone. The panel reads as if a teammate is sitting next to you
  * confirming the install fired.
  *
  * Hard Rule #11: zero em dashes anywhere in this file.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { CheckCircle2, AlertCircle, HelpCircle, X, ArrowRight } from 'lucide-react'
 
@@ -74,7 +76,7 @@ export function clearPackCompletion(packId: string): Set<string> {
 export interface PostInstallContext {
   packId: string
   packTitle: string
-  installPath: 'cowork' | 'clipboard-curl' | 'browser-clipboard' | 'unknown'
+  installPath: 'desktop' | 'clipboard-curl' | 'browser-clipboard' | 'unknown'
   /** Optional next-pack suggestion. Caller controls the heuristic. */
   nextPackTitle?: string
   nextPackId?: string
@@ -95,25 +97,24 @@ interface PostInstallPanelProps {
 // ---------------------------------------------------------------------------
 
 export function PostInstallPanel({ ctx, onClose }: PostInstallPanelProps) {
-  // All hooks declared at the top, unconditionally, every render. React's
-  // rules of hooks require that the call order never changes across renders,
-  // so the early-return for null context must come AFTER every hook call.
+  if (!ctx) return null
+
+  return (
+    <PostInstallPanelInner
+      key={`${ctx.packId}-${ctx.installPath}`}
+      ctx={ctx}
+      onClose={onClose}
+    />
+  )
+}
+
+function PostInstallPanelInner({ ctx, onClose }: { ctx: PostInstallContext; onClose: () => void }) {
   const [view, setView] = useState<'main' | 'troubleshoot' | 'help' | 'success'>('main')
 
-  // Reset view to main whenever a new install context lands.
-  useEffect(() => {
-    if (ctx) setView('main')
-  }, [ctx?.packId, ctx?.installPath])
-
-  // useMemo runs every render, even when ctx is null. The fallback path
-  // returns a harmless empty value the JSX never reaches because we
-  // early-return below. This is the correct pattern under React 18 strict.
   const expectedFlow = useMemo(
-    () => (ctx ? buildExpectedFlow(ctx.installPath) : { heading: '', steps: [] as string[] }),
-    [ctx?.installPath, ctx],
+    () => buildExpectedFlow(ctx.installPath),
+    [ctx.installPath],
   )
-
-  if (!ctx) return null
 
   return (
     <AnimatePresence>
@@ -185,12 +186,12 @@ function buildExpectedFlow(path: PostInstallContext['installPath']): {
   heading: string
   steps: string[]
 } {
-  if (path === 'cowork') {
+  if (path === 'desktop') {
     return {
-      heading: 'Cowork should be opening now.',
+      heading: 'Claude Desktop should be opening now.',
       steps: [
         'Switch to Claude (Cmd+Tab on Mac, Alt+Tab on Windows).',
-        'You should see your install prompt already in the Cowork composer.',
+        'You should see your install prompt already in the Claude composer.',
         'Hit Return. Claude pulls the full pack from hoistos.com and walks you through the install.',
       ],
     }
@@ -613,15 +614,15 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
 // ---------------------------------------------------------------------------
 
 function buildTroubleshooting(path: PostInstallContext['installPath']): Array<{ title: string; body: string }> {
-  if (path === 'cowork') {
+  if (path === 'desktop') {
     return [
       {
-        title: 'Make sure Claude desktop is open',
-        body: 'The install button can only talk to Claude desktop. Open Claude (Cmd+Space, type "Claude"), sign in, then come back and click the button again.',
+        title: 'Make sure Claude Desktop is open',
+        body: 'The install button can only talk to Claude Desktop. Open Claude (Cmd+Space, type "Claude"), sign in, then come back and click the button again.',
       },
       {
-        title: 'Open Cowork in the sidebar once',
-        body: 'After signing in, click "Cowork" in the left sidebar. That initializes the dispatcher, which is what receives your install prompt.',
+        title: 'Open a Claude Desktop chat once',
+        body: 'After signing in, open a blank chat in Claude Desktop once. That initializes the app before the install prompt lands.',
       },
       {
         title: 'Try the click again',

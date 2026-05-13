@@ -2,11 +2,10 @@
  * EmpireBonusExtras. The wireframe-blueprints surface.
  *
  * S199 refactor: tier-aware install. The button you see depends on which
- * Claude tier you picked. Pro copies to your clipboard plus opens Claude.ai
- * in a new tab. Max opens the desktop app with the prompt pre-filled. Code
- * copies a one-line curl command for your terminal. The bonus packs live
- * under public/bonus-extras/, not public/packs-v2/, so we wrap the
- * claude-deep-link.ts helper with a bonus-specific URL base.
+ * Claude tier you picked. Desktop copies to your clipboard plus opens the
+ * Claude Desktop app with a blank chat. Browser fallback opens Claude.ai in
+ * a new tab. Code copies a one-line curl command for your terminal. The bonus
+ * packs live under public/bonus-extras/, not public/packs-v2/.
  *
  * Hard Rule #11: zero em dashes anywhere in this file.
  *
@@ -42,7 +41,7 @@ interface BonusBlueprint {
   installMinutes: number
   installDisplay: string
   artifact: string
-  /** Hint for users on Claude desktop (Pro / Max / Team / Enterprise). */
+  /** Hint for users on Claude Desktop (Pro / Max / Team / Enterprise). */
   desktopHint: string
   /** Hint for users on Claude Code CLI. */
   codeHint: string
@@ -63,7 +62,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 10,
     installDisplay: '10 min read',
     artifact: 'A 90-second tour of the eight blueprints, ordered by what builds on what.',
-    desktopHint: 'Open in Cowork with one click. Read the index, then click into a blueprint.',
+    desktopHint: 'Open in Claude Desktop with one click. Read the index, then click into a blueprint.',
     codeHint: 'One-liner drops the index into your skills folder. Claude surfaces it the next time you open a session.',
   },
   {
@@ -76,7 +75,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 75,
     installDisplay: '60 to 90 min',
     artifact: 'Four Notion databases plus a parent Operating Stack page. Relations live, with five example rows in each so you can see the shape.',
-    desktopHint: 'Click Open in Cowork. Claude pulls the skill, walks the four database creates through your Notion connection, then reads the live state back to confirm the relations wired correctly.',
+    desktopHint: 'Click Open in Claude Desktop. Claude pulls the skill, walks the four database creates through your Notion connection, then reads the live state back to confirm the relations wired correctly.',
     codeHint: 'Run the one-liner. The skill walks the database creation through your Notion connection. Three questions, ninety seconds, four databases land.',
   },
   {
@@ -103,7 +102,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 105,
     installDisplay: '90 to 120 min',
     artifact: 'A search tool wired into Claude, running on your own database, indexing your files and Notion. Cites every claim with a file path.',
-    desktopHint: 'The watcher itself runs on Code, not on Claude desktop. Open the markdown in Cowork to read the pattern, then install for real on your Code laptop.',
+    desktopHint: 'The watcher itself runs on Code, not on Claude Desktop. Open the markdown in Claude Desktop to read the pattern, then install for real on your Code laptop.',
     codeHint: 'The blueprint asks for three API keys. Everything else picks sensible defaults. The first index runs while you read the README.',
   },
   {
@@ -117,7 +116,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 60,
     installDisplay: '60 min',
     artifact: 'A small Python bridge, a launchd job that keeps it running, and an allowlist so only your phone can drive your bot.',
-    desktopHint: 'Read-only in Cowork. The bridge is a small daemon on your laptop and lives on Code tier. Open the markdown to understand the pattern, install on Code when you are ready.',
+    desktopHint: 'Read-only in Claude Desktop. The bridge is a small daemon on your laptop and lives on Code tier. Open the markdown to understand the pattern, install on Code when you are ready.',
     codeHint: 'Two inputs: a bot token from BotFather, your own Telegram chat ID. Skill scaffolds the bridge, the launchd job, and a health check.',
   },
   {
@@ -130,7 +129,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 35,
     installDisplay: '30 to 45 min',
     artifact: 'A working claude command in your terminal, your first cold-start file, the Notion connector wired up, and an em-dash blocker hook running.',
-    desktopHint: 'Skip if you only use Claude desktop. The CLI is for users who want a terminal-first workflow alongside Cowork. If you want both, install this.',
+    desktopHint: 'Skip if you only use Claude Desktop. The CLI is for users who want a terminal-first workflow alongside Claude Desktop. If you want both, install this.',
     codeHint: 'Run the one-liner. The skill walks you through it: install command, login flow, first connector, first hook. Verify with one prompt at the end.',
   },
   {
@@ -157,13 +156,13 @@ const BLUEPRINTS: BonusBlueprint[] = [
     installMinutes: 60,
     installDisplay: '60 min',
     artifact: 'Three example hooks (em-dash blocker, Notion write check, banned-pattern blocker) plus three example background jobs (daily reconcile, watcher, the Telegram bridge from B-04).',
-    desktopHint: 'Claude desktop does not run hooks or background jobs. Open the markdown in Cowork to understand the pattern, then install on Code when you are ready.',
+    desktopHint: 'Claude Desktop does not run hooks or background jobs. Open the markdown in Claude Desktop to understand the pattern, then install on Code when you are ready.',
     codeHint: 'The blueprint scaffolds three hooks and three launchd jobs. You pick which to turn on. The health check is one paste.',
   },
 ]
 
 // ---------------------------------------------------------------------------
-// Bonus-specific helpers (mirror claude-deep-link.ts but for /bonus-extras/).
+// Bonus-specific helpers for /bonus-extras/.
 // ---------------------------------------------------------------------------
 
 // One-line curl install for Code tier. Drops the bonus pack into
@@ -281,39 +280,12 @@ function showFallbackTextarea(text: string, label: string): void {
 
 // ONE-CLICK INSTALL (tier-aware).
 //
-// Two functional paths, one button. Verified May 2026 against the Anthropic
-// Help Center: Cowork is included on every paid Claude plan (Pro $17 to $20
-// per month, Max 5x and 20x, Team Standard and Premium, Enterprise). Pro and
-// Max therefore share one install path. Code CLI is a separate path because
-// the artifact lives in ~/.claude/skills, not the Cowork composer.
+// Two functional paths, one button:
+//   Desktop: copies the full blueprint body, then opens a blank Claude Desktop
+//            chat. The user pastes and hits Return.
+//   Code:    copies a curl one-liner that writes the skill file locally.
 //
-//   Pro / Max / Team:  Single-fire claude://cowork/new?q=<bootstrap> via
-//                      anchor click. The OS hands the URL to Claude desktop
-//                      (registered on first sign-in). Cowork dispatcher
-//                      prefills the composer. User hits Return. Claude's
-//                      web-fetch tool grabs the full pack from hoistos.com,
-//                      walks the install one question per turn.
-//
-//                      Trade-offs:
-//                      - Cold-launch race may drop first prompt if Cowork
-//                        dispatcher is not yet initialized. Mitigation:
-//                        preflight Step 3 says "Open Claude desktop once
-//                        and sign in" before clicking.
-//                      - Safari + Firefox do not auto-focus the existing
-//                        Cowork window (Anthropic-side quirk). User Cmd+Tab.
-//
-//   Code:  navigator.clipboard.writeText(curl one-liner) inside the click
-//          gesture. Toast: "Paste in Terminal." One-liner drops the pack
-//          into ~/.claude/skills/<slug>/SKILL.md and prints a confirmation.
-//
-//   Unknown:  Toast asking the user to pick a tier; scroll the TierPicker
-//             into view. Nothing destructive fires.
-//
-// Browser-only / Linux users: handled by a separate "Use the browser" panel
-// rendered below the blueprint grid. That panel exposes a copy-to-clipboard
-// + open-claude.ai-in-new-tab flow that does not depend on the desktop app.
-//
-// Hard Rule #11: zero em dashes anywhere in this function or its toasts.
+// Browser-only users use the secondary browser button below the primary CTA.
 function oneClickInstall(b: BonusBlueprint, tier: ClaudeTier): void {
   // Code: clipboard the curl one-liner.
   if (tier === 'code') {
@@ -336,24 +308,8 @@ function oneClickInstall(b: BonusBlueprint, tier: ClaudeTier): void {
     return
   }
 
-  // Desktop (Pro / Max / Team / Enterprise): clipboard + open Claude
-  // desktop app via claude://claude.ai/new (no q= parameter).
-  //
-  // SUPERSESSION 2026-05-11 S200 (Danny Bangiyev test fail): the prior
-  // claude://cowork/new?q=<bootstrap> path was structurally broken. The
-  // bootstrap in the q= param told Claude to fetch the pack URL and
-  // install the result as governance rules, which is textbook indirect
-  // prompt injection. Claude is trained to refuse this across every
-  // model variant. Danny's Claude refused cleanly.
-  //
-  // SUPERSESSION 2 (2026-05-11 PM, restored desktop path safely): the
-  // claude:// URL scheme itself is fine. It was the FETCH INSTRUCTION
-  // inside the q= param that triggered the safety refusal. Fix: fire
-  // claude://claude.ai/new with NO q= parameter. Opens the desktop app
-  // with a blank new chat. Pack content arrives via clipboard paste
-  // (trusted by Claude as direct user message, same as the browser
-  // path). Anthropic Help Center canonical URL scheme reference:
-  // https://support.claude.com/en/articles/14729294-open-claude-desktop-with-a-link
+  // Desktop: open a blank Claude Desktop chat. The pack body arrives through
+  // clipboard paste, which keeps the user in control of what Claude reads.
   if (tier === 'desktop') {
     desktopAppInstall(b)
     return
@@ -373,9 +329,9 @@ function oneClickInstall(b: BonusBlueprint, tier: ClaudeTier): void {
 
 // BROWSER-ONLY FALLBACK INSTALL.
 // For users on Linux, locked-down work machines, or anyone who cannot install
-// the Claude desktop app. Copies the full markdown body to the clipboard and
+// the Claude Desktop app. Copies the full markdown body to the clipboard and
 // opens https://claude.ai/new in a new tab. User pastes with Cmd+V and hits
-// Return. No Cowork dispatcher dependency, no claude:// scheme registration.
+// Return. No desktop dispatcher dependency, no claude:// scheme registration.
 //
 // Trade-off versus the desktop path: 1.5 clicks instead of 1, and the user
 // has to wait for the new tab to load. Acceptable degrade for the Linux
@@ -387,7 +343,7 @@ function browserFallbackInstall(b: BonusBlueprint): void {
     // install modal which surfaces an explicit Copy button + launch links
     // so the user can complete the flow in two isolated gestures.
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
-    toast(`Loading ${b.title}, opening copy panel…`, { duration: 2500 })
+    toast(`Loading ${b.title}, opening copy panel...`, { duration: 2500 })
     return
   }
   // Open the new tab first while user-gesture trust is fresh, then write the
@@ -430,18 +386,12 @@ function browserFallbackInstall(b: BonusBlueprint): void {
 void browserFallbackInstall
 
 // DESKTOP APP INSTALL.
-// Copies the full blueprint markdown to clipboard, then fires the
-// claude://claude.ai/new URL scheme to open the Claude desktop app with
-// a blank new chat. User pastes (Cmd+V) into the desktop composer.
+// Copies the full blueprint markdown to clipboard, then opens the Claude
+// desktop app with a blank new chat. User pastes into the composer.
 //
-// Critical: no q= parameter. The OLD broken path put a fetch-and-install
-// bootstrap in q= which Claude refused as indirect prompt injection.
-// Without q=, the URL just opens a blank chat. The pack arrives via
-// clipboard paste, which Claude reads as a trusted user message.
-//
-// Falls back gracefully if Claude desktop is not installed: OS silently
+// Falls back gracefully if Claude Desktop is not installed: OS silently
 // no-ops the URL handoff, but the clipboard write already succeeded, so
-// the user can manually open Claude desktop or click the browser button
+// the user can manually open Claude Desktop or click the browser button
 // next. The toast nudges this fallback.
 //
 // Companion: oneClickInstall (top-level dispatcher), browserFallbackInstall
@@ -452,7 +402,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     // Async fetch first to populate cache, then re-fire. Pattern mirrors
     // browserFallbackInstall to preserve user-gesture trust.
     fetchBonusMarkdown(b).then(() => desktopAppInstall(b))
-    toast(`Loading ${b.title}, opening Claude desktop in a moment…`, { duration: 2500 })
+    toast(`Loading ${b.title}, opening Claude Desktop in a moment...`, { duration: 2500 })
     return
   }
   // Fire claude:// URL scheme FIRST while user-gesture trust is fresh,
@@ -462,7 +412,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     navigator.clipboard.writeText(cached).then(
       () => {
         toast.success(
-          `${b.title} copied. Claude desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude desktop is not installed, use the browser button instead - the pack is still on your clipboard.`,
+          `${b.title} copied. Claude Desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude Desktop is not installed, use the browser button instead - the pack is still on your clipboard.`,
           { duration: 10000 },
         )
       },
@@ -487,14 +437,14 @@ void desktopAppInstall
 // failure. Works on every browser, every Claude.app version.
 //
 // The modal also lets the user pick their launch destination at install time
-// (Cowork desktop, Claude desktop chat, Claude.ai web, Code CLI). One UI
+// (Claude Desktop, Claude.ai web, Code CLI). One UI
 // solves all four tier paths.
 // Reserved for fallback modal path if oneClickInstall fails on user's Claude.app.
-// Currently unused but kept for quick-revert if diagnostics show q= prefill broken.
+// Currently unused but kept for quick diagnostics if direct copy fails.
 function _openInstallModal(b: BonusBlueprint): void {
   const cached = BONUS_CACHE.get(b.id)
   if (!cached) {
-    toast('Loading blueprint…', { duration: 1500 })
+    toast('Loading blueprint...', { duration: 1500 })
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
     return
   }
@@ -638,18 +588,10 @@ function renderInstallModal(b: BonusBlueprint, text: string): void {
 
   linkRow.appendChild(
     makeLaunchLink({
-      href: 'claude://cowork/new',
-      label: 'Open Cowork',
-      sub: 'Claude desktop, Cowork mode',
-      primary: true,
-    }),
-  )
-  linkRow.appendChild(
-    makeLaunchLink({
       href: 'claude://claude.ai/new',
-      label: 'Open Claude desktop',
-      sub: 'regular chat',
-      primary: false,
+      label: 'Open Claude Desktop',
+      sub: 'desktop app',
+      primary: true,
     }),
   )
   linkRow.appendChild(
@@ -726,7 +668,7 @@ function downloadBonusMarkdown(b: BonusBlueprint): void {
     fireDownload(cached)
     return
   }
-  toast('Loading blueprint…', { duration: 1500 })
+  toast('Loading blueprint...', { duration: 1500 })
   fetchBonusMarkdown(b).then((text) => fireDownload(text))
 }
 
@@ -735,14 +677,12 @@ function downloadBonusMarkdown(b: BonusBlueprint): void {
 // ---------------------------------------------------------------------------
 
 export function EmpireBonusExtras() {
-  const [tier, setTier] = useState<ClaudeTier>('unknown')
+  const [tier, setTier] = useState<ClaudeTier>(() => readTier())
   const [postInstall, setPostInstall] = useState<PostInstallContext | null>(null)
-  const [completedPacks, setCompletedPacks] = useState<Set<string>>(new Set())
+  const [completedPacks, setCompletedPacks] = useState<Set<string>>(() => readCompletedPacks())
   const tierPickerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    setTier(readTier())
-    setCompletedPacks(readCompletedPacks())
     // Pre-fetch every bonus markdown so click handlers can write to the
     // clipboard synchronously inside the user gesture. Without this, the
     // first click on any tier path either fails silently (Safari) or shows
@@ -853,7 +793,7 @@ export function EmpireBonusExtras() {
       </section>
 
       {/* Preflight relocated to Foundation page 2026-05-11 per Eugeen.
-          The "download Claude desktop / sign in / pick tier" checklist
+          The "download Claude Desktop / sign in / pick tier" checklist
           applies to Foundation packs (installed first), not Advanced.
           Advanced visitors are expected to have already completed the
           preflight on the Foundation page. */}
@@ -873,7 +813,7 @@ export function EmpireBonusExtras() {
 
       {/* Browser-only fallback panel. For users on Linux, Chromebooks,
           locked-down corporate machines, or anyone who genuinely cannot
-          install the Claude desktop app. Three-step manual path that does
+          install the Claude Desktop app. Three-step manual path that does
           not depend on the claude:// URL scheme. */}
       <BrowserFallbackPanel onPostInstall={firePostInstall} />
 
@@ -940,8 +880,8 @@ interface TierPickerProps {
 }
 
 function TierPicker({ tier, onPick }: TierPickerProps) {
-  // Two paths, two buttons. Pro and Max collapse into Desktop because Cowork
-  // is included on every paid plan and the install behavior is identical.
+  // Two paths, two buttons. Pro and Max collapse into Desktop because the
+  // install behavior is identical.
   // The third button used to be Pro vs Max which surfaced no real difference.
   const options: Array<{ id: ClaudeTier; label: string; sub: string }> = [
     { id: 'desktop', label: 'Desktop', sub: 'Pro, Max, or Team' },
@@ -1121,7 +1061,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           type="button"
           onClick={() => {
             oneClickInstall(blueprint, tier)
-            if (tier === 'desktop') onPostInstall(blueprint, 'cowork')
+            if (tier === 'desktop') onPostInstall(blueprint, 'desktop')
             else if (tier === 'code') onPostInstall(blueprint, 'clipboard-curl')
           }}
           className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
@@ -1134,7 +1074,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           }}
           title={
             tier === 'desktop'
-              ? 'Copies the full blueprint to your clipboard, opens the Claude desktop app. Paste with Cmd+V in the chat composer and hit Return.'
+              ? 'Copies the full blueprint to your clipboard, opens the Claude Desktop app. Paste with Cmd+V in the chat composer and hit Return.'
               : tier === 'code'
               ? 'Copy a one-line curl command. Paste in Terminal.'
               : 'Pick Desktop or Code above so the install button matches your setup.'
@@ -1143,7 +1083,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
           <ExternalLink className="w-4 h-4" aria-hidden="true" />
           <span>
             {tier === 'desktop'
-              ? 'Install in Claude desktop'
+              ? 'Install in Claude Desktop'
               : tier === 'code'
               ? 'Copy install command'
               : 'Install in my Claude'}
@@ -1159,7 +1099,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
             type="button"
             onClick={() => {
               browserFallbackInstall(blueprint)
-              onPostInstall(blueprint, 'cowork')
+              onPostInstall(blueprint, 'desktop')
             }}
             className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
             style={{
@@ -1168,7 +1108,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
               border: '1px solid rgba(20,20,19,0.18)',
               cursor: 'pointer',
             }}
-            title="Copies the full blueprint to your clipboard, opens claude.ai in a new browser tab. Use this if the Claude desktop app is not installed."
+            title="Copies the full blueprint to your clipboard, opens claude.ai in a new browser tab. Use this if the Claude Desktop app is not installed."
           >
             <ExternalLink className="w-4 h-4" aria-hidden="true" />
             <span>Use browser instead</span>
@@ -1200,7 +1140,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
 // ---------------------------------------------------------------------------
 
 // Shown below the blueprint grid for users on Linux, Chromebooks, or any
-// machine where the Claude desktop app is not an option. Two paths inside:
+// machine where the Claude Desktop app is not an option. Two paths inside:
 //
 //   - Browser one-click: copies the first blueprint to clipboard + opens
 //     https://claude.ai/new in a new tab. The user pastes with Cmd+V and
