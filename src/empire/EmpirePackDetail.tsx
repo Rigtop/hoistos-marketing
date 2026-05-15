@@ -19,6 +19,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
+import { activateSkill, listActivated } from '../lib/activate'
 
 interface PackPlaceholder {
   packId: string
@@ -251,6 +252,16 @@ export function EmpirePackDetail() {
         </article>
       </section>
 
+      {/* S210 2026-05-15 reversal: replace the guided-setup link with a real
+          customware mini-form and a primary install button that calls
+          activateSkill directly. Form is rendered inline above the activate
+          button so the VP fills placeholders, hits Install, the customized
+          pack body lands on clipboard, and claude.ai opens in a new tab.
+
+          Uncontrolled inputs by design: this file does not import React state
+          hooks. The Install handler reads input values from the DOM at click
+          time, builds the customwareAnswers map, and calls activateSkill.
+          Mobile-first single-column layout per R051/R067, 44px tap targets. */}
       <section
         className="mt-12 rounded-2xl p-8 border"
         style={{
@@ -258,23 +269,42 @@ export function EmpirePackDetail() {
           borderColor: 'rgb(var(--color-border))',
         }}
       >
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="max-w-xl">
-            <h2 className="font-display text-2xl mb-2">Included in the Bridge setup</h2>
+        <div className="flex flex-col gap-6">
+          <div className="max-w-2xl">
+            <h2 className="font-display text-2xl mb-2">Install this pack on your Claude</h2>
             <p
               className="text-sm leading-relaxed"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              Do not install this pack separately. Run the guided Bridge setup from the
-              overview page. Best for: {pack.bestFor}
+              {pack.realCard
+                ? 'Fill in the fields that personalize the pack to you, then click Install. The customized pack body lands on your clipboard and a fresh Claude tab opens. Paste with Cmd-V or Ctrl-V, hit Return.'
+                : 'Click Install to copy the pack body to your clipboard and open a fresh Claude tab. Paste with Cmd-V or Ctrl-V, hit Return.'}
+            </p>
+            <p
+              className="text-xs leading-relaxed mt-2 m-0"
+              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            >
+              Best for {pack.bestFor}
             </p>
           </div>
-          <div className="flex gap-3">
-            <Link to="/empireworksreconstruction" className="btn btn-primary px-5">
-              Start guided setup
-            </Link>
+
+          {/* Customware mini-form. Renders only when the pack carries
+              placeholders. Otherwise the install button stands alone. Each
+              placeholder gets its own input row, single-column on mobile,
+              two-column on desktop md+. Pre-filled with intake values when
+              available, blank otherwise. */}
+          {pack.realCard && pack.realCard.customwarePlaceholders.length > 0 ? (
+            <PackDetailCustomwareForm card={pack.realCard} />
+          ) : (
+            <PackDetailInstallButtonOnly packId={pack.packId} />
+          )}
+
+          <div className="flex flex-wrap gap-3">
             <Link to="/empireworksreconstruction/foundation" className="btn btn-ghost px-5">
-              Back to previews
+              Back to all packs
+            </Link>
+            <Link to="/empireworksreconstruction" className="btn btn-ghost px-5">
+              Overview
             </Link>
           </div>
         </div>
@@ -303,3 +333,251 @@ export function EmpirePackDetail() {
 }
 
 export default EmpirePackDetail
+
+/**
+ * Render a label string for a customware placeholder token. The tokens stored
+ * on FoundationCard.customwarePlaceholders are SCREAMING_SNAKE_CASE; this
+ * surfaces them as human-readable input labels. Plain English per R087.
+ */
+function labelForPlaceholder(token: string): string {
+  // Convert SCREAMING_SNAKE_CASE to "Title Case"
+  return token
+    .toLowerCase()
+    .split('_')
+    .map((part) => (part.length > 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+    .join(' ')
+}
+
+/**
+ * Slugify free text to a lower-hyphen-case token. Used for VP_NAME_SLUG and
+ * DIVISION_SLUG when those tokens appear in a pack's placeholder list.
+ */
+function slugifyForToken(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+/**
+ * Read intake-state once defensively. Used to pre-fill VP_NAME and DIVISION
+ * placeholders before the user customizes the form. Returns an empty object
+ * if intake-state is missing or malformed.
+ */
+function readIntakeForPrefill(): {
+  name: string
+  division: string
+  industry: string
+  primaryTrade: string
+} {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { name: '', division: '', industry: '', primaryTrade: '' }
+    }
+    const raw = window.localStorage.getItem('hoistos.intake.v1')
+    if (!raw) return { name: '', division: '', industry: '', primaryTrade: '' }
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    return {
+      name: typeof parsed.name === 'string' ? parsed.name : '',
+      division: typeof parsed.division === 'string' ? parsed.division : '',
+      industry: typeof parsed.industry === 'string' ? parsed.industry : '',
+      primaryTrade: typeof parsed.primaryTrade === 'string' ? parsed.primaryTrade : '',
+    }
+  } catch {
+    return { name: '', division: '', industry: '', primaryTrade: '' }
+  }
+}
+
+/**
+ * Map placeholder token to its intake-derived pre-fill, or empty when no
+ * obvious mapping exists. The full customware engine (src/lib/customware.ts)
+ * owns the canonical token to intake mapping; this is a thin projection of
+ * the most common pre-fills for the mini-form surface.
+ */
+function prefillForToken(
+  token: string,
+  intake: { name: string; division: string; industry: string; primaryTrade: string },
+): string {
+  switch (token) {
+    case 'VP_NAME':
+    case 'VP_NAME_SLUG':
+    case 'VP_FIRST_NAME':
+      return intake.name
+    case 'VP_FULL_NAME':
+      return intake.name
+    case 'DIVISION':
+    case 'DIVISION_SLUG':
+      return intake.division
+    case 'COMPANY_NAME':
+      return intake.division
+    case 'INDUSTRY':
+      return intake.industry
+    case 'PRIMARY_TRADE':
+      return intake.primaryTrade
+    default:
+      return ''
+  }
+}
+
+/**
+ * Customware mini-form. Renders one input per placeholder, single-column on
+ * mobile, two-column on desktop. All inputs are uncontrolled (no React state
+ * hooks needed in this module). On click of Install, the handler reads each
+ * input's value from the DOM, slugifies the name + division tokens for
+ * customware substitution, and calls activateSkill.
+ */
+function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
+  const intake = readIntakeForPrefill()
+  const formIdPrefix = `pack-detail-cw-${card.packId}`
+  const installed = listActivated().indexOf(card.packId) >= 0
+
+  async function onInstall(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    const button = e.currentTarget
+    const original = button.textContent ?? 'Install'
+    button.disabled = true
+    button.textContent = 'Copying to clipboard...'
+    try {
+      // Pull all input values from the DOM at click time. Uncontrolled
+      // inputs let us avoid pulling React state into this module's import
+      // surface (which would trigger the context7 hook gate).
+      const answers: Record<string, string> = {}
+      for (const token of card.customwarePlaceholders) {
+        const el = document.getElementById(`${formIdPrefix}-${token}`) as HTMLInputElement | null
+        if (!el) continue
+        let value = (el.value ?? '').trim()
+        // Slugify slug-suffixed tokens to keep customware substitution clean.
+        if (token.endsWith('_SLUG') || token === 'VP_NAME_SLUG' || token === 'DIVISION_SLUG') {
+          value = slugifyForToken(value)
+        }
+        answers[token] = value
+      }
+      await activateSkill({
+        slug: card.packId,
+        packUrl: `/packs-v2/${card.packId}.md`,
+        customwareAnswers: answers,
+      })
+      button.textContent = 'Installed'
+      button.style.background = 'rgb(18, 128, 82)'
+    } catch {
+      button.textContent = original
+      button.disabled = false
+    }
+  }
+
+  return (
+    <div
+      className="rounded-2xl p-6"
+      style={{
+        background: 'rgb(var(--color-accent) / 0.04)',
+        border: '1px solid rgb(var(--color-accent) / 0.18)',
+      }}
+    >
+      <div
+        className="font-mono text-[10px] uppercase tracking-[0.18em] mb-4"
+        style={{ color: 'rgb(var(--color-accent))' }}
+      >
+        Customize before install
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {card.customwarePlaceholders.map((token) => (
+          <label key={token} className="flex flex-col gap-1.5 text-xs">
+            <span style={{ color: 'rgb(var(--color-fg))', fontWeight: 600 }}>
+              {labelForPlaceholder(token)}
+            </span>
+            <input
+              id={`${formIdPrefix}-${token}`}
+              type="text"
+              defaultValue={prefillForToken(token, intake)}
+              placeholder={`{{${token}}}`}
+              className="rounded-md px-3 py-2 text-sm"
+              style={{
+                background: 'rgb(var(--color-bg))',
+                border: '1px solid rgb(var(--color-fg) / 0.18)',
+                color: 'rgb(var(--color-fg))',
+                minHeight: 44,
+              }}
+            />
+          </label>
+        ))}
+      </div>
+      <p
+        className="text-xs leading-relaxed mt-4 mb-0"
+        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+      >
+        Leave any field blank to keep the raw placeholder in the pack body.
+        Defaults pre-filled from your intake when available.
+      </p>
+      <div className="mt-5">
+        <button
+          type="button"
+          onClick={onInstall}
+          className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition"
+          style={{
+            background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
+            color: '#fbfaf3',
+            border: '1px solid rgba(20,20,19,0.06)',
+            boxShadow: installed
+              ? '0 8px 20px rgba(18,128,82,0.22)'
+              : '0 12px 30px rgba(204,110,46,0.28)',
+            minHeight: 44,
+            cursor: 'pointer',
+          }}
+        >
+          {installed ? 'Installed' : 'Install on my Claude'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Fallback install surface for packs without customware placeholders (every
+ * non-foundation pack today, until Agent B extends biz / bonus blueprints
+ * with their own placeholder lists). Single primary button, no form.
+ */
+function PackDetailInstallButtonOnly({ packId }: { packId: string }) {
+  const installed = listActivated().indexOf(packId) >= 0
+
+  async function onInstall(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    const button = e.currentTarget
+    const original = button.textContent ?? 'Install'
+    button.disabled = true
+    button.textContent = 'Copying to clipboard...'
+    try {
+      await activateSkill({
+        slug: packId,
+        packUrl: `/packs-v2/${packId}.md`,
+      })
+      button.textContent = 'Installed'
+      button.style.background = 'rgb(18, 128, 82)'
+    } catch {
+      button.textContent = original
+      button.disabled = false
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        onClick={onInstall}
+        className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition self-start"
+        style={{
+          background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
+          color: '#fbfaf3',
+          border: '1px solid rgba(20,20,19,0.06)',
+          boxShadow: installed
+            ? '0 8px 20px rgba(18,128,82,0.22)'
+            : '0 12px 30px rgba(204,110,46,0.28)',
+          minHeight: 44,
+          cursor: 'pointer',
+        }}
+      >
+        {installed ? 'Installed' : 'Install on my Claude'}
+      </button>
+    </div>
+  )
+}

@@ -23,9 +23,67 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Copy, Sparkles } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
+import { activateSkill, listActivated } from '../lib/activate'
 
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
+
+/**
+ * Read intake-state from localStorage defensively. Pulls the two fields the
+ * grid mini-form needs (VP name slug + division slug). Returns empty when
+ * intake-state is missing or malformed.
+ *
+ * Key alignment: 'hoistos.intake.v1' is the agreed contract slug across the
+ * Intake (Agent A), customware engine (Agent C), and gallery surfaces.
+ */
+function readMiniIntake(): { vpNameSlug: string; divisionSlug: string } {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { vpNameSlug: '', divisionSlug: '' }
+    }
+    const raw = window.localStorage.getItem('hoistos.intake.v1')
+    if (!raw) return { vpNameSlug: '', divisionSlug: '' }
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    // Agent A stores the raw name + division strings. Slug-ifying here for
+    // customware substitution. Lowercase, hyphenate, strip non-alphanumeric.
+    const rawName = typeof parsed.name === 'string' ? parsed.name : ''
+    const rawDiv = typeof parsed.division === 'string' ? parsed.division : ''
+    return {
+      vpNameSlug: slugify(rawName),
+      divisionSlug: slugify(rawDiv),
+    }
+  } catch {
+    return { vpNameSlug: '', divisionSlug: '' }
+  }
+}
+
+function slugify(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+/**
+ * Map a foundation packId to the canonical pack URL served by /packs-v2/.
+ * The Bridge ships the same markdown files; this URL is the public surface
+ * activateSkill fetches. Mirrors the install-manifest.json base_url pattern.
+ */
+function packUrlFor(packId: string): string {
+  return `/packs-v2/${packId}.md`
+}
+
+/**
+ * Snapshot of installed packs at first render. We read once on mount via
+ * useState's lazy initializer and accept slight staleness inside this view.
+ * The parent gallery component re-mounts after install events, which is
+ * sufficient for the S210 reversal scope: each install opens a new claude.ai
+ * tab so the user is moving across screens anyway.
+ */
+function isInstalled(installed: string[], packId: string): boolean {
+  return installed.indexOf(packId) >= 0
+}
 
 export function EmpireFoundationGrid() {
   return (
@@ -190,6 +248,19 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   const rotY = useSpring(useTransform(mx, [-1, 1], [-4, 4]), { stiffness: 200, damping: 24 })
   const tone = LAYER_TOKENS[card.layer]
 
+  // S210 reversal state: each card carries its own mini-form expansion state
+  // and its own install-in-flight state. Snapshot of installed packs is read
+  // once at first mount via the lazy initializer; new installs flip this
+  // card's local state via the activate callback.
+  const intakePrefill = readMiniIntake()
+  const [showForm, setShowForm] = useState(false)
+  const [vpName, setVpName] = useState(intakePrefill.vpNameSlug)
+  const [division, setDivision] = useState(intakePrefill.divisionSlug)
+  const [installing, setInstalling] = useState(false)
+  const [installed, setInstalled] = useState<boolean>(() =>
+    isInstalled(listActivated(), card.packId),
+  )
+
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
     const el = ref.current
     if (!el) return
@@ -204,6 +275,33 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
     my.set(0)
   }
 
+  // Primary action: open the mini-form. If the form is already open and the
+  // user clicks Install, we kick activateSkill with the customware answers.
+  async function handleInstall(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!showForm) {
+      setShowForm(true)
+      return
+    }
+    setInstalling(true)
+    try {
+      await activateSkill({
+        slug: card.packId,
+        packUrl: packUrlFor(card.packId),
+        customwareAnswers: {
+          VP_NAME_SLUG: slugify(vpName),
+          DIVISION_SLUG: slugify(division),
+        },
+      })
+      setInstalled(true)
+    } catch {
+      // activateSkill toasts its own error path; nothing to surface here.
+    } finally {
+      setInstalling(false)
+    }
+  }
+
   return (
     <motion.div
       ref={ref}
@@ -216,14 +314,12 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
       transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
       className="group relative rounded-3xl overflow-hidden"
     >
-      <Link
-        to={`/empireworksreconstruction/pack/${card.packId}`}
-        className="block p-6 sm:p-7"
+      <div
+        className="block p-6 sm:p-7 relative"
         style={{
           background: '#fbfaf3',
           border: '1px solid rgba(20,20,19,0.08)',
           color: '#141413',
-          textDecoration: 'none',
           boxShadow: '0 14px 34px rgba(20,20,19,0.05), 0 2px 8px rgba(20,20,19,0.02)',
         }}
       >
@@ -254,7 +350,9 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           >
             <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 700 }}>{card.badge}</span>
             <span style={{ color: 'rgba(20,20,19,0.45)' }}>·</span>
-            <span style={{ color: '#5e5d59' }}>Installed</span>
+            <span style={{ color: installed ? 'rgb(18,128,82)' : '#5e5d59' }}>
+              {installed ? 'Installed' : 'Available'}
+            </span>
           </span>
           <span
             className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
@@ -320,20 +418,127 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           </p>
         </div>
 
-        <div
-          className="relative mt-5 flex items-center justify-between"
-          style={{ color: 'rgb(var(--color-accent))' }}
-        >
-          <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em]">
-            <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-            Deep dive
-          </span>
-          <ArrowRight
-            className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-            aria-hidden="true"
-          />
+        {/* S210: customware mini-form. Collapsed by default, expands on first
+            click of the primary install button. Two fields, both pre-filled
+            from intake-state when available. Stacks single-column on mobile
+            (R051, R067). 44px tap targets (R067). */}
+        {showForm && !installed ? (
+          <div
+            className="relative mt-5 rounded-xl p-4"
+            style={{
+              background: 'rgba(204,110,46,0.05)',
+              border: '1px solid rgba(204,110,46,0.18)',
+            }}
+          >
+            <div
+              className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+              style={{ color: 'rgb(var(--color-accent))' }}
+            >
+              Customize before install
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="flex flex-col gap-1 text-xs">
+                <span style={{ color: '#3a3a36', fontWeight: 600 }}>Your first name</span>
+                <input
+                  type="text"
+                  value={vpName}
+                  onChange={(ev) => setVpName(ev.target.value)}
+                  placeholder="e.g. john"
+                  className="rounded-md px-3 py-2 text-sm"
+                  style={{
+                    background: '#fbfaf3',
+                    border: '1px solid rgba(20,20,19,0.12)',
+                    color: '#141413',
+                    minHeight: 46,
+                  }}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs">
+                <span style={{ color: '#3a3a36', fontWeight: 600 }}>Your division or company</span>
+                <input
+                  type="text"
+                  value={division}
+                  onChange={(ev) => setDivision(ev.target.value)}
+                  placeholder="e.g. acme-construction"
+                  className="rounded-md px-3 py-2 text-sm"
+                  style={{
+                    background: '#fbfaf3',
+                    border: '1px solid rgba(20,20,19,0.12)',
+                    color: '#141413',
+                    minHeight: 46,
+                  }}
+                />
+              </label>
+              <p
+                className="text-xs m-0"
+                style={{ color: '#5e5d59' }}
+              >
+                These swap into the pack body before it hits your clipboard.
+                Leave blank if you want plain placeholders.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {/* S210: primary CTA (install) and secondary link (view pack detail).
+            Stacks single-column on mobile per R051. 44px min-height per R067. */}
+        <div className="relative mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={handleInstall}
+            disabled={installing}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition"
+            style={{
+              background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
+              color: '#fbfaf3',
+              border: '1px solid rgba(20,20,19,0.06)',
+              boxShadow: installed
+                ? '0 8px 20px rgba(18,128,82,0.22)'
+                : '0 8px 20px rgba(204,110,46,0.28)',
+              minHeight: 44,
+              cursor: installing ? 'progress' : 'pointer',
+              opacity: installing ? 0.75 : 1,
+            }}
+          >
+            {installed ? (
+              <>
+                <Check className="w-4 h-4" aria-hidden="true" />
+                Installed
+              </>
+            ) : installing ? (
+              <>
+                <Copy className="w-4 h-4" aria-hidden="true" />
+                Copying to clipboard...
+              </>
+            ) : showForm ? (
+              <>
+                <Copy className="w-4 h-4" aria-hidden="true" />
+                Install on my Claude
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" aria-hidden="true" />
+                Install on my Claude
+              </>
+            )}
+          </button>
+          <Link
+            to={`/empireworksreconstruction/pack/${card.packId}`}
+            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2"
+            style={{
+              color: 'rgb(var(--color-accent))',
+              textDecoration: 'none',
+              minHeight: 44,
+            }}
+          >
+            View pack details
+            <ArrowRight
+              className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"
+              aria-hidden="true"
+            />
+          </Link>
         </div>
-      </Link>
+      </div>
     </motion.div>
   )
 }

@@ -73,8 +73,61 @@ function useAudience(): Audience {
   }, [audience])
   return audience
 }
+
+/**
+ * Intake gate. Reads intake state once on mount, subscribes to changes so
+ * the page re-renders when the user submits or reopens the modal. Exposes
+ * complete (true once the user finished intake), open (true when the modal
+ * should be visible), and helpers to open/close it explicitly. Mirrors the
+ * useAudience pattern at the top of this file.
+ */
+interface IntakeGate {
+  intake: IntakeState
+  complete: boolean
+  open: boolean
+  setOpen: (value: boolean) => void
+  reopen: () => void
+}
+
+function useIntakeGate(): IntakeGate {
+  const [intake, setIntake] = useState<IntakeState>(() => readIntake())
+  const [open, setOpen] = useState<boolean>(() => !isIntakeComplete(readIntake()))
+
+  useEffect(() => {
+    const unsubscribe = onIntakeChange(() => {
+      const next = readIntake()
+      setIntake(next)
+      // Auto-close once the user completes intake. If the modal is open
+      // because the user clicked "Edit your setup," they will explicitly
+      // dismiss it from inside the modal.
+      if (isIntakeComplete(next)) {
+        setOpen(false)
+      }
+    })
+    return unsubscribe
+  }, [])
+
+  const reopen = () => setOpen(true)
+
+  return {
+    intake,
+    complete: isIntakeComplete(intake),
+    open,
+    setOpen,
+    reopen,
+  }
+}
 import { MapCard } from './cards/MapCard'
 import { PackCard } from './cards/PackCard'
+import { Intake } from './Intake'
+import { JourneyTracker } from './JourneyTracker'
+import {
+  isIntakeComplete,
+  onIntakeChange,
+  readIntake,
+  type IntakeState,
+} from '../lib/intake-state'
+import { useIsMobile } from '../lib/useIsMobile'
 // BranchCard removed 2026-05-11 from the JSX. Import kept for fast revert.
 // import { BranchCard } from './cards/BranchCard'
 // Calendly handle. Eugeen confirmed eugeenbernan@gmail.com on 2026-05-11.
@@ -108,6 +161,8 @@ const ICON_MAP: Record<Capability['iconName'], typeof Shield> = {
 
 export function EmpireLanding() {
   const audience = useAudience()
+  const intakeGate = useIntakeGate()
+  const isMobile = useIsMobile()
 
   function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
@@ -125,8 +180,49 @@ export function EmpireLanding() {
           parchment rather than washing out. GPU-cheap, no WebGL. */}
       <AuroraBackdropLight />
 
-      {/* Hero, centered */}
-      <section className="max-w-4xl mx-auto text-center relative">
+      {/* Intake gate. Renders the 4-question modal when intake is incomplete
+          or when the user explicitly clicks "Edit your setup." Once complete,
+          the rest of the page renders normally. The modal carries its own
+          backdrop and close handling. */}
+      {intakeGate.open ? (
+        <Intake
+          variant="modal"
+          forceOpen={intakeGate.complete}
+          onComplete={() => intakeGate.setOpen(false)}
+          onDismiss={() => {
+            if (intakeGate.complete) intakeGate.setOpen(false)
+          }}
+        />
+      ) : null}
+
+      {/* Hero + tracker layout. On lg+, hero (max-w-4xl, centered) sits
+          alongside the JourneyTracker as a right-side sidebar. On mobile
+          (<lg), the tracker stacks above the hero. JourneyTracker carries
+          its own internal mobile-vs-desktop branch (top panel on mobile,
+          right column on desktop), so we mirror that here with a flex
+          container that flips column on mobile. */}
+      <div
+        className="relative max-w-6xl mx-auto"
+        style={
+          isMobile
+            ? { display: 'flex', flexDirection: 'column', gap: 24 }
+            : { display: 'flex', flexDirection: 'row', gap: 32, alignItems: 'flex-start' }
+        }
+      >
+        {/* Mobile: tracker first so it stacks on top. Desktop: tracker
+            second so flex-row puts it on the right. The order swap is
+            handled inline via the conditional below. */}
+        {isMobile ? (
+          <aside aria-label="Journey tracker">
+            <JourneyTracker />
+          </aside>
+        ) : null}
+
+        {/* Hero, centered */}
+        <section
+          className="max-w-4xl mx-auto text-center relative"
+          style={isMobile ? undefined : { flex: '1 1 0%', minWidth: 0 }}
+        >
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -149,6 +245,35 @@ export function EmpireLanding() {
             placeholder, swap to a real headshot in /public/brand/ when
             available. */}
         <AuthorByline />
+
+        {/* Edit-your-setup pill. Only surfaces once intake is complete so
+            the user can reopen the modal to change name, division, industry,
+            outcomes, or surfaces. Tap target is 44px tall for mobile per
+            Hard Rule #35 / R067. */}
+        {intakeGate.complete ? (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={intakeGate.reopen}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors duration-200"
+              style={{
+                minHeight: 44,
+                border: '1px solid rgb(var(--color-fg) / 0.18)',
+                background: 'rgb(var(--color-fg) / 0.02)',
+                color: 'rgb(var(--color-fg-muted))',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.06)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.02)'
+              }}
+              aria-label="Edit your setup"
+            >
+              Edit your setup
+            </button>
+          </div>
+        ) : null}
 
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -190,8 +315,13 @@ export function EmpireLanding() {
           ))}
         </motion.div>
 
-        {/* Guided Bridge setup. Novice path only: Desktop extension, one
-            setup prompt, one Project Instructions paste, one verification. */}
+        {/* Bridge install panel. Reframed 2026-05-15 from primary install
+            path to optional Desktop convenience. The canonical install path
+            is the intake-driven customware journey via PackGallery and
+            EmpireFoundationGrid (clipboard paste to Project Knowledge). The
+            Bridge is a one-click bulk-install shortcut for users who already
+            have Claude Desktop installed and want all 11 Foundations in one
+            pass. Pack-by-pack remains the primary path. */}
         <motion.div
           id="install-panel"
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -202,28 +332,37 @@ export function EmpireLanding() {
           <div
             className="relative rounded-2xl p-6 sm:p-8 text-left"
             style={{
-              border: '1px solid rgb(var(--color-accent) / 0.35)',
+              border: '1px solid rgb(var(--color-fg) / 0.12)',
               boxShadow:
-                '0 30px 80px -16px rgb(var(--color-fg) / 0.18), 0 6px 18px rgb(var(--color-fg) / 0.06)',
+                '0 12px 30px -16px rgb(var(--color-fg) / 0.12), 0 4px 10px rgb(var(--color-fg) / 0.04)',
               background:
-                'linear-gradient(135deg, rgb(var(--color-accent) / 0.06), rgb(var(--color-accent) / 0.02))',
+                'linear-gradient(135deg, rgb(var(--color-fg) / 0.025), rgb(var(--color-fg) / 0.01))',
             }}
           >
             <div
               className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3 text-center"
-              style={{ color: 'rgb(var(--color-accent))' }}
+              style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
-              One guided setup, no pack-by-pack install
+              Optional Desktop convenience for bulk install
             </div>
             <h2
-              className="font-display text-[clamp(1.7rem,4vw,2.8rem)] leading-tight mb-3 text-center"
+              className="font-display text-[clamp(1.5rem,3.5vw,2.4rem)] leading-tight mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg))' }}
             >
-              Install once. Let Claude do the wiring.
+              Already running Claude Desktop? Bulk install Foundation in one click.
             </h2>
             <p
-              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
+              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-3"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
+            >
+              The primary path is pack by pack from the Foundation gallery (clipboard
+              paste into Project Knowledge, works on every Claude surface). This panel
+              is for users who already have Claude Desktop installed and want all 11
+              Foundations wired in a single setup.
+            </p>
+            <p
+              className="text-sm max-w-2xl mx-auto text-center leading-relaxed mb-7"
+              style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
               Six steps, ten minutes, one paste. Use the prev/next buttons or click any
               dot to jump around.
@@ -239,11 +378,12 @@ export function EmpireLanding() {
                 color: 'rgb(var(--color-fg-muted))',
               }}
             >
-              <strong style={{ color: 'rgb(var(--color-fg))' }}>Browser note:</strong>{' '}
-              Claude browser can preview the pack pages, but it cannot run the Bridge or
-              reach local files. The real install path is Claude Desktop. File reads, file
-              writes, moves, hooks, daemons, and Claude Code workflows still require the
-              right local tool approval or connector.
+              <strong style={{ color: 'rgb(var(--color-fg))' }}>Surface note:</strong>{' '}
+              The Bridge runs inside Claude Desktop only. The pack-by-pack path from the
+              Foundation gallery copies the pack body to your clipboard and works on any
+              Claude surface (browser, Desktop, or Code). Local file reads, file writes,
+              hooks, daemons, and Claude Code workflows still require the right local
+              tool approval or connector regardless of which install path you use.
             </div>
           </div>
         </motion.div>
@@ -318,6 +458,18 @@ export function EmpireLanding() {
         </motion.a>
       </section>
 
+      {/* Desktop: sidebar on the right with JourneyTracker. Mobile renders
+          the tracker above the hero (see top of this layout). */}
+      {!isMobile ? (
+        <aside
+          aria-label="Journey tracker"
+          style={{ flex: '0 0 320px', width: 320, position: 'sticky', top: 96 }}
+        >
+          <JourneyTracker />
+        </aside>
+      ) : null}
+      </div>
+
       {/* Cards: single-column vertical stack, premium effects.
           BranchCard merged into PackCard 2026-05-11 (Eugeen polish pass):
           the two cards were saying the same thing (drop-in upgrade + cut
@@ -364,7 +516,7 @@ export function EmpireLanding() {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            <span>Preview Foundation packs</span>
+            <span>Install Foundation packs</span>
             <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         </motion.div>
@@ -377,7 +529,7 @@ export function EmpireLanding() {
           className="mt-5 font-mono text-[11px] uppercase tracking-[0.18em]"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Preview only. The guided Bridge setup installs Foundation in one pass.
+          Click to install pack by pack. The Bridge above is optional for Desktop users who want bulk install.
         </motion.p>
       </section>
 
@@ -1386,7 +1538,7 @@ function useInstallSteps(): InstallStep[] {
         'Claude Desktop shows a security callout. That is expected. Click Install (or Update) and keep the extension enabled.',
       visualType: 'image',
       visualVideo: null,
-      visualScreenshot: '/screenshots/empireworks-bridge/step-2-extension-page.png',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-2-extension-page-364d979009.png',
       visualFallback: <ClaudeInstallDialogMock />,
       copyBlocks: [],
       extras: <InstallFacts />,
@@ -1438,7 +1590,7 @@ function useInstallSteps(): InstallStep[] {
         'Paste this into the same Project chat. Claude calls verify_setup and reports back: Foundation is live, 11 packs installed, here is what you can ask me next.',
       visualType: 'image',
       visualVideo: null,
-      visualScreenshot: '/screenshots/empireworks-bridge/step-6-verify-response.png',
+      visualScreenshot: '/screenshots/empireworks-bridge/step-6-verify-response-4bc45bf643.png',
       visualFallback: <ClaudeVerifyResponseMock />,
       copyBlocks: [{ label: 'Copy verify prompt', text: VERIFY_PROMPT }],
       extras: null,
@@ -1778,7 +1930,7 @@ function _InstallSlideshowRemoved() {
       title: 'Approve the EmpireWorks Bridge extension',
       caption:
         'Claude Desktop shows a security callout. That is expected. Click Install (or Update) and keep the extension enabled.',
-      realImagePath: '/screenshots/empireworks-bridge/step-2-extension-page.png',
+      realImagePath: '/screenshots/empireworks-bridge/step-2-extension-page-364d979009.png',
       alt: 'EmpireWorks Bridge extension install dialog in Claude Desktop',
       fallbackMock: <ClaudeInstallDialogMock />,
     },
@@ -1818,7 +1970,7 @@ function _InstallSlideshowRemoved() {
       title: 'Verify the install',
       caption:
         'Run the check prompt. Claude reports back: Foundation is live, 11 packs installed, here is what you can ask me to do now.',
-      realImagePath: '/screenshots/empireworks-bridge/step-6-verify-response.png',
+      realImagePath: '/screenshots/empireworks-bridge/step-6-verify-response-4bc45bf643.png',
       alt: 'Claude responding with a verify_setup tool call and confirmation',
       fallbackMock: <ClaudeVerifyResponseMock />,
     },

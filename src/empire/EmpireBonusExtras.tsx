@@ -56,6 +56,20 @@ interface BonusBlueprint {
    *  guide a user reads to set up Code CLI before the daemon-heavy packs.
    *  Surfaces "Code CLI onramp" badge instead of "Code CLI required". */
   isCodeOnramp?: boolean
+  /**
+   * Customware placeholder tokens that appear in the pack body at
+   * `public/bonus-extras/<id>.md` as `{{TOKEN}}`. Used by
+   * `src/lib/customware.ts` to route per-pack mini-form questions plus
+   * intake defaults plus `customware-defaults.json` fallbacks before
+   * clipboard write.
+   *
+   * Token names listed WITHOUT the surrounding braces, e.g. `TOP_OUTCOME`
+   * not `{{TOP_OUTCOME}}`. Only install-time customware placeholders are
+   * listed; runtime output-formatting placeholders (`{{COUNT}}`,
+   * `{{SCORE_*}}`, `{{SNIPPET_*}}`, `{{TIMESTAMP}}`, etc.) that Claude
+   * fills at chat time are excluded.
+   */
+  customwarePlaceholders: string[]
 }
 
 const BLUEPRINTS: BonusBlueprint[] = [
@@ -72,6 +86,16 @@ const BLUEPRINTS: BonusBlueprint[] = [
     desktopHint: 'Open in Claude Desktop with one click. Read the index, then click into a blueprint.',
     codeHint: 'One-liner drops the index into your skills folder. Claude surfaces it the next time you open a session.',
     bridgeCompatible: true,
+    customwarePlaceholders: [
+      'OPERATOR_ROLE',
+      'TIER',
+      'TOP_OUTCOME',
+      'FIRST_BLUEPRINT',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-01-notion-foundation',
@@ -86,6 +110,17 @@ const BLUEPRINTS: BonusBlueprint[] = [
     desktopHint: 'Click Open in Claude Desktop. Claude pulls the skill, walks the four database creates through your Notion connection, then reads the live state back to confirm the relations wired correctly.',
     codeHint: 'Run the one-liner. The skill walks the database creation through your Notion connection. Three questions, ninety seconds, four databases land.',
     bridgeCompatible: true,
+    customwarePlaceholders: [
+      'OPERATOR_ROLE',
+      'WORKSPACE_NAME',
+      'TRADE_FOCUS',
+      'TOP_OUTCOME',
+      'TODAYS_DATE',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-02-notion-operating-layer',
@@ -100,6 +135,16 @@ const BLUEPRINTS: BonusBlueprint[] = [
     desktopHint: 'Same install pattern as the Foundation. The skill checks for the Foundation first and prompts you to install it if you skipped ahead. After the create runs, you can watch the relations land in your Notion sidebar in under two minutes.',
     codeHint: 'One-liner drops the skill. Restart your session. Trigger phrase builds the three databases and runs the three example flows.',
     bridgeCompatible: true,
+    customwarePlaceholders: [
+      'TASK_STATUSES',
+      'SPRINT_CADENCE',
+      'TOP_OUTCOME',
+      'TODAYS_DATE',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-03-rag-setup',
@@ -115,6 +160,18 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'A search tool wired into Claude, running on your own database, indexing your files and Notion. Cites every claim with a file path.',
     desktopHint: 'The watcher itself runs on Code, not on Claude Desktop. Open the markdown in Claude Desktop to read the pattern, then install for real on your Code laptop.',
     codeHint: 'The blueprint asks for three API keys. Everything else picks sensible defaults. The first index runs while you read the README.',
+    customwarePlaceholders: [
+      'HOME_PATH',
+      'INGEST_PATH',
+      'RAG_NAMESPACE',
+      'CHUNK_SIZE',
+      'TOP_OUTCOME',
+      'TODAYS_DATE',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-04-telegram-bridge',
@@ -130,6 +187,19 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'A small Python bridge, a launchd job that keeps it running, and an allowlist so only your phone can drive your bot.',
     desktopHint: 'Read-only in Claude Desktop. The bridge is a small daemon on your laptop and lives on Code tier. Open the markdown to understand the pattern, install on Code when you are ready.',
     codeHint: 'Two inputs: a bot token from BotFather, your own Telegram chat ID. Skill scaffolds the bridge, the launchd job, and a health check.',
+    customwarePlaceholders: [
+      'BOT_TOKEN',
+      'BOT_USERNAME',
+      'CHAT_ID_ALLOWLIST',
+      'BRIDGE_NAMESPACE',
+      'DEFAULT_MODEL',
+      'HOME_PATH',
+      'TOP_OUTCOME',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-05-code-cli-setup',
@@ -145,6 +215,16 @@ const BLUEPRINTS: BonusBlueprint[] = [
     codeHint: 'Run the one-liner. The skill walks you through it: install command, login flow, first connector, first hook. Verify with one prompt at the end.',
     bridgeCompatible: false,
     isCodeOnramp: true,
+    customwarePlaceholders: [
+      'OPERATOR_ROLE',
+      'ORG_NAME',
+      'SHELL',
+      'TOP_OUTCOME',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-06-auto-memory-architecture',
@@ -159,6 +239,14 @@ const BLUEPRINTS: BonusBlueprint[] = [
     desktopHint: 'Lighter version on desktop. Memory lives in your Project Knowledge with a manual paste pattern, and the desktop app auto-loads at session start. Read the markdown to see the shape; the full pattern lives on Code.',
     codeHint: 'Code is where this lives best. Memory files on disk, auto-loaded at session start, and a propagator skill that fires on the trigger phrases you already use.',
     bridgeCompatible: true,
+    customwarePlaceholders: [
+      'CUSTOM_TRIGGERS_LIST',
+      'TOP_OUTCOME',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
   {
     id: 'bonus-07-hooks-and-daemons',
@@ -174,6 +262,18 @@ const BLUEPRINTS: BonusBlueprint[] = [
     artifact: 'Three example hooks (em-dash blocker, Notion write check, banned-pattern blocker) plus three example background jobs (daily reconcile, watcher, the Telegram bridge from B-04).',
     desktopHint: 'Claude Desktop does not run hooks or background jobs. Open the markdown in Claude Desktop to understand the pattern, then install on Code when you are ready.',
     codeHint: 'The blueprint scaffolds three hooks and three launchd jobs. You pick which to turn on. The health check is one paste.',
+    customwarePlaceholders: [
+      'NAMESPACE',
+      'HOME_PATH',
+      'ACTIVE_DAEMONS_LIST',
+      'DAEMON_NAME',
+      'DAEMON_PATH',
+      'TOP_OUTCOME',
+      'SETUP_CONTEXT',
+      'HARD_CONSTRAINT',
+      'SUCCESS_CRITERIA',
+      'EXTRA_CONTEXT',
+    ],
   },
 ]
 

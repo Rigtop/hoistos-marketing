@@ -13,6 +13,8 @@
 
 import { toast } from 'react-hot-toast'
 import { trackFunnel, type PackTier } from './funnel'
+import { applyCustomware, type CustomwareAnswers } from './customware'
+import { readIntake } from './intake-state'
 
 export type ActivationTier = 'desktop_deeplink' | 'web_clipboard' | 'mobile_deeplink' | 'fallback_download'
 
@@ -25,6 +27,27 @@ export interface ActivateOptions {
   tier?: PackTier
   /** legacy option, no longer used by the blank-launch flow */
   publicOrigin?: string
+  /**
+   * Per-pack mini-form answers. Token substitution looks here first before
+   * falling through to the global intake answers and `customware-defaults.json`.
+   * When omitted, the engine still applies the intake layer plus defaults.
+   */
+  customwareAnswers?: CustomwareAnswers
+}
+
+/**
+ * Read the global intake answers from `intake-state.ts`. The canonical
+ * storage key is `hoistos.intake.v1` and the shape is `IntakeState`. The
+ * customware engine treats the shape as `CustomwareAnswers` (an open
+ * key-value map), so the `IntakeState` object slots in directly.
+ */
+function readIntakeAnswers(): CustomwareAnswers {
+  try {
+    const state = readIntake()
+    return state as unknown as CustomwareAnswers
+  } catch {
+    return {}
+  }
 }
 
 /**
@@ -148,7 +171,7 @@ async function writeClipboard(text: string): Promise<boolean> {
  * and BottomIndexedTable.tsx.
  */
 export async function activateSkill(opts: ActivateOptions): Promise<ActivationTier> {
-  const { slug, packUrl, tier } = opts
+  const { slug, packUrl, tier, customwareAnswers } = opts
   trackFunnel('activate_clicked', { slug, tier, path_taken: 'web_clipboard' })
 
   const mobile = isMobile()
@@ -161,6 +184,13 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
     // If the fetch fails, fall back to a public-URL-fetch seed prompt.
     body = `Fetch the file at ${packUrl} and install it as a skill in this project. Then walk me through activation.`
   }
+
+  // Customware: substitute `{{TOKEN}}` placeholders and strip tier-aware
+  // install rows that do not match the user's surface. Intake answers come
+  // from `intake-state.ts` (canonical key `hoistos.intake.v1`). Per-pack
+  // answers come from the optional `customwareAnswers` opt.
+  const intakeAnswers = readIntakeAnswers()
+  body = applyCustomware(body, intakeAnswers, customwareAnswers ?? {})
 
   // Tier A: Desktop launch, only if the user has explicitly opted in.
   // The full body is already on the clipboard. The app opens to a blank chat.
