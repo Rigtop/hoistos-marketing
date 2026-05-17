@@ -196,6 +196,9 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       style={{
         borderColor: 'rgb(var(--color-fg) / 0.12)',
         padding: isMobile ? '1.25rem' : '2rem',
+        maxHeight: variant === 'modal' ? 'calc(100dvh - 2rem)' : undefined,
+        overflowY: variant === 'modal' ? 'auto' : undefined,
+        WebkitOverflowScrolling: variant === 'modal' ? 'touch' : undefined,
       }}
     >
       {variant === 'modal' ? (
@@ -219,6 +222,8 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
         <div
           className="font-mono text-[10px] uppercase tracking-[0.22em]"
           style={{ color: 'rgb(var(--color-accent))' }}
+          role="status"
+          aria-live="polite"
         >
           Step {step + 1} of {STEP_COUNT}
         </div>
@@ -399,14 +404,12 @@ interface StepNameProps {
 function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: StepNameProps) {
   return (
     <div>
-      <div
-        role="heading"
-        aria-level={2}
+      <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Let us start with you.
-      </div>
+      </h2>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -491,14 +494,12 @@ function StepIndustry({
   const showConstructionSubFields = industry === 'construction'
   return (
     <div>
-      <div
-        role="heading"
-        aria-level={2}
+      <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         What industry are you in?
-      </div>
+      </h2>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -609,14 +610,12 @@ function StepOutcomes({ outcomes, customOutcome, onRankChange, onCustomChange, i
   const showCustomBox = (outcomes.custom ?? 0) > 0
   return (
     <div>
-      <div
-        role="heading"
-        aria-level={2}
+      <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Rank what you want first.
-      </div>
+      </h2>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -729,14 +728,12 @@ function StepSurfaces({ surfaces, onToggle, isMobile }: StepSurfacesProps) {
   const set = new Set(surfaces)
   return (
     <div>
-      <div
-        role="heading"
-        aria-level={2}
+      <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Where do you use Claude today?
-      </div>
+      </h2>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}

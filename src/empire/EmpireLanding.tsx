@@ -785,7 +785,7 @@ function AuthorByline() {
       className="mb-7"
     >
       <span
-        className="font-mono text-[11px] uppercase tracking-[0.22em]"
+        className="font-mono text-[11px] tracking-[0.04em]"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
       >
         Created by Eugeen Bernan
@@ -837,7 +837,7 @@ function ModuleOneTeaser({ audience }: { audience: Audience }) {
     >
       <div className="text-center mb-12">
         <div
-          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+          className="font-mono text-[11px] tracking-[0.04em] mb-4"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           HoistOS Module 1, live
@@ -1227,7 +1227,7 @@ function DashboardCssMock() {
         style={{ background: 'rgb(var(--color-bg))', border: '1px solid rgba(20,20,19,0.08)' }}
       >
         <div
-          className="font-mono text-[8px] uppercase tracking-[0.14em] mb-2"
+          className="font-mono text-[8px] tracking-[0.04em] mb-2"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Org chart, project tier

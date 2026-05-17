@@ -254,14 +254,17 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
       mobile
         ? 'Locked in. The pack is on your clipboard. Paste in Claude, or hop to Desktop for the full handshake.'
         : 'Locked in. The pack is on your clipboard. Cmd-V into the Claude tab that just opened.',
+      { id: 'pack-install' },
     )
   } else if (opened) {
     toast(
       'Claude is open in a new tab. Copy the pack below and paste it across.',
+      { id: 'pack-install' },
     )
   } else {
     toast.error(
       'Install blocked by the browser. Allow popups and clipboard, then try again.',
+      { id: 'pack-install' },
     )
   }
   trackFunnel('toast_shown', { slug, tier, path_taken: 'web_clipboard' })

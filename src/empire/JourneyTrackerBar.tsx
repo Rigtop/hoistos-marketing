@@ -173,12 +173,14 @@ export function JourneyTrackerBar() {
                 }}
               >
                 <motion.span
+                  key={`${idx}-${counts[idx]}`}
                   aria-hidden="true"
+                  initial={reduceMotion || !lit ? { scale: 1 } : { scale: 0.85 }}
                   animate={
                     reduceMotion
                       ? { scale: 1 }
                       : lit
-                        ? { scale: [1, 1.45, 1] }
+                        ? { scale: [0.85, 1.45, 1] }
                         : { scale: 1 }
                   }
                   transition={

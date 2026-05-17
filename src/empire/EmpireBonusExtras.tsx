@@ -926,7 +926,7 @@ export function EmpireBonusExtras() {
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <span
             id="bridge-blueprints-heading"
-            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="font-mono text-[10px] tracking-[0.04em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             Works with your Bridge setup
@@ -1241,7 +1241,7 @@ function ClaudeCodeCLIHeroBreak() {
           house."
         </p>
         <footer
-          className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em]"
+          className="flex items-center gap-3 font-mono text-[11px] tracking-[0.04em]"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           <span
