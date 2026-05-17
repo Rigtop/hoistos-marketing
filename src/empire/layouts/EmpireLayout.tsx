@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 import { clearSession, hasSession } from '../session'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { LevelUpOverlay } from '../celebration/LevelUpOverlay'
+import { JourneyTrackerBar } from '../JourneyTrackerBar'
 
 export function EmpireLayout() {
   const location = useLocation()
@@ -52,8 +53,19 @@ export function EmpireLayout() {
     <div
       data-theme="hoistos-light"
       className="min-h-screen flex flex-col"
-      style={{ background: 'rgb(var(--color-bg))', color: 'rgb(var(--color-fg))' }}
+      style={{
+        background: 'rgb(var(--color-bg))',
+        color: 'rgb(var(--color-fg))',
+        paddingTop: 'clamp(48px, 6vw, 56px)',
+      }}
     >
+      {/* MASTER_PLAN v2 S5: the gamify bar is the always-visible progress
+          chrome. Mounted at the layout level (was previously only on the
+          EmpireLanding root in iter-9 walk; iter-10 closes F1 by hoisting it
+          here so every /empire descendant renders it). The 56px clamp top
+          padding above offsets its fixed position. */}
+      <JourneyTrackerBar />
+
       {/* Skip-to-content link. Hidden until focused so keyboard users can
           jump past the header. WCAG 2.4.1. */}
       <a

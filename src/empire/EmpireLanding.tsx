@@ -142,7 +142,6 @@ function useIntakeGate(): IntakeGate {
 import { MapCard } from './cards/MapCard'
 import { PackCard } from './cards/PackCard'
 import { Intake } from './Intake'
-import { JourneyTrackerBar } from './JourneyTrackerBar'
 import {
   isIntakeComplete,
   onIntakeChange,
@@ -196,8 +195,11 @@ export function EmpireLanding() {
   }
 
   return (
-    <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))', paddingTop: 'calc(80px + 56px)' }}>
-      <JourneyTrackerBar />
+    <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))' }}>
+      {/* JourneyTrackerBar is now mounted in EmpireLayout (iter-10 F1 close)
+          so the bar appears across every /empire route, not just this one.
+          The layout's outer wrapper carries the clamp(48px, 6vw, 56px) top
+          padding that previously lived inline here. */}
       {/* Subtle aurora backdrop. Three blurred radial gradients drift
           on slow CSS animations behind the hero text + video. Tuned for the
           HoistOS-LIGHT theme: multiply blend so the signal-orange tints the
@@ -303,11 +305,9 @@ export function EmpireLanding() {
           transition={{ duration: 0.7, delay: 0.05 }}
           className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.08] tracking-[-0.015em] mb-6"
         >
-          Enterprise Level Claude.
-          <br />
-          Compounding intelligence.
-          <br />
           <span style={{ color: 'rgb(var(--color-accent))' }}>Pick a pack, paste, done.</span>
+          <br />
+          Enterprise Level Claude that compounds every week.
         </motion.h1>
 
         <motion.p
@@ -390,7 +390,18 @@ export function EmpireLanding() {
                 color: 'rgb(var(--color-fg-muted))',
               }}
             >
-              <strong style={{ color: 'rgb(var(--color-fg))' }}>Surface note:</strong>{' '}
+              <div
+                style={{
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                  fontSize: 10,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'rgb(var(--color-fg-subtle))',
+                  marginBottom: 8,
+                }}
+              >
+                Surface note
+              </div>
               The Bridge runs inside Claude Desktop only. The pack-by-pack path from the
               Foundation gallery copies the pack body to your clipboard and works on any
               Claude surface (browser, Desktop, or Code). Local file reads, file writes,
@@ -2394,6 +2405,7 @@ function CapabilityCard({
       style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
       className="group relative rounded-2xl overflow-hidden p-6 sm:p-7 text-left w-full block cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -2809,7 +2821,7 @@ function ClaudeVerifyResponseMock() {
                 className="text-[13px] leading-relaxed m-0"
                 style={{ color: 'rgb(var(--color-fg))' }}
               >
-                <strong>Foundation is live.</strong> 11 packs installed at{' '}
+                Foundation is live. 11 packs installed at{' '}
                 <span style={{ fontFamily: 'ui-monospace, Menlo, monospace' }}>
                   ~/Documents/Claude Architecture/
                 </span>

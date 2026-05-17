@@ -548,7 +548,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                   ? `Installing ${card.title}`
                   : showForm
                     ? `Confirm install of ${card.title}`
-                    : `Personalize and install ${card.title}`
+                    : `Personalize ${card.title} before install`
             }
             className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
@@ -581,7 +581,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             ) : (
               <>
                 <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Personalize and install
+                Personalize
               </>
             )}
           </button>

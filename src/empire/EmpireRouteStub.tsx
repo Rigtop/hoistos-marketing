@@ -34,7 +34,7 @@ const COPY: Record<
   { eyebrow: string; title: string; body: string; primaryLabel: string; primaryTo: string }
 > = {
   dashboard: {
-    eyebrow: 'Under construction',
+    eyebrow: 'Coming next',
     title: 'The dashboard is on the next build',
     body:
       'The five-layer dashboard is being wired in the next pass. The install gallery is live now, and that is where the actual work happens today.',
@@ -42,7 +42,7 @@ const COPY: Record<
     primaryTo: '/empireworksreconstruction/foundation',
   },
   bridge: {
-    eyebrow: 'Under construction',
+    eyebrow: 'Coming next',
     title: 'The Bridge is on the next build',
     body:
       'The Bridge installer comes back in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough to paste it across.',
@@ -50,7 +50,7 @@ const COPY: Record<
     primaryTo: '/empireworksreconstruction/foundation',
   },
   packs: {
-    eyebrow: 'Under construction',
+    eyebrow: 'Coming next',
     title: 'The full packs gallery is on the next build',
     body:
       'Foundation, Advanced, Power, Beginner, and Bonus all roll into the next gallery pass. The Foundation eleven are already live and anchor every install.',
