@@ -290,7 +290,8 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           type="button"
           onClick={goBack}
           disabled={step === 0}
-          className="inline-flex items-center gap-2 rounded-lg border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-opacity"
+          aria-label={step === 0 ? 'Back (disabled on first step)' : `Back to step ${step} of ${STEP_COUNT}`}
+          className="inline-flex items-center gap-2 rounded-lg border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             width: isMobile ? '100%' : 'auto',
@@ -308,7 +309,8 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           <button
             type="button"
             onClick={goNext}
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+            aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
+            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',
@@ -323,7 +325,8 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           <button
             type="button"
             onClick={submit}
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+            aria-label="Finish intake and build my Claude journey"
+            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',

@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useMemo, useState, type CSSProperties, type JSX } from 'react'
+import { useReducedMotion } from 'motion/react'
 
 import useIsMobile from '../lib/useIsMobile'
 import { listActivated, onActivatedChange } from '../lib/activate'
@@ -184,7 +185,11 @@ function ColumnNode(props: {
   asterisked: boolean
 }): JSX.Element {
   const { label, installed, asterisked } = props
+  const reduced = useReducedMotion()
   const lit = installed
+  const stateTransition = reduced
+    ? 'none'
+    : 'background 200ms ease-in-out, opacity 200ms ease-in-out, border 200ms ease-in-out'
   return (
     <div
       style={{
@@ -196,7 +201,7 @@ function ColumnNode(props: {
         background: lit ? COLORS.accentSoft : 'transparent',
         border: lit ? `1px solid ${COLORS.accentMid}` : `1px dashed ${COLORS.paperLine}`,
         opacity: lit ? 1 : 0.55,
-        transition: 'background 180ms ease, opacity 180ms ease, border 180ms ease',
+        transition: stateTransition,
       }}
     >
       <span
@@ -406,6 +411,7 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
   }, [intakeEventName])
 
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
   const installed = useInstalledPackIds()
   const intake = useIntakeState()
   const surfaceMix = useMemo(() => surfacesToMix(intake.surfaces), [intake.surfaces])
@@ -499,6 +505,7 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
             aria-expanded={open}
             aria-controls="tracker-body"
             aria-label={open ? 'Collapse tracker columns' : 'Expand tracker columns'}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -521,7 +528,7 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
               aria-hidden="true"
               style={{
                 transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 200ms ease',
+                transition: reduced ? 'none' : 'transform 200ms ease-in-out',
               }}
             >
               <path
@@ -565,8 +572,8 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
             background: 'transparent',
           }}
         >
-          Nothing installed yet. The columns below light up as you install. Start
-          with Tier Guide, then the Constitution and Facts Registry.
+          Nothing installed yet. The columns light up as you install. Start with
+          Tier Guide, then drop in the Constitution and the Facts Registry.
         </div>
       ) : null}
 
@@ -577,7 +584,9 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
           maxHeight: open ? 4000 : 0,
           opacity: open ? 1 : 0,
           overflow: 'hidden',
-          transition: 'max-height 320ms ease, opacity 200ms ease',
+          transition: reduced
+            ? 'none'
+            : 'max-height 320ms ease-in-out, opacity 200ms ease-in-out',
           pointerEvents: open ? 'auto' : 'none',
         }}
         aria-hidden={!open}

@@ -75,7 +75,8 @@ export function EmpireCapabilityLayer() {
       {/* Back link */}
       <Link
         to="/empireworksreconstruction"
-        className="inline-flex items-center gap-2 text-sm font-mono uppercase tracking-[0.18em] mb-8 transition-colors"
+        aria-label="Back to the overview"
+        className="inline-flex items-center gap-2 text-sm font-mono uppercase tracking-[0.18em] mb-8 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = 'rgb(var(--color-accent))'
@@ -85,7 +86,7 @@ export function EmpireCapabilityLayer() {
         }}
       >
         <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
-        Back to overview
+        Back to the overview
       </Link>
 
       <div className="max-w-3xl mx-auto">
@@ -208,13 +209,13 @@ export function EmpireCapabilityLayer() {
             className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
-            Powered by these packs in your Claude
+            The packs your Claude runs on
           </div>
           <p
             className="text-sm leading-relaxed mb-4 m-0"
             style={{ color: 'rgb(var(--color-fg-muted))' }}
           >
-            These are the actual files the Bridge installs to{' '}
+            Not marketing copy. The Bridge writes these files to{' '}
             <span
               style={{
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
@@ -223,7 +224,7 @@ export function EmpireCapabilityLayer() {
             >
               ~/Documents/Claude Architecture/
             </span>{' '}
-            when you run the setup. Not marketing copy. Real files Claude reads.
+            on setup, and Claude reads them every time you open a chat.
           </p>
           <ul className="space-y-2 list-none m-0 pl-0">
             {cap.packs.map((p) => (
@@ -286,7 +287,8 @@ export function EmpireCapabilityLayer() {
           <button
             type="button"
             onClick={goToInstall}
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold transition flex-1 min-h-12"
+            aria-label={`Jump to install for the ${cap.layer} layer`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold transition flex-1 min-h-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background:
                 'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
@@ -304,12 +306,13 @@ export function EmpireCapabilityLayer() {
                 '0 14px 30px rgb(var(--color-accent) / 0.32)'
             }}
           >
-            Take me to install
+            Jump to install
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </button>
           <Link
             to="/empireworksreconstruction"
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold transition min-h-12"
+            aria-label="Back to the full layer index"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold transition min-h-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: 'transparent',
               color: '#141413',

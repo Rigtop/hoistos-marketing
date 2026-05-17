@@ -1020,14 +1020,15 @@ export function EmpireBonusExtras() {
 
         <Link
           to="/empireworksreconstruction/timeline"
-          className="inline-flex items-center gap-3 rounded-2xl px-8 py-4 text-base md:text-lg font-medium transition-all duration-300"
+          aria-label="Back to the install timeline"
+          className="inline-flex items-center gap-3 rounded-2xl px-8 py-4 text-base md:text-lg font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             background: 'transparent',
             color: 'rgb(var(--color-accent))',
             border: '1px solid rgb(var(--color-accent) / 0.4)',
           }}
         >
-          <span>Back to the timeline</span>
+          <span>Back to the install timeline</span>
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </section>
@@ -1043,10 +1044,10 @@ export function EmpireBonusExtras() {
           className="font-mono text-xs uppercase tracking-[0.22em] mb-4"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Confidential
+          Confidential to EmpireWorks
         </p>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          For people inside EmpireWorks Reconstruction only. Please don&apos;t share outside the team.
+          This page is for people inside EmpireWorks Reconstruction. Keep it inside the team.
         </p>
       </section>
     </div>
@@ -1404,7 +1405,7 @@ function TellSteveCTA() {
             className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
-            Edit the email before sending. Tell Steve which packs you want.
+            Edit before you hit send. Name the three packs you want first.
           </p>
         </div>
       </div>

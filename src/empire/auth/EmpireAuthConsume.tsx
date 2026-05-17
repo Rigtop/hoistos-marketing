@@ -66,15 +66,15 @@ export function EmpireAuthConsume() {
       {state.phase === 'verifying' ? (
         <>
           <h1 className="font-display text-3xl mb-3">Verifying your link.</h1>
-          <p className="text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-            One second, signing you in.
+          <p className="text-sm" style={{ color: 'rgb(var(--color-fg-muted))' }} aria-live="polite">
+            Hold on a second. Signing you in.
           </p>
         </>
       ) : (
-        <>
-          <h1 className="font-display text-3xl mb-3">That did not work.</h1>
+        <div role="alert">
+          <h1 className="font-display text-3xl mb-3">That link did not check out.</h1>
           <p className="text-sm mb-2" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-            We could not verify your magic link.
+            The magic link could not be verified. Most often it expired, or it was already used.
           </p>
           <p
             className="font-mono text-xs uppercase tracking-[0.18em] mb-6"
@@ -82,10 +82,14 @@ export function EmpireAuthConsume() {
           >
             Reason: {state.reason}
           </p>
-          <a href="/empire/auth/request" className="btn btn-primary px-5">
-            Request a new link
+          <a
+            href="/empire/auth/request"
+            aria-label="Request a fresh magic link"
+            className="btn btn-primary px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
+            Send me a fresh link
           </a>
-        </>
+        </div>
       )}
     </div>
   )

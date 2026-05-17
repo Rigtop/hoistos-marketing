@@ -119,10 +119,11 @@ export function EmpireAuthRequest() {
         <button
           type="button"
           onClick={() => setState({ phase: 'idle' })}
-          className="mt-10 font-mono text-xs uppercase tracking-[0.2em] underline"
+          aria-label="Resend a fresh magic link to the same email"
+          className="mt-10 font-mono text-xs uppercase tracking-[0.2em] underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Send another link
+          Send a fresh link
         </button>
       </div>
     )
