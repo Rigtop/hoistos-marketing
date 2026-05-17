@@ -153,7 +153,7 @@ function useIntakeGate(): IntakeGate {
 import { MapCard } from './cards/MapCard'
 import { PackCard } from './cards/PackCard'
 import { Intake } from './Intake'
-import { JourneyTracker } from './JourneyTracker'
+import { JourneyTrackerBar } from './JourneyTrackerBar'
 import {
   isIntakeComplete,
   onIntakeChange,
@@ -207,7 +207,8 @@ export function EmpireLanding() {
   }
 
   return (
-    <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))' }}>
+    <div className="px-[6vw] pt-20 pb-32 relative" style={{ color: 'rgb(var(--color-fg))', paddingTop: 'calc(80px + 56px)' }}>
+      <JourneyTrackerBar />
       {/* Subtle aurora backdrop. Three blurred radial gradients drift
           on slow CSS animations behind the hero text + video. Tuned for the
           HoistOS-LIGHT theme: multiply blend so the signal-orange tints the
@@ -248,14 +249,8 @@ export function EmpireLanding() {
             : { display: 'flex', flexDirection: 'row', gap: 32, alignItems: 'flex-start' }
         }
       >
-        {/* Mobile: tracker first so it stacks on top. Desktop: tracker
-            second so flex-row puts it on the right. The order swap is
-            handled inline via the conditional below. */}
-        {isMobile ? (
-          <aside aria-label="Journey tracker">
-            <JourneyTracker />
-          </aside>
-        ) : null}
+        {/* JourneyTracker right-side panel removed 2026-05-17 per Eugeen.
+            JourneyTrackerBar at top of page now carries the progress role. */}
 
         {/* Hero, centered */}
         <section
@@ -488,16 +483,9 @@ export function EmpireLanding() {
         </motion.a>
       </section>
 
-      {/* Desktop: sidebar on the right with JourneyTracker. Mobile renders
-          the tracker above the hero (see top of this layout). */}
-      {!isMobile ? (
-        <aside
-          aria-label="Journey tracker"
-          style={{ flex: '0 0 320px', width: 320, position: 'sticky', top: 96 }}
-        >
-          <JourneyTracker />
-        </aside>
-      ) : null}
+      {/* Desktop sidebar JourneyTracker removed 2026-05-17 per Eugeen.
+          The fixed-top JourneyTrackerBar replaces it. JourneyTracker import
+          kept temporarily for any non-EmpireLanding consumers. */}
       </div>
 
       {/* Cards: single-column vertical stack, premium effects.

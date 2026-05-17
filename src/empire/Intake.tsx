@@ -377,7 +377,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       role="dialog"
       aria-modal="true"
       aria-label="HoistOS install intake"
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
       style={{
         background: 'rgb(0 0 0 / 0.55)',
         padding: isMobile ? '1rem' : '2rem',
