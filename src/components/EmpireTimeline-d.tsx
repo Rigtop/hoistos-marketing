@@ -2308,7 +2308,6 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
               fontSize: 13,
               fontWeight: 600,
               color: BRAND.signal,
-              textTransform: 'uppercase',
               letterSpacing: '0.18em',
               marginBottom: 18,
               fontFamily: '"JetBrains Mono", ui-monospace, monospace',

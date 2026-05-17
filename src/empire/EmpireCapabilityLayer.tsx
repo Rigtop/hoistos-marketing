@@ -162,7 +162,7 @@ export function EmpireCapabilityLayer() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+            className="font-mono text-[10px] tracking-[0.22em] mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             Monday morning, after install
@@ -210,7 +210,7 @@ export function EmpireCapabilityLayer() {
           className="mb-10"
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+            className="font-mono text-[10px] tracking-[0.22em] mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             The packs your Claude runs on

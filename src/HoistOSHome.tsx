@@ -762,7 +762,7 @@ export function HoistOSHome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="w-full pt-8 text-[11px] font-mono uppercase text-center"
+            className="w-full pt-8 text-[11px] font-mono text-center"
             style={{
               color: '#6B7785',
               borderTop: '1px solid rgba(11, 15, 20, 0.06)',

@@ -16,6 +16,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { clearSession, hasSession } from '../session'
 import { useIsMobile } from '../../lib/useIsMobile'
+import { LevelUpOverlay } from '../celebration/LevelUpOverlay'
 
 export function EmpireLayout() {
   const location = useLocation()
@@ -334,6 +335,11 @@ export function EmpireLayout() {
       <main id="empire-main-content" className="flex-1">
         <Outlet />
       </main>
+
+      {/* MASTER_PLAN v2 S3: level-up celebration overlay. Watches activated
+          pack count across every /empire route and fires once per threshold
+          cross (1, 3, 5, 9, 16, 24, 36 packs). Honors prefers-reduced-motion. */}
+      <LevelUpOverlay />
 
       <footer
         className="px-[6vw] py-10 border-t flex flex-col md:flex-row md:justify-between md:items-end items-start flex-wrap gap-6"

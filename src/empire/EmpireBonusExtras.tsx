@@ -964,13 +964,13 @@ export function EmpireBonusExtras() {
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <span
             id="advanced-blueprints-heading"
-            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="font-mono text-[10px] tracking-[0.22em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             After Code CLI is installed
           </span>
           <span
-            className="font-mono text-[10px] uppercase tracking-[0.14em] rounded-full px-2.5 py-1"
+            className="font-mono text-[10px] tracking-[0.14em] rounded-full px-2.5 py-1"
             style={{ background: 'rgba(20,20,19,0.08)', color: 'rgb(var(--color-fg))', fontWeight: 600 }}
           >
             Claude Code CLI required
@@ -1012,7 +1012,7 @@ export function EmpireBonusExtras() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
+          className="font-mono text-[11px] tracking-[0.22em] mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Install order matters less than starting
@@ -1267,7 +1267,7 @@ function ClaudeCodeCLIHeroBreak() {
         }}
       >
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          className="font-mono text-[10px] tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           What you unlock the day CLI lands
@@ -1409,7 +1409,7 @@ function TellSteveCTA() {
             </a>
           </div>
           <p
-            className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="mt-6 font-mono text-[10px] tracking-[0.22em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             Edit before you hit send. Name the three packs you want first.
@@ -1538,7 +1538,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
             Desktop" + codeHint as the primary install path. */}
         {blueprint.isCodeOnramp ? (
           <span
-            className="font-mono text-[10px] uppercase tracking-[0.18em] rounded-md px-2 py-1"
+            className="font-mono text-[10px] tracking-[0.18em] rounded-md px-2 py-1"
             style={{
               color: '#fbfaf3',
               background: 'rgb(var(--color-accent))',

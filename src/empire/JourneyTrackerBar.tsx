@@ -13,37 +13,44 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 
 import { listActivated, onActivatedChange } from '../lib/activate'
+import { FOUNDATION_CARDS, type FoundationCard } from './content/foundation-cards'
+import { computeLevel } from './level'
 
 const TOTAL_PACK_COUNT = 43
 
 const LAYER_LABELS = ['Voice', 'Memory', 'Sources', 'Routing', 'Validation'] as const
 
-function packLayer(packId: string): number {
-  if (packId.startsWith('foundation-01') || packId.includes('voice') || packId.includes('intake')) return 0
-  if (packId.includes('facts') || packId.includes('memory') || packId.includes('decision') || packId.includes('knowledge')) return 1
-  if (packId.includes('source') || packId.includes('search') || packId.includes('rag')) return 2
-  if (packId.includes('routing') || packId.includes('write-gate') || packId.includes('email')) return 3
-  if (packId.includes('validator') || packId.includes('output-validator') || packId.includes('verify')) return 4
-  return 0
+// Canonical pack-id to layer-index map, sourced from FOUNDATION_CARDS so the
+// bar matches the same layer assignment the rest of /empire renders. Replaces
+// the iter-15 substring-cascade that mis-binned cold-start-protocol and
+// skill-builder into Voice by default. Packs absent from this map (e.g.
+// bonus-extras blueprints) still increment the total pack count but no longer
+// pollute a single layer's tally.
+const LAYER_INDEX: Record<FoundationCard['layer'], number> = {
+  Voice: 0,
+  Memory: 1,
+  Sources: 2,
+  Routing: 3,
+  Validation: 4,
 }
 
-function computeLevel(count: number): { num: number; label: string } {
-  if (count >= 36) return { num: 7, label: 'Operator' }
-  if (count >= 24) return { num: 6, label: 'Builder' }
-  if (count >= 16) return { num: 5, label: 'Compounding' }
-  if (count >= 9) return { num: 4, label: 'Threshold' }
-  if (count >= 5) return { num: 3, label: 'Foundation laid' }
-  if (count >= 3) return { num: 2, label: 'Lit the match' }
-  if (count >= 1) return { num: 1, label: 'First spark' }
-  return { num: 0, label: 'Not started' }
+const PACK_LAYER_MAP: Map<string, number> = new Map(
+  FOUNDATION_CARDS.map((card) => [card.packId, LAYER_INDEX[card.layer]]),
+)
+
+function packLayer(packId: string): number | null {
+  const layer = PACK_LAYER_MAP.get(packId)
+  return layer === undefined ? null : layer
 }
 
 export const TRACKER_BAR_HEIGHT = 56
 
 export function JourneyTrackerBar() {
   const [installed, setInstalled] = useState<string[]>(() => listActivated())
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
     return onActivatedChange(() => setInstalled(listActivated()))
@@ -51,7 +58,10 @@ export function JourneyTrackerBar() {
 
   const counts = useMemo(() => {
     const c = [0, 0, 0, 0, 0]
-    for (const id of installed) c[packLayer(id)] += 1
+    for (const id of installed) {
+      const layer = packLayer(id)
+      if (layer !== null) c[layer] += 1
+    }
     return c
   }, [installed])
 
@@ -109,16 +119,24 @@ export function JourneyTrackerBar() {
               whiteSpace: 'nowrap',
             }}
           >
-            <span
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: 'rgb(var(--color-fg))',
-                lineHeight: 1,
-              }}
-            >
-              {installed.length}
-            </span>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={installed.length}
+                initial={reduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={reduceMotion ? { opacity: 1 } : { scale: 1.18, opacity: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.24, ease: 'easeOut' }}
+                style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: 'rgb(var(--color-fg))',
+                  lineHeight: 1,
+                  display: 'inline-block',
+                }}
+              >
+                {installed.length}
+              </motion.span>
+            </AnimatePresence>
             <span
               style={{
                 fontSize: 12,
@@ -152,8 +170,20 @@ export function JourneyTrackerBar() {
                   gap: 6,
                 }}
               >
-                <span
+                <motion.span
                   aria-hidden="true"
+                  animate={
+                    reduceMotion
+                      ? { scale: 1 }
+                      : lit
+                        ? { scale: [1, 1.45, 1] }
+                        : { scale: 1 }
+                  }
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { duration: 0.6, ease: 'easeOut', times: [0, 0.35, 1] }
+                  }
                   style={{
                     width: 8,
                     height: 8,
@@ -162,6 +192,7 @@ export function JourneyTrackerBar() {
                       ? 'rgb(var(--color-accent))'
                       : 'rgb(var(--color-fg) / 0.18)',
                     flexShrink: 0,
+                    display: 'inline-block',
                   }}
                 />
                 <span
@@ -192,17 +223,29 @@ export function JourneyTrackerBar() {
             whiteSpace: 'nowrap',
           }}
         >
-          <span
-            style={{
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'rgb(var(--color-fg-subtle))',
-            }}
-          >
-            L{level.num}
-          </span>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={level.num}
+              initial={reduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={reduceMotion ? { opacity: 1 } : { scale: 1.3, opacity: 0 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 360, damping: 22, mass: 0.5 }
+              }
+              style={{
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: 'rgb(var(--color-fg-subtle))',
+                display: 'inline-block',
+              }}
+            >
+              L{level.num}
+            </motion.span>
+          </AnimatePresence>
           <span
             className="hidden md:inline"
             style={{

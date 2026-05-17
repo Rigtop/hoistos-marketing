@@ -91,15 +91,6 @@ interface IntakeGate {
 
 const INTAKE_DEFERRED_KEY = 'scrolophyte.intake-deferred'
 
-function readIntakeDeferred(): boolean {
-  try {
-    if (typeof window === 'undefined' || !window.localStorage) return false
-    return window.localStorage.getItem(INTAKE_DEFERRED_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 function writeIntakeDeferred(value: boolean): void {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return
@@ -115,12 +106,10 @@ function writeIntakeDeferred(value: boolean): void {
 
 function useIntakeGate(): IntakeGate {
   const [intake, setIntake] = useState<IntakeState>(() => readIntake())
-  // Only auto-open on first visit. If the user has either completed intake or
-  // explicitly dismissed it before, the modal stays closed until they tap
-  // "Edit your setup." Prevents the hostile auto-open trap reported in F8.
-  const [open, setOpen] = useState<boolean>(
-    () => !isIntakeComplete(readIntake()) && !readIntakeDeferred(),
-  )
+  // MASTER_PLAN v2 S2 (round 4, 2026-05-17): no modal on mount. The intake
+  // surfaces only when the user explicitly taps the "Personalize my Claude"
+  // CTA in the hero. Replaces the prior first-visit auto-open behavior.
+  const [open, setOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const unsubscribe = onIntakeChange(() => {
@@ -261,7 +250,7 @@ export function EmpireLanding() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-6 flex items-center justify-center gap-3 flex-wrap"
+          className="font-mono text-xs tracking-[0.22em] mb-6 flex items-center justify-center gap-3 flex-wrap"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           <span>HoistOS</span>
@@ -280,11 +269,10 @@ export function EmpireLanding() {
             available. */}
         <AuthorByline />
 
-        {/* Setup pill. Surfaces when intake is complete OR when the user
-            deferred the intake on first visit, so there is always a path
-            back to the modal. Tap target is 44px tall for mobile per
-            Hard Rule #35 / R067. */}
-        {intakeGate.complete || (!intakeGate.open && readIntakeDeferred()) ? (
+        {/* Setup pill. Always surfaces when the modal is closed so the user
+            has a path into intake on first visit (no auto-open per MASTER_PLAN
+            v2 S2) and on return visits. Tap target 44px per HR #35 / R067. */}
+        {!intakeGate.open ? (
           <div className="mb-4">
             <button
               type="button"
@@ -1035,7 +1023,7 @@ function CalendlyInline() {
       />
 
       <div
-        className="px-5 py-3 border-t font-mono text-[10px] uppercase tracking-[0.18em] text-center"
+        className="px-5 py-3 border-t font-mono text-[10px] tracking-[0.18em] text-center"
         style={{
           borderTopColor: 'rgba(20,20,19,0.08)',
           color: 'rgb(var(--color-fg-subtle))',
