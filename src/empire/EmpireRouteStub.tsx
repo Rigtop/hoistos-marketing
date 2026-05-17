@@ -37,7 +37,7 @@ const COPY: Record<
     eyebrow: 'Coming next',
     title: 'The dashboard is on the next build',
     body:
-      'We are wiring the five-layer dashboard in the next pass. The install gallery is live now, and that is where the actual work happens today.',
+      'We are wiring the five-layer dashboard in the next pass. The install gallery is live now. That is where the work happens today.',
     primaryLabel: 'Open the install gallery',
     primaryTo: '/empireworksreconstruction/foundation',
   },
@@ -45,7 +45,7 @@ const COPY: Record<
     eyebrow: 'Coming next',
     title: 'The Bridge is on the next build',
     body:
-      'The Bridge installer ships in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough to paste it across.',
+      'The Bridge installer ships in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough for the paste.',
     primaryLabel: 'Install pack by pack',
     primaryTo: '/empireworksreconstruction/foundation',
   },

@@ -143,7 +143,7 @@ function HeroBlock() {
         className="text-sm leading-relaxed max-w-xl mx-auto"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        Run the verify prompt below first to confirm what landed. Then tap any card
+        Run the verify prompt below first to confirm what landed. Then open any card
         for the full pack.
       </motion.p>
     </header>
@@ -652,7 +652,7 @@ function BottomCTA() {
         className="text-sm font-medium mb-4"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        What is next
+        What's next
       </p>
       <h2 className="font-display text-[clamp(1.6rem,3.5vw,2.4rem)] leading-tight mb-4">
         Foundation is the floor. Advanced packs go on top.
@@ -662,7 +662,7 @@ function BottomCTA() {
         style={{ color: '#5e5d59' }}
       >
         Proposal builder, RFI flow, skill builder, the rest. They layer onto the
-        same Bridge once Foundation is rolling. No reinstall. Ask for more, they land.
+        same Bridge once Foundation is rolling. No reinstall. Ask, and they layer on.
       </p>
       <Link
         to="/empireworksreconstruction/bonus-extras"

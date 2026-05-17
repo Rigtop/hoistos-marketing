@@ -544,8 +544,8 @@ function HelpView({
           fontStyle: 'italic',
         }}
       >
-        Every install email teaches us where this page trips people. Tell us what stuck you. The
-        next visitor benefits.
+        Every install email teaches us where this page trips people. Tell us where you got stuck.
+        The next visitor benefits.
       </p>
     </div>
   )

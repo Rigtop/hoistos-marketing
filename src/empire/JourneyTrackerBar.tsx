@@ -166,6 +166,7 @@ export function JourneyTrackerBar() {
               <div
                 key={label}
                 title={`${label}: ${counts[idx]} installed`}
+                aria-label={`${label} layer: ${counts[idx]} ${counts[idx] === 1 ? 'pack' : 'packs'} installed`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

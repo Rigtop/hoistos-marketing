@@ -545,7 +545,7 @@ export function EmpireLanding() {
           className="mt-5 text-sm"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Install pack by pack from the gallery. The Bridge above is the bulk-install shortcut for Desktop users.
+          Pack by pack from the gallery is the default path. The Bridge above is the Desktop bulk-install shortcut.
         </motion.p>
       </section>
 
