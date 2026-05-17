@@ -89,9 +89,38 @@ interface IntakeGate {
   reopen: () => void
 }
 
+const INTAKE_DEFERRED_KEY = 'scrolophyte.intake-deferred'
+
+function readIntakeDeferred(): boolean {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return false
+    return window.localStorage.getItem(INTAKE_DEFERRED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function writeIntakeDeferred(value: boolean): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return
+    if (value) {
+      window.localStorage.setItem(INTAKE_DEFERRED_KEY, '1')
+    } else {
+      window.localStorage.removeItem(INTAKE_DEFERRED_KEY)
+    }
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 function useIntakeGate(): IntakeGate {
   const [intake, setIntake] = useState<IntakeState>(() => readIntake())
-  const [open, setOpen] = useState<boolean>(() => !isIntakeComplete(readIntake()))
+  // Only auto-open on first visit. If the user has either completed intake or
+  // explicitly dismissed it before, the modal stays closed until they tap
+  // "Edit your setup." Prevents the hostile auto-open trap reported in F8.
+  const [open, setOpen] = useState<boolean>(
+    () => !isIntakeComplete(readIntake()) && !readIntakeDeferred(),
+  )
 
   useEffect(() => {
     const unsubscribe = onIntakeChange(() => {
@@ -107,7 +136,11 @@ function useIntakeGate(): IntakeGate {
     return unsubscribe
   }, [])
 
-  const reopen = () => setOpen(true)
+  const reopen = () => {
+    // Clearing the deferred flag means "the user came back to finish intake."
+    writeIntakeDeferred(false)
+    setOpen(true)
+  }
 
   return {
     intake,
@@ -190,7 +223,12 @@ export function EmpireLanding() {
           forceOpen={intakeGate.complete}
           onComplete={() => intakeGate.setOpen(false)}
           onDismiss={() => {
-            if (intakeGate.complete) intakeGate.setOpen(false)
+            // X / Esc dismisses unconditionally. If the user has not yet
+            // completed intake, remember the deferral so the modal does not
+            // re-trap them on the next visit. They can resume any time via
+            // "Edit your setup."
+            if (!intakeGate.complete) writeIntakeDeferred(true)
+            intakeGate.setOpen(false)
           }}
         />
       ) : null}
@@ -246,11 +284,11 @@ export function EmpireLanding() {
             available. */}
         <AuthorByline />
 
-        {/* Edit-your-setup pill. Only surfaces once intake is complete so
-            the user can reopen the modal to change name, division, industry,
-            outcomes, or surfaces. Tap target is 44px tall for mobile per
+        {/* Setup pill. Surfaces when intake is complete OR when the user
+            deferred the intake on first visit, so there is always a path
+            back to the modal. Tap target is 44px tall for mobile per
             Hard Rule #35 / R067. */}
-        {intakeGate.complete ? (
+        {intakeGate.complete || (!intakeGate.open && readIntakeDeferred()) ? (
           <div className="mb-4">
             <button
               type="button"
@@ -268,9 +306,9 @@ export function EmpireLanding() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.02)'
               }}
-              aria-label="Edit your setup"
+              aria-label={intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
             >
-              Edit your setup
+              {intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
             </button>
           </div>
         ) : null}
@@ -1627,13 +1665,15 @@ function InstallFlow() {
 
   return (
     <div className="mt-2">
-      {/* Stepper bar */}
+      {/* Stepper bar. F7 fix (S217 iter-2): on viewports under 640px the
+          six pills wrap into two rows of three so each tap target keeps a
+          usable width (~108px on a 375 viewport instead of ~22px). */}
       <div
-        className="flex items-center gap-2 sm:gap-3 flex-wrap mb-6"
+        className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6"
         role="tablist"
         aria-label="Install steps"
       >
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+        <div className="grid grid-cols-3 sm:flex sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full sm:flex-1 sm:min-w-0">
           {STEPS.map((s) => {
             const isActive = s.n === active
             const isDone = s.n < active
@@ -1648,7 +1688,7 @@ function InstallFlow() {
                   setPlaying(false)
                   go(s.n)
                 }}
-                className="group relative flex-1 min-w-0 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-full"
+                className="group relative w-full sm:flex-1 sm:min-w-0 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-full"
                 style={{ minHeight: 44 }}
               >
                 <span

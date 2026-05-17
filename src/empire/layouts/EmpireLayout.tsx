@@ -53,6 +53,27 @@ export function EmpireLayout() {
       className="min-h-screen flex flex-col"
       style={{ background: 'rgb(var(--color-bg))', color: 'rgb(var(--color-fg))' }}
     >
+      {/* Skip-to-content link. Hidden until focused so keyboard users can
+          jump past the header. WCAG 2.4.1. */}
+      <a
+        href="#empire-main-content"
+        className="sr-only focus:not-sr-only"
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          zIndex: 100,
+          padding: '10px 14px',
+          background: '#cc6e2e',
+          color: '#fbfaf3',
+          borderRadius: 8,
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+        }}
+      >
+        Skip to content
+      </a>
       <header
         className="px-[6vw] py-4 md:py-6 flex items-center justify-between border-b gap-3"
         style={{ borderColor: 'rgb(var(--color-border))', background: '#f5f4ed' }}
@@ -110,6 +131,7 @@ export function EmpireLayout() {
           ) : null}
         </Link>
         {isMobile ? (
+          <nav aria-label="Primary" style={{ display: 'inline-flex' }}>
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -151,8 +173,10 @@ export function EmpireLayout() {
               )}
             </svg>
           </button>
+          </nav>
         ) : (
           <nav
+            aria-label="Primary"
             className="flex items-center gap-8 text-sm"
             style={{ color: '#5e5d59', fontFamily: "'Newsreader', serif" }}
           >
@@ -218,7 +242,7 @@ export function EmpireLayout() {
       {isMobile && menuOpen ? (
         <nav
           id="empire-mobile-menu"
-          aria-label="Main menu"
+          aria-label="Mobile menu"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -301,7 +325,7 @@ export function EmpireLayout() {
         </nav>
       ) : null}
 
-      <main className="flex-1">
+      <main id="empire-main-content" className="flex-1">
         <Outlet />
       </main>
 

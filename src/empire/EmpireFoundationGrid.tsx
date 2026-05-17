@@ -21,9 +21,9 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Copy, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, Copy, Sparkles, X } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
-import { activateSkill, listActivated } from '../lib/activate'
+import { activateSkill, listActivated, removeActivated } from '../lib/activate'
 
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
@@ -276,7 +276,10 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   }
 
   // Primary action: open the mini-form. If the form is already open and the
-  // user clicks Install, we kick activateSkill with the customware answers.
+  // user clicks Confirm install, we kick activateSkill with the customware
+  // answers. F2 fix (S217 iter-2): the button label changes on each state so
+  // the user can tell the difference between "I opened a form" and "I just
+  // installed."
   async function handleInstall(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
     e.stopPropagation()
@@ -300,6 +303,42 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
     } finally {
       setInstalling(false)
     }
+  }
+
+  // F3 fix (S217 iter-2): explicit "skip personalization" path so the user
+  // does not get the worst-of-both-worlds case where a click on the same
+  // button silently installs with empty fields.
+  async function handleSkipPersonalization(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    setInstalling(true)
+    try {
+      await activateSkill({
+        slug: card.packId,
+        packUrl: packUrlFor(card.packId),
+        customwareAnswers: {
+          VP_NAME_SLUG: '',
+          DIVISION_SLUG: '',
+        },
+      })
+      setInstalled(true)
+    } catch {
+      /* activateSkill surfaces its own error toast */
+    } finally {
+      setInstalling(false)
+    }
+  }
+
+  // F9 fix (S217 iter-2): a Remove button on the installed-state card so
+  // the user can roll back an install without opening DevTools. Drops the
+  // pack id from the activated list and flips the card back to the
+  // pre-install presentation.
+  function handleRemove(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    removeActivated(card.packId)
+    setInstalled(false)
+    setShowForm(false)
   }
 
   return (
@@ -474,14 +513,20 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                 style={{ color: '#5e5d59' }}
               >
                 These swap into the pack body before it hits your clipboard.
-                Leave blank if you want plain placeholders.
+                Both fields are optional. Confirm install when ready, or skip
+                personalization to install with plain placeholders.
               </p>
             </div>
           </div>
         ) : null}
 
-        {/* S210: primary CTA (install) and secondary link (view pack detail).
-            Stacks single-column on mobile per R051. 44px min-height per R067. */}
+        {/* S210 + S217 iter-2: primary CTA + secondary actions. Stacks
+            single-column on mobile per R051. 44px min-height per R067.
+            F2: button label visibly changes per state (Personalize → Confirm
+            → Installed). F3: a Skip personalization secondary appears once
+            the form is open so the user has a deliberate path forward
+            instead of a silent empty-fields install. F9: a Remove secondary
+            appears once installed so the user can roll back. */}
         <div className="relative mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             type="button"
@@ -512,16 +557,48 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
               </>
             ) : showForm ? (
               <>
-                <Copy className="w-4 h-4" aria-hidden="true" />
-                Install on my Claude
+                <Check className="w-4 h-4" aria-hidden="true" />
+                Confirm install
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Install on my Claude
+                Personalize and install
               </>
             )}
           </button>
+          {!installed && showForm && !installing ? (
+            <button
+              type="button"
+              onClick={handleSkipPersonalization}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+            >
+              Skip personalization
+            </button>
+          ) : null}
+          {installed ? (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+              aria-label={`Remove ${card.title} from installed packs`}
+            >
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              Remove
+            </button>
+          ) : null}
           <Link
             to={`/empireworksreconstruction/pack/${card.packId}`}
             className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2"

@@ -110,6 +110,25 @@ export function listActivated(): string[] {
 }
 
 /**
+ * Remove a slug from the activated list. Used by the per-pack "Remove" CTA
+ * on Foundation cards. Fires the same scrolophyte:activated event so any
+ * trackers re-read the new state.
+ */
+export function removeActivated(slug: string): void {
+  try {
+    const raw = localStorage.getItem('scrolophyte.activated') ?? '[]'
+    const arr: string[] = JSON.parse(raw)
+    const next = arr.filter((s) => s !== slug)
+    if (next.length !== arr.length) {
+      localStorage.setItem('scrolophyte.activated', JSON.stringify(next))
+      window.dispatchEvent(new Event('scrolophyte:activated'))
+    }
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/**
  * Subscribe to activation changes (storage event + custom event).
  * Returns an unsubscribe function.
  */
@@ -233,8 +252,8 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
   if (copied) {
     toast.success(
       mobile
-        ? 'Prompt copied. Mobile support is limited. Paste in Claude, or open this on desktop for the full pack experience.'
-        : 'Prompt copied. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
+        ? 'Installed. Pack copied to clipboard. Paste in Claude, or open on desktop for the full experience.'
+        : 'Installed. Pack copied to clipboard. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
       { duration: 7000 },
     )
   } else if (opened) {

@@ -174,6 +174,17 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
     onDismiss?.()
   }, [onDismiss])
 
+  // F8 fix (S217 iter-2): Esc closes the modal so the user is never trapped
+  // by a modal they did not ask for. Only mounted for modal variant.
+  useEffect(() => {
+    if (variant !== 'modal' || !open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') dismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [variant, open, dismiss])
+
   if (!open) return null
 
   const progress = ((step + 1) / STEP_COUNT) * 100
@@ -359,12 +370,14 @@ interface StepNameProps {
 function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: StepNameProps) {
   return (
     <div>
-      <h2
+      <div
+        role="heading"
+        aria-level={2}
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
         style={{ color: 'rgb(var(--color-fg))' }}
       >
         Let us start with you.
-      </h2>
+      </div>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -449,12 +462,14 @@ function StepIndustry({
   const showConstructionSubFields = industry === 'construction'
   return (
     <div>
-      <h2
+      <div
+        role="heading"
+        aria-level={2}
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
         style={{ color: 'rgb(var(--color-fg))' }}
       >
         What industry are you in?
-      </h2>
+      </div>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -565,12 +580,14 @@ function StepOutcomes({ outcomes, customOutcome, onRankChange, onCustomChange, i
   const showCustomBox = (outcomes.custom ?? 0) > 0
   return (
     <div>
-      <h2
+      <div
+        role="heading"
+        aria-level={2}
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
         style={{ color: 'rgb(var(--color-fg))' }}
       >
         Rank what you want first.
-      </h2>
+      </div>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
@@ -683,12 +700,14 @@ function StepSurfaces({ surfaces, onToggle, isMobile }: StepSurfacesProps) {
   const set = new Set(surfaces)
   return (
     <div>
-      <h2
+      <div
+        role="heading"
+        aria-level={2}
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
         style={{ color: 'rgb(var(--color-fg))' }}
       >
         Where do you use Claude today?
-      </h2>
+      </div>
       <p
         className="text-sm sm:text-base leading-relaxed mb-5"
         style={{ color: 'rgb(var(--color-fg-muted))' }}

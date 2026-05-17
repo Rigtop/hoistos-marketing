@@ -101,8 +101,15 @@ export function MapCard() {
                       cy={32}
                       r={9}
                       fill="rgb(var(--color-accent) / 0.25)"
-                      animate={{ r: [9, 13, 9], opacity: [0.25, 0.05, 0.25] }}
-                      transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
+                      initial={{ opacity: 0.25, scale: 1 }}
+                      animate={{ opacity: [0.25, 0.05, 0.25], scale: [1, 1.44, 1] }}
+                      transition={{
+                        duration: 2.4,
+                        repeat: Infinity,
+                        delay: i * 0.18,
+                        ease: 'easeInOut',
+                      }}
+                      style={{ transformOrigin: `${cx}px 32px`, transformBox: 'fill-box' }}
                     />
                   ) : null}
                   <circle
