@@ -99,11 +99,14 @@ export function EmpireLayout() {
               flexShrink: 0,
             }}
           />
-          {/* "on HoistOS" sub-mark is hidden on mobile to keep the lockup
-              row narrow enough for the menu button. The HoistOS brand is
-              repeated in the mobile menu drawer below. */}
+          {/* "on HoistOS" sub-mark renders only at lg+ (>= 1024). Below 1024
+              the desktop nav already crowds the header at 768-1023 (iPad
+              portrait, Surface laptop minor), and the badge overprints the
+              first nav link "Overview" at that range. The HoistOS brand is
+              repeated in the mobile menu drawer for the mobile (<768) path
+              and stays visible at every tap-target laptop width (>= 1024). */}
           {!isMobile ? (
-            <>
+            <span className="hidden lg:contents">
               <span
                 aria-hidden="true"
                 className="h-7 w-px"
@@ -127,7 +130,7 @@ export function EmpireLayout() {
                   style={{ height: 22, width: 'auto', display: 'block' }}
                 />
               </span>
-            </>
+            </span>
           ) : null}
         </Link>
         {isMobile ? (

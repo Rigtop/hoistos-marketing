@@ -323,7 +323,7 @@ export function EmpireLanding() {
           <br />
           Compounding intelligence.
           <br />
-          <span style={{ color: 'rgb(var(--color-accent))' }}>Click, paste, done.</span>
+          <span style={{ color: 'rgb(var(--color-accent))' }}>Pick a pack, paste, done.</span>
         </motion.h1>
 
         <motion.p
@@ -333,7 +333,7 @@ export function EmpireLanding() {
           className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-7"
           style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
-          One paste. Voice, memory, sources, routing, validation. A Claude that knows
+          Pack by pack. Voice, memory, sources, routing, validation. A Claude that knows
           your business by tomorrow and keeps getting sharper every week after that.
         </motion.p>
 
@@ -387,7 +387,7 @@ export function EmpireLanding() {
               className="font-display text-[clamp(1.5rem,3.5vw,2.4rem)] leading-tight mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg))' }}
             >
-              Already running Claude Desktop? Wire all 11 Foundations in one setup.
+              Already running Claude Desktop? Wire all 11 Foundations in six pastes.
             </h2>
             <p
               className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-3"
@@ -402,8 +402,8 @@ export function EmpireLanding() {
               className="text-sm max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
-              Six steps. Ten minutes. One paste. Use the prev/next buttons or click any
-              dot to jump around.
+              Six pastes. Ten minutes. Use the prev/next buttons or click any dot to jump
+              around.
             </p>
 
             <InstallFlow />
@@ -452,7 +452,7 @@ export function EmpireLanding() {
             >
               Steve, Spencer, Jay: this is the construction AI setup adapted from the stack
               running at Perennial Empire. Install the Bridge, paste the setup prompt,
-              and Claude gets the Foundation system in one setup. The pack pages below
+              and Claude gets the Foundation system in six pastes. The pack pages below
               are for previewing what landed, not for installing them one at a time.
               Tell me what feels useful, what feels missing, and we will custom-fit the
               next batch for your workflow.
@@ -1433,7 +1433,7 @@ function StepRow({
               className="font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Step {index} of 6
+              Phase {index} of 6
             </div>
             <h3 className="text-lg sm:text-xl font-semibold leading-tight m-0 mb-3" style={{ color: 'rgb(var(--color-fg))' }}>
               {label}
@@ -1542,7 +1542,7 @@ function useInstallSteps(): InstallStep[] {
       label: 'Download',
       title: 'Download the Bridge for Claude Desktop',
       description:
-        'One installer for everything. The Foundation packs install through this. The pack preview pages are reference reading, not separate installs.',
+        'The Bridge ships every Foundation pack into Claude Desktop. The pack preview pages below are reference reading, not separate installs.',
       visualType: 'download-cta',
       visualVideo: null,
       visualScreenshot: null,
@@ -1647,15 +1647,19 @@ function InstallFlow() {
 
   return (
     <div className="mt-2">
-      {/* Stepper bar. F7 fix (S217 iter-2): on viewports under 640px the
-          six pills wrap into two rows of three so each tap target keeps a
-          usable width (~108px on a 375 viewport instead of ~22px). */}
+      {/* Stepper bar. F2 iter-10: the inline-flex pill row only has enough
+          horizontal real estate to render six labeled pills at lg+ (>= 1024).
+          Below that, the row stays as a 3-col grid (two rows of three) so each
+          pill keeps usable width and the labels do not truncate to single
+          characters at tablet portrait. The outer container also stays
+          flex-col below lg so the Play / Pause toggle drops cleanly below the
+          pill rows instead of being squeezed beside them. */}
       <div
-        className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6"
+        className="flex flex-col lg:flex-row lg:items-center gap-3 mb-6"
         role="tablist"
-        aria-label="Install steps"
+        aria-label="Install phases"
       >
-        <div className="grid grid-cols-3 sm:flex sm:flex-row sm:items-center gap-1.5 sm:gap-2 w-full sm:flex-1 sm:min-w-0">
+        <div className="grid grid-cols-3 lg:flex lg:flex-row lg:items-center gap-1.5 lg:gap-2 w-full lg:flex-1 lg:min-w-0">
           {STEPS.map((s) => {
             const isActive = s.n === active
             const isDone = s.n < active
@@ -1665,7 +1669,7 @@ function InstallFlow() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                aria-label={`Step ${s.n}: ${s.label}`}
+                aria-label={`Phase ${s.n}: ${s.label}`}
                 onClick={() => {
                   setPlaying(false)
                   go(s.n)
@@ -1770,7 +1774,7 @@ function InstallFlow() {
                   fontWeight: 700,
                 }}
               >
-                Step {active} of {total}
+                Phase {active} of {total}
               </span>
               <h3 className="font-display text-lg sm:text-2xl leading-tight m-0">
                 {step.title}

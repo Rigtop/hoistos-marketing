@@ -1629,14 +1629,22 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
             if (tier === 'desktop') onPostInstall(blueprint, 'desktop')
             else if (tier === 'code') onPostInstall(blueprint, 'clipboard-curl')
           }}
-          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200"
           style={{
             background: 'rgb(var(--color-accent))',
             color: 'rgb(var(--color-bg))',
             border: 'none',
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgb(var(--color-accent) / 0.32)',
+            minHeight: 44,
           }}
+          aria-label={
+            tier === 'desktop'
+              ? `Install ${blueprint.title} in Claude Desktop`
+              : tier === 'code'
+              ? `Copy install command for ${blueprint.title}`
+              : `Install ${blueprint.title} in my Claude`
+          }
           title={
             tier === 'desktop'
               ? 'Copies the full blueprint to your clipboard, opens the Claude Desktop app. Paste with Cmd+V in the chat composer and hit Return.'
@@ -1665,13 +1673,15 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         <button
           type="button"
           onClick={() => downloadBonusMarkdown(blueprint)}
-          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200"
           style={{
             background: 'transparent',
             color: 'rgb(var(--color-fg-muted))',
             border: '1px solid rgba(20,20,19,0.18)',
             cursor: 'pointer',
+            minHeight: 44,
           }}
+          aria-label={`Download ${blueprint.title} markdown`}
           title="Downloads the .md file via JS Blob, bypasses any browser inline-display behavior"
         >
           <Download className="w-4 h-4" aria-hidden="true" />

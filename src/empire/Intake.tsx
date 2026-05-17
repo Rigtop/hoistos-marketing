@@ -306,21 +306,45 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
         </button>
 
         {step < STEP_COUNT - 1 ? (
-          <button
-            type="button"
-            onClick={goNext}
-            aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          <div
+            className="flex items-center gap-3"
             style={{
-              minHeight: 44,
+              flexDirection: isMobile ? 'column-reverse' : 'row',
               width: isMobile ? '100%' : 'auto',
-              background: 'rgb(var(--color-accent))',
-              color: 'rgb(var(--color-bg))',
             }}
           >
-            Next
-            <ArrowRight size={14} aria-hidden="true" />
-          </button>
+            {step === 0 && !draft.name?.trim() && !draft.division?.trim() ? (
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Skip this step, the gallery still works with blanks"
+                className="rounded-lg px-3 text-xs underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                style={{
+                  minHeight: 44,
+                  width: isMobile ? '100%' : 'auto',
+                  color: 'rgb(var(--color-fg-muted))',
+                  background: 'transparent',
+                }}
+              >
+                Skip this step
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
+              className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{
+                minHeight: 44,
+                width: isMobile ? '100%' : 'auto',
+                background: 'rgb(var(--color-accent))',
+                color: 'rgb(var(--color-bg))',
+              }}
+            >
+              Next
+              <ArrowRight size={14} aria-hidden="true" />
+            </button>
+          </div>
         ) : (
           <button
             type="button"

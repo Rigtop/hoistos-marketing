@@ -553,8 +553,8 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
           </span>
         </div>
         <div style={{ fontSize: 12, color: COLORS.dim, lineHeight: 1.4 }}>
-          Foundation {tierCounts.foundation} . Business {tierCounts.business} . Power{' '}
-          {tierCounts.power} . Advanced {tierCounts.advanced} . Beginner {tierCounts.beginner} .
+          Foundation {tierCounts.foundation} · Business {tierCounts.business} · Power{' '}
+          {tierCounts.power} · Advanced {tierCounts.advanced} · Beginner {tierCounts.beginner} ·
           Bonus {tierCounts.bonus}
         </div>
       </header>
