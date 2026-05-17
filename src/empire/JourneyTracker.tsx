@@ -413,6 +413,31 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
   const packCount = installed.length
   const prose = useMemo(() => buildClaudeKnowsProse(installed, intake), [installed, intake])
 
+  // Per-session collapse: once the user has packs installed and has dismissed
+  // the columns at least once this session, start collapsed on return so the
+  // hero CTA can breathe. Default open on first visit.
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return window.sessionStorage.getItem('scrolophyte.tracker-collapsed') !== '1'
+    } catch {
+      return true
+    }
+  })
+  function toggleOpen() {
+    setOpen((prev) => {
+      const next = !prev
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('scrolophyte.tracker-collapsed', next ? '0' : '1')
+        }
+      } catch {
+        // sessionStorage unavailable, ignore
+      }
+      return next
+    })
+  }
+
   const tierCounts = useMemo(() => {
     const buckets = { foundation: 0, business: 0, power: 0, advanced: 0, beginner: 0, bonus: 0 }
     for (const id of installed) {
@@ -453,14 +478,62 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
       <header style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: COLORS.accent,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
           }}
         >
-          Claude is growing
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: COLORS.accent,
+            }}
+          >
+            Claude is growing
+          </div>
+          <button
+            type="button"
+            onClick={toggleOpen}
+            aria-expanded={open}
+            aria-controls="tracker-body"
+            aria-label={open ? 'Collapse tracker columns' : 'Expand tracker columns'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 44,
+              minHeight: 44,
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: `1px solid ${COLORS.paperLine}`,
+              background: 'transparent',
+              color: COLORS.inkSoft,
+              cursor: 'pointer',
+              fontSize: 12,
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{
+                transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 200ms ease',
+              }}
+            >
+              <path
+                d="M6 9l6 6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
           <span
@@ -497,7 +570,18 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
         </div>
       ) : null}
 
-      <div style={columnsStyle}>
+      <div
+        id="tracker-body"
+        style={{
+          ...columnsStyle,
+          maxHeight: open ? 4000 : 0,
+          opacity: open ? 1 : 0,
+          overflow: 'hidden',
+          transition: 'max-height 320ms ease, opacity 200ms ease',
+          pointerEvents: open ? 'auto' : 'none',
+        }}
+        aria-hidden={!open}
+      >
         <Column
           title="Rules"
           description="Voice, validation, source rigor."

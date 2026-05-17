@@ -108,7 +108,7 @@ export function EmpirePackDetail() {
     <div className="px-[6vw] pt-16 pb-32" style={{ color: 'rgb(var(--color-fg))' }}>
       <Link
         to="/empire"
-        className="inline-flex items-center gap-2 text-sm font-mono uppercase tracking-[0.18em] mb-10"
+        className="inline-flex items-center gap-2 text-sm font-medium mb-10"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
         <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
@@ -118,14 +118,14 @@ export function EmpirePackDetail() {
       <header className="max-w-3xl">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span
-            className="font-mono text-xs uppercase tracking-[0.2em]"
+            className="text-xs font-medium"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
-            {pack.realCard ? `${pack.realCard.badge} · Installed` : `Pack preview / ${pack.packId}`}
+            {pack.realCard ? `${pack.realCard.badge} · Installed` : 'Pack preview'}
           </span>
           {pack.realCard && tone ? (
             <span
-              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium rounded-full px-2.5 py-1"
               style={{ background: tone.bg, color: tone.color }}
             >
               <span
@@ -157,7 +157,7 @@ export function EmpirePackDetail() {
               }}
             >
               <div
-                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                className="text-xs font-medium mb-2"
                 style={{ color: 'rgb(var(--color-accent))' }}
               >
                 You type
@@ -180,7 +180,7 @@ export function EmpirePackDetail() {
               }}
             >
               <div
-                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                className="text-xs font-medium mb-2"
                 style={{ color: 'rgb(var(--color-accent))' }}
               >
                 Claude returns
@@ -205,7 +205,7 @@ export function EmpirePackDetail() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+            className="text-xs font-medium mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             What you bring
@@ -232,7 +232,7 @@ export function EmpirePackDetail() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+            className="text-xs font-medium mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             What you walk away with
@@ -310,7 +310,7 @@ export function EmpirePackDetail() {
         </div>
 
         <div
-          className="mt-6 font-mono text-[10px] uppercase tracking-[0.18em]"
+          className="mt-6 text-xs font-medium"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Reference prompt

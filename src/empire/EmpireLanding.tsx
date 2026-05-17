@@ -378,7 +378,7 @@ export function EmpireLanding() {
             }}
           >
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3 text-center"
+              className="text-xs font-medium mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
               Optional Desktop convenience for bulk install
@@ -387,7 +387,7 @@ export function EmpireLanding() {
               className="font-display text-[clamp(1.5rem,3.5vw,2.4rem)] leading-tight mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg))' }}
             >
-              Already running Claude Desktop? Bulk install Foundation in one click.
+              Already running Claude Desktop? Wire all 11 Foundations in one setup.
             </h2>
             <p
               className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-3"
@@ -402,7 +402,7 @@ export function EmpireLanding() {
               className="text-sm max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
-              Six steps, ten minutes, one paste. Use the prev/next buttons or click any
+              Six steps. Ten minutes. One paste. Use the prev/next buttons or click any
               dot to jump around.
             </p>
 
@@ -441,7 +441,7 @@ export function EmpireLanding() {
             }}
           >
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+              className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
               For the EmpireWorks Reconstruction team
@@ -452,7 +452,7 @@ export function EmpireLanding() {
             >
               Steve, Spencer, Jay: this is the construction AI setup adapted from the stack
               running at Perennial Empire. Install the Bridge, paste the setup prompt,
-              and Claude gets the Foundation system in one pass. The pack pages below
+              and Claude gets the Foundation system in one setup. The pack pages below
               are for previewing what landed, not for installing them one at a time.
               Tell me what feels useful, what feels missing, and we will custom-fit the
               next batch for your workflow.
@@ -948,63 +948,49 @@ function DashboardLiveDemo() {
           org.hoistos.com, Perennial Empire Organizational Hub
         </span>
         <span
-          className="ml-auto font-mono text-[9px] uppercase tracking-[0.18em] px-2 py-0.5 rounded"
+          className="ml-auto text-[10px] font-medium px-2 py-0.5 rounded"
           style={{
             color: 'rgb(var(--color-accent))',
             background: 'rgb(var(--color-accent) / 0.08)',
           }}
         >
-          Live
+          Snapshot
         </span>
       </div>
 
-      {/* Lenis (the smooth-scroll on the outer page) intercepts wheel events
-          at the document level, so plain `overscroll-behavior: contain` did
-          not stop the outer page from scrolling when the user scrolled
-          inside the iframe. The fix is `data-lenis-prevent` on the wrapper:
-          Lenis explicitly skips wheel events that originate inside any
-          element with this attribute. We also keep overscroll-behavior
-          + overflow: hidden as belt-and-suspenders.
-
-          Reference: lenis v1.3 docs (`data-lenis-prevent` attribute). */}
+      {/* Org-hub CSP rejects framing from non-allowlisted hosts, so the
+          dashboard renders as a CSS-art snapshot of the live surface and
+          the figcaption below links to the live URL in a new tab. Drops
+          two console errors per /empire load and the silent blank-box
+          failure mode. */}
       <div
-        data-lenis-prevent
         style={{
           position: 'relative',
           width: '100%',
           aspectRatio: '16 / 11',
-          overscrollBehavior: 'contain',
-          overflow: 'hidden',
+          padding: 12,
         }}
       >
-        <iframe
-          data-lenis-prevent
-          src="https://org.hoistos.com/?embed=1"
-          title="Perennial Empire Organizational Hub, live demo"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allow="fullscreen"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            border: 0,
-            display: 'block',
-            overscrollBehavior: 'contain',
-          }}
-        />
+        <DashboardCssMock />
       </div>
 
       <figcaption
-        className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-center border-t"
+        className="px-4 py-3 text-center border-t"
         style={{
-          color: 'rgb(var(--color-fg-subtle))',
           borderTopColor: 'rgba(20,20,19,0.08)',
           background: 'rgba(20,20,19,0.02)',
         }}
       >
-        Live financials. Real war-room. Click around.
+        <a
+          href="https://org.hoistos.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-medium"
+          style={{ color: 'rgb(var(--color-accent))' }}
+        >
+          Open the live dashboard in a new tab
+          <span aria-hidden="true">↗</span>
+        </a>
       </figcaption>
     </figure>
   )
@@ -1097,11 +1083,10 @@ function useCalendlyScript() {
  * pyramid) without leaking any real data. The shimmer animation gives the
  * mock a "live data is arriving" feel without committing to actual numbers.
  */
-// Kept as a CSS fallback for the case where the org.hoistos.com iframe fails
-// to load (network block, CSP rejection, mobile data saver). Currently unused
-// in production: the ModuleOneTeaser ships the live iframe. Reserved name
-// so revert is one-line if iframe embedding breaks.
-function _DashboardMockReserved() {
+// CSS-art snapshot of the org.hoistos.com dashboard. Renders inline in
+// DashboardLiveDemo because org-hub's CSP frame-ancestors allowlist
+// rejects framing from this app's host.
+function DashboardCssMock() {
   return (
     <div
       className="rounded-2xl p-4 md:p-5 relative overflow-hidden"
@@ -1299,9 +1284,6 @@ function _DashboardMockReserved() {
     </div>
   )
 }
-// Mark the reserved fallback as intentionally-unused for the TS compiler.
-void _DashboardMockReserved
-
 // ---------------------------------------------------------------------------
 // AuroraBackdropLight. Editorial-theme-fitted backdrop.
 // ---------------------------------------------------------------------------
@@ -1705,9 +1687,9 @@ function InstallFlow() {
                   }}
                 />
                 <span
-                  className="block mt-2 text-center font-mono uppercase tracking-[0.18em] truncate transition-colors"
+                  className="block mt-2 text-center truncate transition-colors"
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     color: isActive
                       ? 'rgb(var(--color-accent))'
                       : isDone
@@ -1716,8 +1698,7 @@ function InstallFlow() {
                     fontWeight: isActive ? 700 : 500,
                   }}
                 >
-                  <span className="sm:hidden">{s.n}</span>
-                  <span className="hidden sm:inline">{s.n}. {s.label}</span>
+                  {s.n}. {s.label}
                 </span>
               </button>
             )
@@ -1729,7 +1710,7 @@ function InstallFlow() {
           onClick={() => setPlaying((p) => !p)}
           aria-pressed={playing}
           aria-label={playing ? 'Pause auto-advance' : 'Play guided walkthrough'}
-          className="inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[10px] font-mono uppercase tracking-[0.18em] shrink-0 transition"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium shrink-0 transition"
           style={{
             background: playing
               ? 'rgb(var(--color-accent) / 0.12)'
@@ -1738,7 +1719,8 @@ function InstallFlow() {
             border: playing
               ? '1px solid rgb(var(--color-accent) / 0.32)'
               : '1px solid rgba(20,20,19,0.1)',
-            minHeight: 36,
+            minHeight: 44,
+            minWidth: 44,
           }}
         >
           {playing ? (
@@ -1778,7 +1760,7 @@ function InstallFlow() {
           <div className="p-5 sm:p-6">
             <div className="flex items-baseline gap-3 mb-3 flex-wrap">
               <span
-                className="inline-flex items-center justify-center rounded-full font-mono text-[11px] uppercase tracking-[0.16em]"
+                className="inline-flex items-center justify-center rounded-full text-xs"
                 style={{
                   background:
                     'linear-gradient(135deg, rgb(var(--color-accent)), rgb(204, 110, 46))',
@@ -1830,7 +1812,7 @@ function InstallFlow() {
                 prev()
               }}
               disabled={active === 1}
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-sm font-semibold transition min-h-11"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-sm font-semibold transition min-h-11 min-w-11"
               style={{
                 background: active === 1 ? 'rgba(20,20,19,0.04)' : 'rgba(20,20,19,0.06)',
                 color: active === 1 ? 'rgb(var(--color-fg-subtle))' : '#141413',
@@ -1838,6 +1820,7 @@ function InstallFlow() {
                 cursor: active === 1 ? 'not-allowed' : 'pointer',
                 opacity: active === 1 ? 0.5 : 1,
               }}
+              aria-label={active === 1 ? 'Previous step (disabled)' : 'Previous step'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M14 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -1845,7 +1828,7 @@ function InstallFlow() {
               <span className="hidden sm:inline">Previous</span>
             </button>
             <span
-              className="font-mono text-[10px] uppercase tracking-[0.22em]"
+              className="text-xs font-medium"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
               {active < total ? `Up next: ${STEPS[active]?.label}` : 'Last step'}
@@ -2416,7 +2399,7 @@ function CapabilityCard({
   }
 
   const Icon = ICON_MAP[capability.iconName]
-  const MotionLink = motion(Link)
+  const MotionLink = motion.create(Link)
 
   return (
     <MotionLink

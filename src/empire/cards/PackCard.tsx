@@ -166,13 +166,13 @@ export function PackCard() {
         </div>
 
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          className="text-xs font-medium mb-3"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           The pack
         </div>
         <h3 className="font-display text-[1.75rem] leading-tight mb-4" style={{ color: 'rgb(var(--color-fg))' }}>
-          Foundation installs in one pass
+          Foundation installs in one setup
         </h3>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
           The first install is not 11 separate downloads. Claude calls the Bridge,

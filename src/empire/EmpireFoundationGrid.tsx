@@ -106,7 +106,7 @@ function HeroBlock() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
+        className="text-sm font-medium mb-5"
         style={{ color: 'rgb(var(--color-accent))' }}
       >
         Your installed system
@@ -180,7 +180,7 @@ function VerifyCTA() {
         <div className="flex items-start gap-4 flex-col sm:flex-row">
           <div className="flex-1 min-w-0">
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+              className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
               Step zero: verify it landed
@@ -395,7 +395,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
 
         <div className="relative flex items-start justify-between gap-3 mb-4">
           <span
-            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+            className="inline-flex items-center gap-2 text-[11px] font-medium rounded-full px-2.5 py-1"
             style={{ background: 'rgba(20,20,19,0.05)', color: '#141413' }}
           >
             <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 700 }}>{card.badge}</span>
@@ -405,7 +405,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             </span>
           </span>
           <span
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium rounded-full px-2.5 py-1"
             style={{ background: tone.bg, color: tone.color }}
           >
             <span
@@ -436,7 +436,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+            className="text-xs font-medium mb-2"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             You type
@@ -455,7 +455,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
 
         <div className="relative mt-3">
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+            className="text-xs font-medium mb-2"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             Claude returns
@@ -481,7 +481,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             }}
           >
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+              className="text-xs font-medium mb-3"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
               Customize before install
@@ -591,7 +591,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
               type="button"
               onClick={handleSkipPersonalization}
               aria-label={`Install ${card.title} with placeholders, skip personalization`}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -606,7 +606,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             <button
               type="button"
               onClick={handleRemove}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -621,7 +621,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           ) : null}
           <Link
             to={`/empireworksreconstruction/pack/${card.packId}`}
-            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               color: 'rgb(var(--color-accent))',
               textDecoration: 'none',
@@ -650,7 +650,7 @@ function BottomCTA() {
       className="mt-20 max-w-3xl mx-auto text-center"
     >
       <p
-        className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+        className="text-sm font-medium mb-4"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
         What is next
