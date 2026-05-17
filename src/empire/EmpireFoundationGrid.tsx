@@ -183,7 +183,7 @@ function VerifyCTA() {
               className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Step zero: verify it landed
+              Before you install: verify it landed
             </div>
             <h2 className="font-display text-xl sm:text-2xl leading-tight mb-2">
               Paste this into your Claude Project first

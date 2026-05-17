@@ -857,15 +857,22 @@ export function EmpireBonusExtras() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-6 flex items-center justify-center gap-3 flex-wrap"
+          className="font-mono text-xs uppercase tracking-[0.22em] mb-3 flex items-center justify-center gap-3 flex-wrap"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           <span>HoistOS</span>
           <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
           <span>Advanced</span>
-          <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
-          <span>For operators who installed the Foundation</span>
         </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="text-sm mb-6 text-center"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          For operators who installed the Foundation.
+        </motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 16 }}

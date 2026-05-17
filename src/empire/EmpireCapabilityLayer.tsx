@@ -77,7 +77,11 @@ export function EmpireCapabilityLayer() {
         to="/empireworksreconstruction"
         aria-label="Back to the overview"
         className="inline-flex items-center gap-2 text-sm font-mono uppercase tracking-[0.18em] mb-8 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        style={{
+          color: 'rgb(var(--color-fg-subtle))',
+          padding: '10px 6px',
+          minHeight: 44,
+        }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = 'rgb(var(--color-accent))'
         }}

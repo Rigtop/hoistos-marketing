@@ -112,7 +112,7 @@ createRoot(document.getElementById('root')!).render(
             },
           }}
         />
-        <Analytics />
+        <Analytics mode="production" debug={false} />
         <AppRouter />
       </RootLenisProvider>
     </BrowserRouter>

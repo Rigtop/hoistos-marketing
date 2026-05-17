@@ -216,10 +216,13 @@ export function EmpireLayout() {
                 fontWeight: 600,
                 fontSize: 14,
                 background: '#cc6e2e',
-                padding: '6px 14px',
+                padding: '12px 18px',
                 borderRadius: 999,
                 textDecoration: 'none',
                 boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                minHeight: 44,
               }}
             >
               Book a walkthrough

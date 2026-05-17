@@ -391,17 +391,8 @@ export function EmpireLanding() {
               Already running Claude Desktop? Wire all 11 Foundations in six pastes.
             </h2>
             <p
-              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-3"
+              className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
-            >
-              The primary path is pack by pack from the Foundation gallery (clipboard
-              paste into Project Knowledge, works on every Claude surface). This panel
-              is for users who already have Claude Desktop installed and want all 11
-              Foundations wired in a single setup.
-            </p>
-            <p
-              className="text-sm max-w-2xl mx-auto text-center leading-relaxed mb-7"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
               Six pastes. Ten minutes. Use the prev/next buttons or click any dot to jump
               around.
@@ -565,7 +556,7 @@ export function EmpireLanding() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+          className="mt-5 text-sm"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Click to install pack by pack. The Bridge above is optional for Desktop users who want bulk install.
@@ -986,8 +977,18 @@ function DashboardLiveDemo() {
           href="https://org.hoistos.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-medium"
-          style={{ color: 'rgb(var(--color-accent))' }}
+          className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg transition-colors"
+          style={{
+            color: 'rgb(var(--color-accent))',
+            padding: '12px 14px',
+            minHeight: 44,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgb(var(--color-accent) / 0.08)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
         >
           Open the live dashboard in a new tab
           <span aria-hidden="true">↗</span>

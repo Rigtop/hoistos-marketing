@@ -74,7 +74,7 @@ function buildPack(packId: string): PackPlaceholder {
     packId,
     title: prettifyId(packId),
     tagline:
-      'A Bridge-installed pack preview. Read what it does, then use the guided Bridge setup to install Foundation in one pass.',
+      'A Bridge-installed pack preview. Read what it does, then use the guided Bridge setup to install Foundation across six pastes.',
     bestFor:
       'Any operator who wants Claude to load the right rules and workflow guidance without reinstalling packs one by one.',
     inputs: [
@@ -108,8 +108,12 @@ export function EmpirePackDetail() {
     <div className="px-[6vw] pt-16 pb-32" style={{ color: 'rgb(var(--color-fg))' }}>
       <Link
         to="/empire"
-        className="inline-flex items-center gap-2 text-sm font-medium mb-10"
-        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        className="inline-flex items-center gap-2 text-sm font-medium mb-10 rounded-lg"
+        style={{
+          color: 'rgb(var(--color-fg-subtle))',
+          padding: '10px 8px',
+          minHeight: 44,
+        }}
       >
         <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
         Back to overview
@@ -300,10 +304,18 @@ export function EmpirePackDetail() {
           )}
 
           <div className="flex flex-wrap gap-3">
-            <Link to="/empireworksreconstruction/foundation" className="btn btn-ghost px-5">
+            <Link
+              to="/empireworksreconstruction/foundation"
+              className="btn btn-ghost px-5 py-3"
+              style={{ minHeight: 44 }}
+            >
               Back to all packs
             </Link>
-            <Link to="/empireworksreconstruction" className="btn btn-ghost px-5">
+            <Link
+              to="/empireworksreconstruction"
+              className="btn btn-ghost px-5 py-3"
+              style={{ minHeight: 44 }}
+            >
               Overview
             </Link>
           </div>
