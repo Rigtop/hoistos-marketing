@@ -18,7 +18,7 @@
  * R067: mobile-first. 320/375/768 viewports verified pre-ship.
  */
 
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Copy, Sparkles, X } from 'lucide-react'
@@ -143,8 +143,8 @@ function HeroBlock() {
         className="text-sm leading-relaxed max-w-xl mx-auto"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        Click any card for the full pack preview. Verify the install first with the
-        prompt below, then come back to walk through what landed.
+        Tap any card to see the full pack. Run the verify prompt below first, then
+        walk through what actually landed.
       </motion.p>
     </header>
   )
@@ -200,7 +200,8 @@ function VerifyCTA() {
           <button
             type="button"
             onClick={copy}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11"
+            aria-label={copied ? 'Verify prompt copied to clipboard' : 'Copy verify prompt to clipboard'}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: copied ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -242,6 +243,7 @@ function Grid() {
 
 function FoundationCardTile({ card, index }: { card: FoundationCard; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion() ?? false
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const rotX = useSpring(useTransform(my, [-1, 1], [4, -4]), { stiffness: 200, damping: 24 })
@@ -262,6 +264,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   )
 
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduceMotion) return
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -346,11 +349,19 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      style={
+        reduceMotion
+          ? { transformPerspective: 1200 }
+          : { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }
+      }
+      initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }
+      }
       className="group relative rounded-3xl overflow-hidden"
     >
       <div
@@ -512,9 +523,8 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                 className="text-xs m-0"
                 style={{ color: '#5e5d59' }}
               >
-                These swap into the pack body before it hits your clipboard.
-                Both fields are optional. Confirm install when ready, or skip
-                personalization to install with plain placeholders.
+                Both fields swap into the pack before it copies. Both are optional.
+                Confirm to install, or skip to install with placeholders.
               </p>
             </div>
           </div>
@@ -532,7 +542,16 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             type="button"
             onClick={handleInstall}
             disabled={installing}
-            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition"
+            aria-label={
+              installed
+                ? `${card.title} is installed`
+                : installing
+                  ? `Installing ${card.title}`
+                  : showForm
+                    ? `Confirm install of ${card.title}`
+                    : `Personalize and install ${card.title}`
+            }
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -571,7 +590,8 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             <button
               type="button"
               onClick={handleSkipPersonalization}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition"
+              aria-label={`Install ${card.title} with placeholders, skip personalization`}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -579,14 +599,14 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                 minHeight: 44,
               }}
             >
-              Skip personalization
+              Skip and install
             </button>
           ) : null}
           {installed ? (
             <button
               type="button"
               onClick={handleRemove}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -601,14 +621,14 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           ) : null}
           <Link
             to={`/empireworksreconstruction/pack/${card.packId}`}
-            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2"
+            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               color: 'rgb(var(--color-accent))',
               textDecoration: 'none',
               minHeight: 44,
             }}
           >
-            View pack details
+            See what it does
             <ArrowRight
               className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"
               aria-hidden="true"
@@ -643,12 +663,12 @@ function BottomCTA() {
         style={{ color: '#5e5d59' }}
       >
         Once Foundation is rolling, the advanced packs (proposal builder, RFI flow,
-        skill-builder, the rest) layer onto the same Bridge. You will not reinstall.
-        You will just ask for more.
+        skill builder, the rest) layer onto the same Bridge. No reinstall. Just
+        ask for more.
       </p>
       <Link
         to="/empireworksreconstruction/bonus-extras"
-        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           background: 'rgb(var(--color-accent))',
           color: '#fbfaf3',

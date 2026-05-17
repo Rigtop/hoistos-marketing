@@ -349,6 +349,7 @@ function CodeIntroPanel(props: {
         <button
           type="button"
           onClick={onPrimary}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             padding: '10px 18px',
@@ -369,6 +370,7 @@ function CodeIntroPanel(props: {
         <button
           type="button"
           onClick={onSecondary}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             padding: '10px 14px',
@@ -476,6 +478,24 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
           Bonus {tierCounts.bonus}
         </div>
       </header>
+
+      {packCount === 0 ? (
+        <div
+          role="status"
+          style={{
+            fontSize: 12,
+            color: COLORS.inkSoft,
+            lineHeight: 1.5,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: `1px dashed ${COLORS.paperLine}`,
+            background: 'transparent',
+          }}
+        >
+          Nothing installed yet. The columns below light up as you install. Start
+          with Tier Guide, then the Constitution and Facts Registry.
+        </div>
+      ) : null}
 
       <div style={columnsStyle}>
         <Column

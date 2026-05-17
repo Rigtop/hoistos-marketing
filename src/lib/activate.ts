@@ -252,18 +252,18 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
   if (copied) {
     toast.success(
       mobile
-        ? 'Installed. Pack copied to clipboard. Paste in Claude, or open on desktop for the full experience.'
-        : 'Installed. Pack copied to clipboard. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
+        ? 'Locked in. The pack is on your clipboard. Paste in Claude, or hop to Desktop for the full handshake.'
+        : 'Locked in. The pack is on your clipboard. Cmd-V into the Claude tab that just opened.',
       { duration: 7000 },
     )
   } else if (opened) {
     toast(
-      'Claude opened in a new tab. Copy the pack from the page below and paste it in.',
+      'Claude is open in a new tab. Copy the pack below and paste it across.',
       { duration: 7000 },
     )
   } else {
     toast.error(
-      'Activation blocked. Allow popups and clipboard access, then try again.',
+      'Install blocked by the browser. Allow popups and clipboard, then try again.',
       { duration: 7000 },
     )
   }

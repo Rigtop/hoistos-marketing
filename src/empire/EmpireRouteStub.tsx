@@ -34,35 +34,35 @@ const COPY: Record<
   { eyebrow: string; title: string; body: string; primaryLabel: string; primaryTo: string }
 > = {
   dashboard: {
-    eyebrow: 'In progress',
-    title: 'Dashboard surface is queued',
+    eyebrow: 'Under construction',
+    title: 'The dashboard is on the next build',
     body:
-      'The five-layer dashboard ships in the next vision build. The live operating layers and the install gallery are already up at the links below.',
-    primaryLabel: 'See the install gallery',
+      'The five-layer dashboard is being wired in the next pass. The install gallery is live now, and that is where the actual work happens today.',
+    primaryLabel: 'Open the install gallery',
     primaryTo: '/empireworksreconstruction/foundation',
   },
   bridge: {
-    eyebrow: 'In progress',
-    title: 'Bridge surface is queued',
+    eyebrow: 'Under construction',
+    title: 'The Bridge is on the next build',
     body:
-      'The Bridge installer + verify page returns in the next vision build. The pack-by-pack install path is live now; each Foundation pack copies its full body to your clipboard and walks you through paste.',
+      'The Bridge installer comes back in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough to paste it across.',
     primaryLabel: 'Install pack by pack',
     primaryTo: '/empireworksreconstruction/foundation',
   },
   packs: {
-    eyebrow: 'In progress',
-    title: 'Packs gallery is queued',
+    eyebrow: 'Under construction',
+    title: 'The full packs gallery is on the next build',
     body:
-      'The full packs gallery (Foundation, Advanced, Power, Beginner, Bonus) ships in the next vision build. The Foundation gallery is live now and covers the eleven cards that anchor every install.',
-    primaryLabel: 'Open Foundation gallery',
+      'Foundation, Advanced, Power, Beginner, and Bonus all roll into the next gallery pass. The Foundation eleven are already live and anchor every install.',
+    primaryLabel: 'Open the Foundation gallery',
     primaryTo: '/empireworksreconstruction/foundation',
   },
   'not-found': {
-    eyebrow: 'Not found',
-    title: 'No surface at this address',
+    eyebrow: 'Dead link',
+    title: 'Nothing lives at this address',
     body:
-      'The link is dead or the route has moved. The two live surfaces are the landing page and the Foundation install gallery.',
-    primaryLabel: 'Return to overview',
+      'The link is stale or the route moved. The two live surfaces are the landing page and the Foundation install gallery.',
+    primaryLabel: 'Back to the overview',
     primaryTo: '/empireworksreconstruction',
   },
 }
@@ -115,6 +115,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
             to={copy.primaryTo}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -134,6 +135,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
           </Link>
           <Link
             to="/empireworksreconstruction"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -149,7 +151,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
               background: 'transparent',
             }}
           >
-            Back to overview
+            Back to the overview
           </Link>
         </div>
       </div>
