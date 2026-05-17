@@ -35,7 +35,7 @@ import {
   Search,
   Shield,
 } from 'lucide-react'
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
 import { CAPABILITIES, type Capability } from './content/capabilities'
 
 /**
@@ -196,12 +196,13 @@ export function EmpireLanding() {
   const audience = useAudience()
   const intakeGate = useIntakeGate()
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
 
   function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
     const target = document.getElementById('how-it-works')
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
     }
   }
 
@@ -381,7 +382,7 @@ export function EmpireLanding() {
               className="text-xs font-medium mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
-              Optional Desktop convenience for bulk install
+              Skip if you do not have Claude Desktop yet
             </div>
             <h2
               className="font-display text-[clamp(1.5rem,3.5vw,2.4rem)] leading-tight mb-3 text-center"
@@ -482,8 +483,8 @@ export function EmpireLanding() {
             How it works
           </span>
           <motion.span
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            animate={reduced ? undefined : { y: [0, 6, 0] }}
+            transition={reduced ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
             className="flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 group-hover:scale-110"
             style={{
               borderColor: 'rgb(var(--color-accent) / 0.4)',
@@ -527,7 +528,7 @@ export function EmpireLanding() {
           className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Ready when you are
+          Start the install
         </motion.p>
 
         <motion.div
@@ -592,10 +593,10 @@ export function EmpireLanding() {
           className="font-mono text-xs uppercase tracking-[0.22em] mb-4 mt-10"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Confidential
+          Confidential to EmpireWorks
         </p>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          For people inside EmpireWorks Reconstruction only. Please don't share outside the team.
+          This page is for people inside EmpireWorks Reconstruction. Keep it inside the team.
         </p>
       </section>
 

@@ -52,7 +52,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { useIsMobile } from '../lib/useIsMobile'
 import {
@@ -98,6 +98,7 @@ export interface IntakeProps {
 
 export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: IntakeProps) {
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
   const [draft, setDraft] = useState<IntakeState>(() => {
     const existing = readIntake()
     if (existing && Object.keys(existing).length > 0) {
@@ -201,8 +202,9 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Close intake"
-          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full"
+          aria-label="Close intake (Escape also works)"
+          aria-keyshortcuts="Escape"
+          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             width: 44,
             height: 44,
@@ -228,9 +230,9 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           <motion.div
             className="h-full"
             style={{ background: 'rgb(var(--color-accent))' }}
-            initial={{ width: 0 }}
+            initial={reduced ? false : { width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={reduced ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
       </div>
@@ -238,10 +240,10 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, x: 24 }}
+          initial={reduced ? false : { opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          exit={reduced ? { opacity: 1 } : { opacity: 0, x: -24 }}
+          transition={reduced ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
           {step === 0 ? (
             <StepName

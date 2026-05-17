@@ -132,8 +132,8 @@ function HeroBlock() {
         className="text-base md:text-lg leading-relaxed mb-3"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
       >
-        The Bridge dropped these onto your machine in one paste. Each card below shows
-        what one pack does, what to type to invoke it, and what Claude returns.
+        The Bridge wired these onto your machine. Each card below shows what one pack
+        does, what to type to invoke it, and what Claude returns.
       </motion.p>
 
       <motion.p

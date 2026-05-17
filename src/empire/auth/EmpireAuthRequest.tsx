@@ -76,8 +76,8 @@ export function EmpireAuthRequest() {
         </div>
         <h1 className="font-display text-4xl mb-3">Check your email.</h1>
         <p className="text-base mb-8" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          We sent a sign-in link to <strong>{state.email}</strong>. Click it
-          and you are in. Link expires in 30 minutes.
+          A sign-in link is on its way to <strong>{state.email}</strong>. Open
+          it and you are in. The link expires in 30 minutes.
         </p>
 
         {devPathOnly ? (
@@ -139,8 +139,8 @@ export function EmpireAuthRequest() {
       </div>
       <h1 className="font-display text-4xl mb-3">Sign in.</h1>
       <p className="text-base mb-10" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-        Use your work email. We send a one-click magic link, no password to
-        remember.
+        Drop your work email. A one-click magic link lands in your inbox.
+        No password.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
@@ -158,7 +158,9 @@ export function EmpireAuthRequest() {
             autoComplete="email"
             placeholder="you@perennialempire.com"
             {...register('email')}
-            className="w-full rounded-lg px-4 py-3 text-base outline-none transition-colors"
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? 'empire-email-error' : undefined}
+            className="w-full rounded-lg px-4 py-3 text-base outline-none transition-colors focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: 'rgb(var(--color-surface-2))',
               border: '1px solid rgb(var(--color-border))',
@@ -167,6 +169,7 @@ export function EmpireAuthRequest() {
           />
           {errors.email ? (
             <p
+              id="empire-email-error"
               className="mt-2 text-xs"
               style={{ color: 'rgb(var(--color-accent))' }}
               role="alert"
@@ -178,8 +181,10 @@ export function EmpireAuthRequest() {
 
         <button
           type="submit"
-          className="btn btn-primary px-6 py-3 text-base"
+          className="btn btn-primary px-6 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          aria-label={isSubmitting ? 'Sending magic link' : 'Send me the magic link'}
         >
           {isSubmitting ? 'Sending' : 'Send me the link'}
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
