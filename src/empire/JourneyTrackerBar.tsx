@@ -19,7 +19,7 @@ import { listActivated, onActivatedChange } from '../lib/activate'
 import { FOUNDATION_CARDS, type FoundationCard } from './content/foundation-cards'
 import { computeLevel } from './level'
 
-const TOTAL_PACK_COUNT = 43
+const TOTAL_PACK_COUNT = FOUNDATION_CARDS.length
 
 const LAYER_LABELS = ['Voice', 'Memory', 'Sources', 'Routing', 'Validation'] as const
 
@@ -82,7 +82,7 @@ export function JourneyTrackerBar() {
         background: 'rgb(var(--color-bg) / 0.92)',
         backdropFilter: 'saturate(180%) blur(8px)',
         WebkitBackdropFilter: 'saturate(180%) blur(8px)',
-        borderBottom: '1px solid rgb(var(--color-fg) / 0.08)',
+        boxShadow: '0 1px 0 0 rgb(var(--color-fg) / 0.08)',
         boxSizing: 'border-box',
       }}
     >

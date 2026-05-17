@@ -303,12 +303,22 @@ export function EmpireLanding() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.05 }}
-          className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.08] tracking-[-0.015em] mb-6"
+          aria-describedby="hero-tagline"
+          className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.08] tracking-[-0.015em] mb-3"
+          style={{ color: 'rgb(var(--color-accent))' }}
         >
-          <span style={{ color: 'rgb(var(--color-accent))' }}>Pick a pack, paste, done.</span>
-          <br />
-          Enterprise Level Claude that compounds every week.
+          Pick a pack, paste, done.
         </motion.h1>
+
+        <motion.p
+          id="hero-tagline"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.08 }}
+          className="font-display text-[clamp(1.5rem,3.5vw,2.5rem)] leading-[1.15] tracking-[-0.01em] mb-6"
+        >
+          Enterprise Level Claude that compounds every week.
+        </motion.p>
 
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -321,21 +331,25 @@ export function EmpireLanding() {
           your business by tomorrow and keeps getting sharper every week after that.
         </motion.p>
 
-        {/* Capability grid: 6 premium cards. Surface is intentionally minimal
-            (icon + title + tagline + Learn more arrow). Click any card to
-            open the dream-pitch modal (Monday-morning scenario + pack
-            mapping + compounding angle). Iteration 2 fix per Eugeen's
-            "less busy on the surface" feedback. */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-12 text-left"
-        >
-          {CAPABILITIES.map((cap, i) => (
-            <CapabilityCard key={cap.layer} capability={cap} index={i} />
-          ))}
-        </motion.div>
+        <section aria-labelledby="capabilities-heading">
+          <h2
+            id="capabilities-heading"
+            className="font-display text-[clamp(1.125rem,2.4vw,1.4rem)] leading-tight tracking-[-0.005em] mb-5 text-center"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
+          >
+            What Claude does after install
+          </h2>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-12 text-left"
+          >
+            {CAPABILITIES.map((cap, i) => (
+              <CapabilityCard key={cap.layer} capability={cap} index={i} />
+            ))}
+          </motion.div>
+        </section>
 
         {/* Bridge install panel. Reframed 2026-05-15 from primary install
             path to optional Desktop convenience. The canonical install path
