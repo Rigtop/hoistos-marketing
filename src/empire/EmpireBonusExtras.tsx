@@ -1763,7 +1763,7 @@ function BrowserFallbackPanel({
         }}
       >
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          className="font-mono text-[10px] tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Linux, Chromebook, or no desktop app

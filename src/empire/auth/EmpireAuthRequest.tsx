@@ -108,7 +108,7 @@ export function EmpireAuthRequest() {
               {devPathOnly}
             </Link>
             <p
-              className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em]"
+              className="mt-4 font-mono text-[10px] tracking-[0.04em]"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
               Console hint: open DevTools, expand "[Empire dev magic-link]" group.
@@ -192,7 +192,7 @@ export function EmpireAuthRequest() {
       </form>
 
       <p
-        className="mt-12 font-mono text-xs uppercase tracking-[0.2em]"
+        className="mt-12 font-mono text-xs tracking-[0.04em]"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
         Returning here after sign-in: {next}
