@@ -285,7 +285,7 @@ function MainView({
           margin: 0,
         }}
       >
-        Pack: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
+        Just sent: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
       </p>
       <ol
         style={{
@@ -315,6 +315,7 @@ function MainView({
         <button
           type="button"
           onClick={handleWorking}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -337,6 +338,7 @@ function MainView({
         <button
           type="button"
           onClick={() => onView('troubleshoot')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -353,11 +355,12 @@ function MainView({
           }}
         >
           <AlertCircle className="w-4 h-4" aria-hidden="true" />
-          <span>It did not open. Help me fix it.</span>
+          <span>Help me fix it</span>
         </button>
         <button
           type="button"
           onClick={() => onView('help')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -376,7 +379,7 @@ function MainView({
           }}
         >
           <HelpCircle className="w-4 h-4" aria-hidden="true" />
-          <span>I need a person to help</span>
+          <span>Walk me through it live</span>
         </button>
       </div>
     </div>
@@ -422,7 +425,7 @@ function TroubleshootView({
           fontFamily: 'Newsreader, Georgia, serif',
         }}
       >
-        Try these in order. Most fixes land in under a minute.
+        Try these in order. Most land in under a minute.
       </h3>
       <ol
         style={{
@@ -450,6 +453,7 @@ function TroubleshootView({
             if (ctx.onRetry) ctx.onRetry()
             onView('main')
           }}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             flex: 1,
             padding: '10px 14px',
@@ -462,11 +466,12 @@ function TroubleshootView({
             fontWeight: 600,
           }}
         >
-          Try install again
+          Retry install
         </button>
         <button
           type="button"
           onClick={() => onView('help')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             flex: 1,
             padding: '10px 14px',
@@ -539,8 +544,8 @@ function HelpView({
           fontStyle: 'italic',
         }}
       >
-        We treat every install email as a chance to make this page better. If you got stuck, we
-        want to know what tripped you so the next person does not.
+        Every install email teaches us where this page trips people. Tell us what stuck you. The
+        next visitor benefits.
       </p>
     </div>
   )
@@ -598,6 +603,7 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
       <button
         type="button"
         onClick={onClose}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
         style={{
           alignSelf: 'flex-end',
           padding: '8px 14px',

@@ -244,7 +244,7 @@ export function EmpireLayout() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="text-sm hover:text-fg transition-colors"
+                className="text-sm hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)] rounded"
                 style={{ color: 'rgb(var(--color-fg-subtle))' }}
               >
                 Sign out
@@ -393,6 +393,7 @@ export function EmpireLayout() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Eugeen Bernan on LinkedIn"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

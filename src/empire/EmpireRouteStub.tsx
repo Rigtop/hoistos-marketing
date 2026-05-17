@@ -37,7 +37,7 @@ const COPY: Record<
     eyebrow: 'Coming next',
     title: 'The dashboard is on the next build',
     body:
-      'The five-layer dashboard is being wired in the next pass. The install gallery is live now, and that is where the actual work happens today.',
+      'We are wiring the five-layer dashboard in the next pass. The install gallery is live now, and that is where the actual work happens today.',
     primaryLabel: 'Open the install gallery',
     primaryTo: '/empireworksreconstruction/foundation',
   },
@@ -45,7 +45,7 @@ const COPY: Record<
     eyebrow: 'Coming next',
     title: 'The Bridge is on the next build',
     body:
-      'The Bridge installer comes back in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough to paste it across.',
+      'The Bridge installer ships in the next pass. The pack-by-pack path is live now: each Foundation pack lands on your clipboard with a walkthrough to paste it across.',
     primaryLabel: 'Install pack by pack',
     primaryTo: '/empireworksreconstruction/foundation',
   },
@@ -115,7 +115,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link
             to={copy.primaryTo}
-            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -135,7 +135,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
           </Link>
           <Link
             to="/empireworksreconstruction"
-            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
