@@ -279,7 +279,7 @@ export function EmpireLanding() {
             <button
               type="button"
               onClick={intakeGate.reopen}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors duration-200"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 minHeight: 44,
                 border: '1px solid rgb(var(--color-fg) / 0.18)',
@@ -391,7 +391,7 @@ export function EmpireLanding() {
               className="text-base sm:text-lg max-w-2xl mx-auto text-center leading-relaxed mb-7"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              Six pastes. Ten minutes. Hit Next to walk it.
+              Six pastes, ten minutes. Hit Next to start the walkthrough.
             </p>
 
             <InstallFlow />
@@ -471,7 +471,7 @@ export function EmpireLanding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="inline-flex flex-col items-center gap-3 group cursor-pointer"
+          className="inline-flex flex-col items-center gap-3 group cursor-pointer rounded-full px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           aria-label="Scroll to learn how it works"
         >
           <span

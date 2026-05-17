@@ -528,7 +528,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     navigator.clipboard.writeText(cached).then(
       () => {
         toast.success(
-          `${b.title} copied. Claude Desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude Desktop is not installed, use the browser button instead - the pack is still on your clipboard.`,
+          `${b.title} copied. Claude Desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude Desktop is not installed, use the browser button instead. The pack is still on your clipboard.`,
           { duration: 10000 },
         )
       },

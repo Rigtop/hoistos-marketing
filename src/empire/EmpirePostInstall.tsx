@@ -285,7 +285,7 @@ function MainView({
           margin: 0,
         }}
       >
-        Just sent: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
+        On the way to Claude: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
       </p>
       <ol
         style={{
@@ -425,7 +425,7 @@ function TroubleshootView({
           fontFamily: 'Newsreader, Georgia, serif',
         }}
       >
-        Try these in order. Most land in under a minute.
+        Walk these in order. Most installs unstick in under a minute.
       </h3>
       <ol
         style={{
@@ -568,8 +568,8 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
         <span>{ctx.packTitle}. Locked in.</span>
       </div>
       <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, color: '#141413' }}>
-        The card carries a green check from now on. Close this tab, come back tomorrow,
-        the check is still there.
+        Green check on the card from here on. Close the tab, come back tomorrow, it
+        still holds.
       </p>
       {ctx.nextPackTitle ? (
         <div
