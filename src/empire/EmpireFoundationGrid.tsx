@@ -143,8 +143,8 @@ function HeroBlock() {
         className="text-sm leading-relaxed max-w-xl mx-auto"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        Tap any card to see the full pack. Run the verify prompt below first, then
-        walk through what actually landed.
+        Run the verify prompt below first to confirm what landed. Then tap any card
+        for the full pack.
       </motion.p>
     </header>
   )
@@ -661,9 +661,8 @@ function BottomCTA() {
         className="text-base leading-relaxed mb-8 max-w-2xl mx-auto"
         style={{ color: '#5e5d59' }}
       >
-        Once Foundation is rolling, the advanced packs (proposal builder, RFI flow,
-        skill builder, the rest) layer onto the same Bridge. No reinstall. Just
-        ask for more.
+        Proposal builder, RFI flow, skill builder, the rest. They layer onto the
+        same Bridge once Foundation is rolling. No reinstall. Ask for more, they land.
       </p>
       <Link
         to="/empireworksreconstruction/bonus-extras"

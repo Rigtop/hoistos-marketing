@@ -61,7 +61,7 @@ const COPY: Record<
     eyebrow: 'Dead link',
     title: 'Nothing lives at this address',
     body:
-      'The link is stale or the route moved. The two live surfaces are the landing page and the Foundation install gallery.',
+      'The link is stale or the route moved. Two surfaces are live: the landing page and the Foundation gallery.',
     primaryLabel: 'Back to landing',
     primaryTo: '/empireworksreconstruction',
   },

@@ -158,8 +158,8 @@ export function LevelUpOverlay() {
               type="button"
               onClick={dismiss}
               autoFocus
-              aria-label={`Dismiss level ${active.num} celebration and keep installing`}
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              aria-label={`Dismiss level ${active.num} celebration and install the next pack`}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 minHeight: 44,
                 padding: '0 22px',
