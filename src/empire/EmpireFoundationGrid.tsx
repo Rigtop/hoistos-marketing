@@ -183,10 +183,10 @@ function VerifyCTA() {
               className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Before you install: verify it landed
+              Verify Foundation landed before you install anything else
             </div>
             <h2 className="font-display text-xl sm:text-2xl leading-tight mb-2">
-              Paste this into your Claude Project first
+              Paste this prompt into your Claude Project
             </h2>
             <p
               className="text-sm leading-relaxed m-0"
@@ -484,7 +484,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
               className="text-xs font-medium mb-3"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Customize before install
+              Personalize this pack
             </div>
             <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1 text-xs">
@@ -523,8 +523,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                 className="text-xs m-0"
                 style={{ color: '#5e5d59' }}
               >
-                Both fields swap into the pack before it copies. Both are optional.
-                Confirm to install, or skip to install with placeholders.
+                Both fields are optional. They swap into the pack body before it copies.
               </p>
             </div>
           </div>
@@ -572,7 +571,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             ) : installing ? (
               <>
                 <Copy className="w-4 h-4" aria-hidden="true" />
-                Copying to clipboard...
+                Copying pack
               </>
             ) : showForm ? (
               <>

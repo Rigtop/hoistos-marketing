@@ -13,7 +13,7 @@
  * Hard Rule #11: zero em dashes anywhere.
  */
 
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
 import { useRef } from 'react'
 
 const MILESTONES = [
@@ -28,12 +28,14 @@ const MILESTONES = [
 
 export function MapCard() {
   const ref = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion() ?? false
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const rotX = useSpring(useTransform(my, [-1, 1], [6, -6]), { stiffness: 220, damping: 22 })
   const rotY = useSpring(useTransform(mx, [-1, 1], [-6, 6]), { stiffness: 220, damping: 22 })
 
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduceMotion) return
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -102,13 +104,21 @@ export function MapCard() {
                       r={9}
                       fill="rgb(var(--color-accent) / 0.25)"
                       initial={{ opacity: 0.25, scale: 1 }}
-                      animate={{ opacity: [0.25, 0.05, 0.25], scale: [1, 1.44, 1] }}
-                      transition={{
-                        duration: 2.4,
-                        repeat: Infinity,
-                        delay: i * 0.18,
-                        ease: 'easeInOut',
-                      }}
+                      animate={
+                        reduceMotion
+                          ? { opacity: 0.25, scale: 1 }
+                          : { opacity: [0.25, 0.05, 0.25], scale: [1, 1.44, 1] }
+                      }
+                      transition={
+                        reduceMotion
+                          ? { duration: 0 }
+                          : {
+                              duration: 2.4,
+                              repeat: Infinity,
+                              delay: i * 0.18,
+                              ease: 'easeInOut',
+                            }
+                      }
                       style={{ transformOrigin: `${cx}px 32px`, transformBox: 'fill-box' }}
                     />
                   ) : null}

@@ -303,7 +303,7 @@ async function fetchBonusMarkdown(b: BonusBlueprint): Promise<string> {
     BONUS_CACHE.set(b.id, text)
     return text
   } catch {
-    return `# ${b.title}\n\nUnable to load this blueprint right now. Try again in a moment.`
+    return `# ${b.title}\n\nThe blueprint did not load this time. Refresh the page and click again.`
   }
 }
 
@@ -459,7 +459,7 @@ function browserFallbackInstall(b: BonusBlueprint): void {
     // install modal which surfaces an explicit Copy button + launch links
     // so the user can complete the flow in two isolated gestures.
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
-    toast(`Loading ${b.title}, opening copy panel...`, { duration: 2500 })
+    toast(`Fetching ${b.title}. Copy panel opens next.`, { duration: 2500 })
     return
   }
   // Open the new tab first while user-gesture trust is fresh, then write the
@@ -518,7 +518,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     // Async fetch first to populate cache, then re-fire. Pattern mirrors
     // browserFallbackInstall to preserve user-gesture trust.
     fetchBonusMarkdown(b).then(() => desktopAppInstall(b))
-    toast(`Loading ${b.title}, opening Claude Desktop in a moment...`, { duration: 2500 })
+    toast(`Fetching ${b.title}. Claude Desktop opens next.`, { duration: 2500 })
     return
   }
   // Fire claude:// URL scheme FIRST while user-gesture trust is fresh,
@@ -560,7 +560,7 @@ void desktopAppInstall
 function _openInstallModal(b: BonusBlueprint): void {
   const cached = BONUS_CACHE.get(b.id)
   if (!cached) {
-    toast('Loading blueprint...', { duration: 1500 })
+    toast('Fetching blueprint', { duration: 1500 })
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
     return
   }

@@ -148,7 +148,8 @@ function PostInstallPanelInner({ ctx, onClose }: { ctx: PostInstallContext; onCl
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Close install panel"
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             position: 'absolute',
             top: 16,
@@ -158,11 +159,12 @@ function PostInstallPanelInner({ ctx, onClose }: { ctx: PostInstallContext; onCl
             color: 'rgba(20,20,19,0.5)',
             cursor: 'pointer',
             padding: 4,
+            borderRadius: 6,
             display: 'flex',
             alignItems: 'center',
           }}
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
 
         {view === 'main' ? (
@@ -283,8 +285,7 @@ function MainView({
           margin: 0,
         }}
       >
-        Pack: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>. Here is what should
-        happen next.
+        Pack: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
       </p>
       <ol
         style={{
@@ -331,7 +332,7 @@ function MainView({
           }}
         >
           <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-          <span>Working through it now</span>
+          <span>Mark this one done</span>
         </button>
         <button
           type="button"
@@ -396,6 +397,8 @@ function TroubleshootView({
       <button
         type="button"
         onClick={() => onView('main')}
+        aria-label="Back to install panel"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           alignSelf: 'flex-start',
           background: 'transparent',
@@ -405,9 +408,10 @@ function TroubleshootView({
           fontWeight: 500,
           cursor: 'pointer',
           padding: 0,
+          borderRadius: 4,
         }}
       >
-        ← Back
+        <span aria-hidden="true">← </span>Back
       </button>
       <h3
         style={{
@@ -475,7 +479,7 @@ function TroubleshootView({
             fontWeight: 500,
           }}
         >
-          Still stuck
+          Talk to a human
         </button>
       </div>
     </div>
@@ -494,6 +498,8 @@ function HelpView({
       <button
         type="button"
         onClick={() => onView('main')}
+        aria-label="Back to install panel"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           alignSelf: 'flex-start',
           background: 'transparent',
@@ -503,9 +509,10 @@ function HelpView({
           fontWeight: 500,
           cursor: 'pointer',
           padding: 0,
+          borderRadius: 4,
         }}
       >
-        ← Back
+        <span aria-hidden="true">← </span>Back
       </button>
       <h3
         style={{
@@ -516,7 +523,7 @@ function HelpView({
           fontFamily: 'Newsreader, Georgia, serif',
         }}
       >
-        We can walk you through this on the phone.
+        Email us. We will book a 15-minute walkthrough the same day.
       </h3>
       <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, color: '#141413' }}>
         Email <a href="mailto:hello@hoistos.com" style={{ color: '#cc6e2e' }}>hello@hoistos.com</a>{' '}
@@ -553,11 +560,11 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
         }}
       >
         <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-        <span>{ctx.packTitle} marked as in progress.</span>
+        <span>{ctx.packTitle}. Locked in.</span>
       </div>
       <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, color: '#141413' }}>
-        We saved a green check on the card so you can see your progress on this page over time.
-        Come back tomorrow morning, the check is still there.
+        The card carries a green check from now on. Close this tab, come back tomorrow,
+        the check is still there.
       </p>
       {ctx.nextPackTitle ? (
         <div
@@ -603,7 +610,7 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
           fontWeight: 500,
         }}
       >
-        Got it
+        Back to packs
       </button>
     </div>
   )

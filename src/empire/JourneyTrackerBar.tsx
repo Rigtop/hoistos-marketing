@@ -112,6 +112,8 @@ export function JourneyTrackerBar() {
             Your Claude
           </span>
           <div
+            aria-live="polite"
+            aria-label={`${installed.length} of ${TOTAL_PACK_COUNT} packs installed`}
             style={{
               display: 'flex',
               alignItems: 'baseline',

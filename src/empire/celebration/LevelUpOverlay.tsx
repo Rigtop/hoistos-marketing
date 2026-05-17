@@ -157,6 +157,9 @@ export function LevelUpOverlay() {
             <button
               type="button"
               onClick={dismiss}
+              autoFocus
+              aria-label={`Dismiss level ${active.num} celebration and keep installing`}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 minHeight: 44,
                 padding: '0 22px',
@@ -171,7 +174,7 @@ export function LevelUpOverlay() {
                 cursor: 'pointer',
               }}
             >
-              Keep installing
+              Install the next pack
             </button>
           </motion.div>
         </motion.div>

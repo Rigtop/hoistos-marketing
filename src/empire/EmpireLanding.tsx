@@ -365,7 +365,7 @@ export function EmpireLanding() {
               className="text-xs font-medium mb-3 text-center"
               style={{ color: 'rgb(var(--color-fg-subtle))' }}
             >
-              Skip if you do not have Claude Desktop yet
+              Desktop shortcut. Skip if you are on web or Code.
             </div>
             <h2
               className="font-display text-[clamp(1.5rem,3.5vw,2.4rem)] leading-tight mb-3 text-center"
@@ -535,7 +535,7 @@ export function EmpireLanding() {
           className="mt-5 text-sm"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Click to install pack by pack. The Bridge above is optional for Desktop users who want bulk install.
+          Install pack by pack from the gallery. The Bridge above is the bulk-install shortcut for Desktop users.
         </motion.p>
       </section>
 
@@ -2361,12 +2361,14 @@ function CapabilityCard({
   index: number
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
+  const reduceMotion = useReducedMotion() ?? false
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const rotX = useSpring(useTransform(my, [-1, 1], [3, -3]), { stiffness: 220, damping: 22 })
   const rotY = useSpring(useTransform(mx, [-1, 1], [-3, 3]), { stiffness: 220, damping: 22 })
 
   function onMove(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (reduceMotion) return
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -2428,8 +2430,12 @@ function CapabilityCard({
 
       <div className="relative flex items-start justify-between gap-3 mb-5">
         <motion.span
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, delay: index * 0.18, ease: 'easeInOut' }}
+          animate={reduceMotion ? { y: 0 } : { y: [0, -3, 0] }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { duration: 3.2, repeat: Infinity, delay: index * 0.18, ease: 'easeInOut' }
+          }
           className="inline-flex items-center justify-center rounded-xl group-hover:scale-110 transition-transform duration-300"
           style={{
             width: 40,

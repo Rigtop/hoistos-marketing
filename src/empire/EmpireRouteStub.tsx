@@ -62,7 +62,7 @@ const COPY: Record<
     title: 'Nothing lives at this address',
     body:
       'The link is stale or the route moved. The two live surfaces are the landing page and the Foundation install gallery.',
-    primaryLabel: 'Back to the overview',
+    primaryLabel: 'Back to landing',
     primaryTo: '/empireworksreconstruction',
   },
 }
@@ -151,7 +151,7 @@ export function EmpireRouteStub({ kind }: EmpireRouteStubProps) {
               background: 'transparent',
             }}
           >
-            Back to the overview
+            Back to landing
           </Link>
         </div>
       </div>
