@@ -161,9 +161,8 @@ export function LevelUpOverlay() {
                 border: 'none',
                 background: 'rgb(var(--color-accent))',
                 color: '#fbfaf3',
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: 12,
-                letterSpacing: '0.18em',
+                fontSize: 14,
+                letterSpacing: '0.005em',
                 fontWeight: 600,
                 cursor: 'pointer',
               }}

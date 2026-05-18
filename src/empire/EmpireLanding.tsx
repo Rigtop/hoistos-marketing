@@ -380,7 +380,7 @@ export function EmpireLanding() {
               }}
             >
               <div
-                className="text-xs font-medium uppercase tracking-[0.14em] mb-2"
+                className="text-xs font-medium tracking-[0.04em] mb-2"
                 style={{ color: 'rgb(var(--color-fg-subtle))' }}
               >
                 Surface note
@@ -642,7 +642,7 @@ function InstallFacts() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.16em] mb-1"
+            className="text-xs font-medium tracking-[0.04em] mb-1"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             {title}

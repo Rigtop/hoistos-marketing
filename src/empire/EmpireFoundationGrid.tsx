@@ -137,10 +137,10 @@ function HeroBlock({
 
   const body =
     state === 'pre'
-      ? 'Each card below shows what one pack does, what to type to invoke it, and what Claude returns. Install the verify pack first, then any pack you want to try.'
+      ? 'Each card shows what one pack does, what to type to invoke it, and what Claude returns. Install the verify pack first, then any pack you want to try.'
       : state === 'all'
-        ? 'The Bridge wired these onto your machine. Each card below shows what one pack does, what to type to invoke it, and what Claude returns.'
-        : 'Each card below shows what one pack does. Installed cards carry a green check; open any card for the full pack body.'
+        ? 'The Bridge already wired these in. Each card shows what one pack does, what to type, and what Claude returns.'
+        : 'Each card shows what one pack does. Installed cards carry a green check; open any for the full body.'
 
   return (
     <header className="max-w-3xl mx-auto text-center">
@@ -206,7 +206,7 @@ function VerifyCTA() {
     try {
       await navigator.clipboard.writeText(VERIFY_PROMPT)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
+      window.setTimeout(() => setCopied(false), 1200)
     } catch {
       setCopied(false)
     }
@@ -583,7 +583,7 @@ function FoundationCardTile({
                 className="text-xs m-0"
                 style={{ color: '#5e5d59' }}
               >
-                Both optional. They swap into the pack body before copy.
+                Both optional. We swap them in before copy.
               </p>
             </div>
           </div>
@@ -649,7 +649,7 @@ function FoundationCardTile({
             <button
               type="button"
               onClick={handleOpenCustomize}
-              aria-label={`Customize ${card.title} before installing`}
+              aria-label={`Personalize ${card.title} before installing`}
               className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 background: 'transparent',
@@ -658,7 +658,7 @@ function FoundationCardTile({
                 minHeight: 44,
               }}
             >
-              Customize first
+              Personalize first
             </button>
           ) : null}
           {!installed && showForm && !installing ? (
@@ -741,7 +741,7 @@ function BottomCTA({ routePrefix }: { routePrefix: string }) {
         style={{ color: '#5e5d59' }}
       >
         Proposal builder, RFI flow, skill builder, the rest. They layer onto the
-        same Bridge once Foundation is rolling. No reinstall. Ask, and they layer on.
+        same Bridge once Foundation is rolling. No reinstall. Just ask.
       </p>
       <Link
         to={`${routePrefix}/bonus-extras`}
