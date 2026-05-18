@@ -161,3 +161,219 @@ export const CAPABILITIES: Capability[] = [
 export function findCapabilityBySlug(slug: string): Capability | undefined {
   return CAPABILITIES.find((c) => c.slug === slug.toLowerCase())
 }
+
+// ---------------------------------------------------------------------------
+// Round 6 v3 addition: 25-cell capability map for CommandCenter dashboard.
+// Distinct from the legacy CAPABILITIES export (which powers the per-layer
+// route /empire/layer/:slug). The 25-cell map is what the Command Center
+// dash-card "Capability Map" renders as a 5x5 grid of moments-of-use.
+//
+// Modularity floor: adding a new cell or changing pack-to-cell mapping is a
+// data change here. CommandCenter.tsx iterates CAPABILITY_CELLS and renders
+// one .cap-cell per entry; cells with at least one packId in the user's
+// installed-pack set render .lit.
+// ---------------------------------------------------------------------------
+
+export interface CapabilityCell {
+  /** Stable kebab-case id used as a join key and click target. */
+  id: string
+  /** Label rendered inside the cell. Two to three words. */
+  label: string
+  /** Pack IDs that, when any one is installed, light this cell up. */
+  packIds: string[]
+  /** Example prompt shown inside the detail card on click. Must be a
+   * realistic Eugeen-shaped task, not a generic placeholder. */
+  examplePrompt: string
+}
+
+export const CAPABILITY_CELLS: CapabilityCell[] = [
+  {
+    id: 'email-drafts',
+    label: 'Email drafts',
+    packIds: ['F-01', 'F-10'],
+    examplePrompt:
+      'Draft a follow-up to my GC on the schedule slip we discussed Thursday.',
+  },
+  {
+    id: 'proposals',
+    label: 'Proposals',
+    packIds: ['A-01'],
+    examplePrompt:
+      'Draft a 3-page proposal for the renovation scope at the Brooklyn warehouse, pricing per my standard burden.',
+  },
+  {
+    id: 'meeting-capture',
+    label: 'Meeting capture',
+    packIds: ['F-02', 'A-02'],
+    examplePrompt:
+      'Process this meeting transcript: pull decisions, action items by owner, and open questions.',
+  },
+  {
+    id: 'decision-recall',
+    label: 'Decision recall',
+    packIds: ['F-02', 'F-04'],
+    examplePrompt:
+      'What did I decide about pricing the apartment turn jobs last month, and what was the reasoning?',
+  },
+  {
+    id: 'contract-review',
+    label: 'Contract review',
+    packIds: ['A-03'],
+    examplePrompt:
+      'Read this AIA contract, flag the indemnification and termination clauses, draft red-line notes in my voice.',
+  },
+  {
+    id: 'cold-start',
+    label: 'Cold start',
+    packIds: ['F-03'],
+    examplePrompt:
+      'Boot a fresh chat with my full operating context: role, top 3 projects, last session open items.',
+  },
+  {
+    id: 'voice-match',
+    label: 'Voice match',
+    packIds: ['F-01'],
+    examplePrompt:
+      'Rewrite this draft in my voice. No em dashes. No "Best,". Signs as Eugeen.',
+  },
+  {
+    id: 'billing-rules',
+    label: 'Billing rules',
+    packIds: ['F-02'],
+    examplePrompt:
+      'Draft the AR follow-up to the GC on the renovation project, using their net-45 terms and our standard cadence.',
+  },
+  {
+    id: 'team-awareness',
+    label: 'Team awareness',
+    packIds: ['F-02'],
+    examplePrompt:
+      'Who on my team is owning the renovation project, what is their last update, and what is blocked.',
+  },
+  {
+    id: 'source-citations',
+    label: 'Source citations',
+    packIds: ['F-08'],
+    examplePrompt:
+      'Source Sweep: what did the GC PM commit on the schedule slip in the Thursday email thread, quoted in full.',
+  },
+  {
+    id: 'file-routing',
+    label: 'File routing',
+    packIds: ['F-06'],
+    examplePrompt:
+      'Save the change order, the GC follow-up, the safety SOP, and tomorrow\'s daily report to the right folders.',
+  },
+  {
+    id: 'output-validation',
+    label: 'Output validation',
+    packIds: ['F-09'],
+    examplePrompt:
+      'Pre-send gate: check this proposal for em dashes, misspelled GC names, banned phrases, before I send.',
+  },
+  {
+    id: 'rag-retrieval',
+    label: 'RAG retrieval',
+    packIds: ['P-02'],
+    examplePrompt:
+      'Pull every reference to the apartment-turn pricing model from my Outputs corpus and summarize the evolution.',
+  },
+  {
+    id: 'slack-ingest',
+    label: 'Slack ingest',
+    packIds: ['BIZ-02'],
+    examplePrompt:
+      'Pull the last week of #site-ops Slack, extract decisions, route action items to the right project.',
+  },
+  {
+    id: 'bid-response',
+    label: 'Bid response',
+    packIds: ['A-01'],
+    examplePrompt:
+      'Draft the bid response to this RFP, pricing per our standard burden, scope per the spec, cover letter in my voice.',
+  },
+  {
+    id: 'schedule-sync',
+    label: 'Schedule sync',
+    packIds: ['A-06'],
+    examplePrompt:
+      'Daily briefing: what is on the calendar today, what is overdue from yesterday, what needs my reply.',
+  },
+  {
+    id: 'voice-notes',
+    label: 'Voice notes',
+    packIds: ['F-02', 'A-02'],
+    examplePrompt:
+      'Process the voice memo from the site walk: extract decisions, action items, and route to the right project folder.',
+  },
+  {
+    id: 'daily-brief',
+    label: 'Daily brief',
+    packIds: ['A-06'],
+    examplePrompt:
+      'My morning briefing: top 3 projects status, top 3 emails to reply, top decision I need to make today.',
+  },
+  {
+    id: 'rfi-drafts',
+    label: 'RFI drafts',
+    packIds: ['A-04'],
+    examplePrompt:
+      'Draft an RFI to the architect on the elevator shaft framing detail, attach the photos, route to the project folder.',
+  },
+  {
+    id: 'knowledge-search',
+    label: 'Knowledge search',
+    packIds: ['A-07', 'P-02'],
+    examplePrompt:
+      'Search my knowledge base for every reference to subcontractor default-cure language, summarize the patterns.',
+  },
+  {
+    id: 'apology-drafts',
+    label: 'Apology drafts',
+    packIds: ['F-10'],
+    examplePrompt:
+      'Draft a tier-1 client apology for the delayed punch list, in my voice, no over-promising, specific recovery plan.',
+  },
+  {
+    id: 'pricing-recall',
+    label: 'Pricing recall',
+    packIds: ['F-02'],
+    examplePrompt:
+      'What did I price the last 5 apartment-turn jobs at per unit, and what was the burden assumption on each.',
+  },
+  {
+    id: 'vendor-mgmt',
+    label: 'Vendor mgmt',
+    packIds: ['F-02'],
+    examplePrompt:
+      'Pull every interaction with our paint supplier in the last 90 days: pricing changes, late deliveries, credit history.',
+  },
+  {
+    id: 'ar-followups',
+    label: 'AR follow-ups',
+    packIds: ['F-10', 'F-02'],
+    examplePrompt:
+      'Draft the AR follow-up batch for everyone past net-45, by GC, in my voice, with attached invoice references.',
+  },
+  {
+    id: 'multi-pack-jury',
+    label: 'Multi-pack jury',
+    packIds: ['P-04'],
+    examplePrompt:
+      'Adversarial review: run this proposal past GPT-5 as critic, return AGREE / MINOR / MAJOR with reasoning.',
+  },
+]
+
+export function findCapabilityCell(id: string): CapabilityCell | undefined {
+  return CAPABILITY_CELLS.find((c) => c.id === id)
+}
+
+/** A cell is lit when at least one of its packIds is in the user's
+ * installed set. CommandCenter passes the installed-pack IDs and gets
+ * back the lit-cell IDs to drive the .cap-cell.lit class. */
+export function litCellIds(installedPackIds: string[]): string[] {
+  const installed = new Set(installedPackIds)
+  return CAPABILITY_CELLS.filter((c) =>
+    c.packIds.some((p) => installed.has(p)),
+  ).map((c) => c.id)
+}
