@@ -1,43 +1,43 @@
 /**
- * PackInstallFlow. Three-step inline install panel. NO modal.
+ * PackInstallFlow. Round 8 (2026-05-18) rewrite.
  *
- * Mockup reference: mockup-A-v3.html lines 282-320 (install stepper + steps),
- * plus startInstall() lines 608-620, confirmInstall() lines 623-631.
- *
- * Steps:
- *   1. Auto-copy on mount via navigator.clipboard.writeText. Idempotency
- *      guard: only fires once per pack id within a session, recorded under
- *      localStorage key `scrolophyte.install.firedFor`. The "Re-copy if it
- *      failed" button calls writeText again unconditionally with a 600ms
- *      "Copied" flash.
- *   2. Surface-specific paste body from content/install-instructions.ts
- *      keyed by the user's first q3 surface preference. Re-renders on every
- *      surface change. CTA opens claude.ai/new (or runs the CLI command,
- *      which we expose as a copy-to-clipboard helper).
- *   3. Idempotent confirm. Clicking "It worked" sets
- *      `scrolophyte.install.confirmedFor[packId] = true` before calling
- *      markActivated so a double-tap cannot double-increment. "Something is
- *      off" expands an inline troubleshooting note instead of an alert.
+ * What changed in round 8:
+ *   - A3: Step 1 no longer auto-copies on mount. The button starts as
+ *     "Copy prompt to clipboard" and only flips to "Re-copy if it failed"
+ *     after the user explicitly clicks. Strong visual feedback on click:
+ *     1.6s checkmark + step-number signal glow + ripple.
+ *   - A4: Compressed from 3 steps to 2. Step 1 = Copy + Open Claude (single
+ *     gesture, two side effects). Step 2 = Verify. A "Show manual steps"
+ *     link expands the legacy 3-step view for users who want the explicit
+ *     path.
+ *   - C2: When opening step 1, PackInstallFlow fetches the real pack body
+ *     from /packs-v2/<packId>.md via fetchPackBody (exposed in round 8).
+ *     Falls back to the inline starter prompt on 404 or network error.
+ *   - C4: handleConfirm increments scrolophyte.metrics.installs and emits
+ *     a window CustomEvent for any future ingestor.
+ *   - B5: handleConfirm fires a 1.2s scan-line animation across the panel
+ *     before calling onComplete.
  *
  * Hard Rule #11: no em dashes.
- * R047 voice: no banned openers, plain English copy.
- * R067 mobile-first: stepper stacks at 320 / 375, tap targets 48px+.
- * Context7 (HR #31): react@19.2.5 useState/useEffect/useCallback verified
- *   live 2026-05-18. motion@12.38 motion.div + useReducedMotion verified.
- *   lucide-react@1.14 Check + Copy + ExternalLink + X verified.
+ * R047 voice, R087 plain English.
+ * R067 mobile-first: stepper stacks at 320/375, tap targets 48px+.
+ * Context7 (HR #31): react@19.2.5, motion@12.38 (motion.div + AnimatePresence
+ * + useReducedMotion from motion/react), lucide-react@1.14 (Check + Copy +
+ * ExternalLink + X). All verified live 2026-05-18.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Check, Copy, ExternalLink, X } from 'lucide-react'
 import { instructionFor } from './content/install-instructions'
 import type { FoundationCard } from './content/foundation-cards'
-import { listActivated, markActivated } from '../lib/activate'
+import { fetchPackBody, listActivated, markActivated } from '../lib/activate'
 import { useIsMobile } from '../lib/useIsMobile'
+import { sendEvent } from '../lib/telemetry'
 
-const FIRED_KEY = 'scrolophyte.install.firedFor'
 const CONFIRMED_KEY = 'scrolophyte.install.confirmedFor'
 const ACTIVITY_KEY = 'scrolophyte.activity'
+const METRICS_KEY = 'scrolophyte.metrics.installs'
 
 type Surface = 'browser' | 'desktop' | 'code'
 
@@ -76,7 +76,17 @@ function appendActivity(message: string) {
   }
 }
 
-function starterPromptFor(card: FoundationCard, pitch: string): string {
+function bumpInstallCounter() {
+  try {
+    const raw = window.localStorage.getItem(METRICS_KEY)
+    const n = raw ? parseInt(raw, 10) || 0 : 0
+    window.localStorage.setItem(METRICS_KEY, String(n + 1))
+  } catch {
+    // private mode / quota
+  }
+}
+
+function stubStarterPrompt(card: FoundationCard, pitch: string): string {
   return [
     `Install the ${card.title} pack (${card.badge}) for me.`,
     '',
@@ -138,35 +148,66 @@ export function PackInstallFlow({
   const isMobile = useIsMobile()
   const reduce = useReducedMotion()
   const instruction = useMemo(() => instructionFor(surface), [surface])
-  const promptBody = useMemo(() => starterPromptFor(pack, pitch), [pack, pitch])
+  const stubPrompt = useMemo(() => stubStarterPrompt(pack, pitch), [pack, pitch])
+  const promptBodyRef = useRef<string>(stubPrompt)
 
-  const [recopyFlash, setRecopyFlash] = useState(false)
+  const [hasCopied, setHasCopied] = useState(false)
+  const [copyFlash, setCopyFlash] = useState(false)
   const [troubleOpen, setTroubleOpen] = useState(false)
+  const [showManualSteps, setShowManualSteps] = useState(false)
+  const [scanFiring, setScanFiring] = useState(false)
+  const [bodyState, setBodyState] = useState<'stub' | 'loading' | 'real' | 'failed'>('stub')
 
   useEffect(() => {
-    const fired = readBoolMap(FIRED_KEY)
-    if (fired[pack.packId]) return
-    writeBoolMap(FIRED_KEY, { ...fired, [pack.packId]: true })
-    void writeClipboard(promptBody)
-  }, [pack.packId, promptBody])
+    let cancelled = false
+    setBodyState('loading')
+    const url = `/packs-v2/${pack.packId}.md`
+    fetchPackBody(url)
+      .then((text) => {
+        if (cancelled) return
+        promptBodyRef.current = text
+        setBodyState('real')
+      })
+      .catch(() => {
+        if (cancelled) return
+        promptBodyRef.current = stubPrompt
+        setBodyState('failed')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [pack.packId, stubPrompt])
 
-  const handleRecopy = useCallback(async () => {
-    await writeClipboard(promptBody)
-    setRecopyFlash(true)
-    window.setTimeout(() => setRecopyFlash(false), 600)
-  }, [promptBody])
+  const triggerCopyFlash = useCallback(() => {
+    setCopyFlash(true)
+    window.setTimeout(() => setCopyFlash(false), 1600)
+  }, [])
 
-  const handleSurfaceCta = useCallback(async () => {
+  const handleCopy = useCallback(async () => {
+    await writeClipboard(promptBodyRef.current)
+    setHasCopied(true)
+    triggerCopyFlash()
+  }, [triggerCopyFlash])
+
+  const handleCopyAndOpen = useCallback(async () => {
+    await writeClipboard(promptBodyRef.current)
+    setHasCopied(true)
+    triggerCopyFlash()
+    void sendEvent('pack_copy', { packId: pack.packId, surface })
     if (instruction.ctaUrl) {
       window.open(instruction.ctaUrl, '_blank', 'noopener')
-      return
+    } else if (surface === 'code') {
+      // CLI users: copy the install command separately so the clipboard
+      // has both prompt and install reference.
+      // Stub: surface guidance reads the instruction body, no new tab.
     }
-    if (surface === 'code') {
-      await writeClipboard(`claude code install ${pack.packId}`)
-      setRecopyFlash(true)
-      window.setTimeout(() => setRecopyFlash(false), 600)
+  }, [instruction.ctaUrl, surface, triggerCopyFlash, pack.packId])
+
+  const handleSurfaceOpen = useCallback(() => {
+    if (instruction.ctaUrl) {
+      window.open(instruction.ctaUrl, '_blank', 'noopener')
     }
-  }, [instruction.ctaUrl, surface, pack.packId])
+  }, [instruction.ctaUrl])
 
   const handleConfirm = useCallback(() => {
     const confirmed = readBoolMap(CONFIRMED_KEY)
@@ -177,13 +218,25 @@ export function PackInstallFlow({
     writeBoolMap(CONFIRMED_KEY, { ...confirmed, [pack.packId]: true })
     markActivated(pack.packId)
     appendActivity(`Confirmed ${pack.title}`)
+    bumpInstallCounter()
+    void sendEvent('pack_confirmed', { packId: pack.packId, surface })
     try {
       window.dispatchEvent(new Event('scrolophyte:activated'))
+      window.dispatchEvent(
+        new CustomEvent('scrolophyte:install-confirmed', {
+          detail: { packId: pack.packId, ts: new Date().toISOString() },
+        }),
+      )
     } catch {
       // ignore
     }
-    onComplete()
-  }, [pack.packId, pack.title, onComplete])
+    setScanFiring(true)
+    const delay = reduce ? 0 : 1200
+    window.setTimeout(() => {
+      setScanFiring(false)
+      onComplete()
+    }, delay)
+  }, [pack.packId, pack.title, onComplete, reduce])
 
   return (
     <div
@@ -261,84 +314,96 @@ export function PackInstallFlow({
         animate={{ opacity: 1, y: 0 }}
         transition={reduce ? { duration: 0 } : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{
+          position: 'relative',
           background: 'white',
           border: '1px solid rgba(20,20,10,0.08)',
           borderRadius: 18,
           padding: isMobile ? '20px' : '28px 32px',
           boxShadow: '0 10px 36px rgba(20,20,10,0.05)',
+          overflow: 'hidden',
         }}
       >
+        <AnimatePresence>
+          {scanFiring ? (
+            <motion.div
+              key="scan"
+              aria-hidden="true"
+              initial={{ top: 0, opacity: 0 }}
+              animate={{ top: '100%', opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                height: 3,
+                background:
+                  'linear-gradient(90deg, transparent, rgba(226,84,28,0.85), transparent)',
+                boxShadow: '0 0 16px rgba(226,84,28,0.6)',
+                pointerEvents: 'none',
+                zIndex: 4,
+              }}
+            />
+          ) : null}
+        </AnimatePresence>
+
         <Step
           number={1}
-          done
-          title="Copied to your clipboard"
-          body="The full install prompt is on your clipboard right now. If something looked off, hit re-copy."
+          done={hasCopied}
+          flash={copyFlash}
+          title={hasCopied ? 'Copy + open Claude' : 'Copy prompt to clipboard'}
+          body={
+            hasCopied
+              ? `Prompt landed on your clipboard${bodyState === 'real' ? ' (full pack body)' : bodyState === 'failed' ? ' (starter prompt, pack body fetch failed)' : ''}. Paste it into Claude with Cmd-V.`
+              : `One click writes the install prompt to your clipboard${bodyState === 'real' ? ' (full pack body)' : ''} and opens Claude in a new tab.`
+          }
         >
-          <button
-            type="button"
-            onClick={handleRecopy}
-            style={ghostButtonStyle}
-            aria-label="Re-copy install prompt"
-          >
-            {recopyFlash ? (
-              <>
-                <Check size={12} aria-hidden="true" /> Copied
-              </>
-            ) : (
-              <>
-                <Copy size={12} aria-hidden="true" /> Re-copy if it failed
-              </>
-            )}
-          </button>
-        </Step>
-
-        <Step number={2} title={instruction.stepTitle} body={instruction.stepBody}>
-          {surface === 'browser' ? (
+          {!hasCopied ? (
             <button
               type="button"
-              onClick={handleSurfaceCta}
+              onClick={handleCopyAndOpen}
               style={primaryButtonStyle}
-              aria-label={instruction.ctaLabel}
+              aria-label="Copy prompt and open Claude"
             >
               <ExternalLink size={14} aria-hidden="true" />
-              {instruction.ctaLabel}
-            </button>
-          ) : surface === 'code' ? (
-            <button
-              type="button"
-              onClick={handleSurfaceCta}
-              style={primaryButtonStyle}
-              aria-label="Copy install command"
-            >
-              {recopyFlash ? (
-                <>
-                  <Check size={14} aria-hidden="true" />
-                  Command copied
-                </>
-              ) : (
-                <>
-                  <Copy size={14} aria-hidden="true" />
-                  Copy install command
-                </>
-              )}
+              Copy prompt + open Claude
             </button>
           ) : (
-            <div
-              style={{
-                fontSize: 13,
-                color: '#4A4A3A',
-                fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-              }}
-            >
-              Open Claude Desktop from your dock, start a new chat, press Cmd-V.
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleCopy}
+                style={ghostButtonStyle}
+                aria-label="Re-copy install prompt"
+              >
+                {copyFlash ? (
+                  <>
+                    <Check size={12} aria-hidden="true" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} aria-hidden="true" /> Re-copy if it failed
+                  </>
+                )}
+              </button>
+              {instruction.ctaUrl ? (
+                <button
+                  type="button"
+                  onClick={handleSurfaceOpen}
+                  style={ghostButtonStyle}
+                  aria-label={instruction.ctaLabel}
+                >
+                  <ExternalLink size={12} aria-hidden="true" /> Re-open Claude
+                </button>
+              ) : null}
             </div>
           )}
         </Step>
 
         <Step
-          number={3}
+          number={2}
           title="Verify it stuck"
-          body={`Ask your Claude: "${pack.question}". If Claude answers in your voice, the install worked.`}
+          body={`Ask your Claude: "${pack.question}". If Claude answers in your voice with the pack behavior, the install worked.`}
         >
           <div
             style={{
@@ -351,7 +416,8 @@ export function PackInstallFlow({
             <button
               type="button"
               onClick={handleConfirm}
-              style={{ ...primaryButtonStyle, width: isMobile ? '100%' : 'auto', minWidth: 200 }}
+              disabled={scanFiring}
+              style={{ ...primaryButtonStyle, width: isMobile ? '100%' : 'auto', minWidth: 200, opacity: scanFiring ? 0.6 : 1 }}
             >
               <Check size={14} aria-hidden="true" /> It worked
             </button>
@@ -383,13 +449,51 @@ export function PackInstallFlow({
                 paddingLeft: 32,
               }}
             >
-              <li>Make sure the clipboard permission was granted.</li>
+              <li>Make sure clipboard permission was granted.</li>
               <li>Tap re-copy on step 1, then paste again.</li>
               <li>On Desktop, verify Filesystem MCP is on under the connectors panel.</li>
               <li>Switch surface from your Command Center if Browser is not enough.</li>
             </ul>
           ) : null}
         </Step>
+
+        <div style={{ marginTop: 14 }}>
+          <button
+            type="button"
+            onClick={() => setShowManualSteps((v) => !v)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#4A4A3A',
+              fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+              fontSize: 10,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              padding: '6px 0',
+              textDecoration: 'underline',
+              textUnderlineOffset: 3,
+            }}
+          >
+            {showManualSteps ? 'Hide manual steps' : 'Show manual steps (3-step view)'}
+          </button>
+          {showManualSteps ? (
+            <ol
+              style={{
+                marginTop: 8,
+                paddingLeft: 24,
+                fontSize: 13,
+                color: '#4A4A3A',
+                lineHeight: 1.55,
+                fontFamily: "'Newsreader', Georgia, serif",
+              }}
+            >
+              <li>{instruction.stepTitle}</li>
+              <li>{instruction.stepBody}</li>
+              <li>Ask your Claude the verify prompt and confirm above.</li>
+            </ol>
+          ) : null}
+        </div>
       </motion.div>
     </div>
   )
@@ -400,10 +504,11 @@ interface StepProps {
   title: string
   body: string
   done?: boolean
+  flash?: boolean
   children?: React.ReactNode
 }
 
-function Step({ number, title, body, done, children }: StepProps) {
+function Step({ number, title, body, done, flash, children }: StepProps) {
   return (
     <div
       style={{
@@ -413,8 +518,14 @@ function Step({ number, title, body, done, children }: StepProps) {
         borderBottom: '1px solid rgba(20,20,10,0.08)',
       }}
     >
-      <span
+      <motion.span
         aria-hidden="true"
+        animate={
+          flash
+            ? { scale: [1, 1.18, 1], boxShadow: ['0 0 0 0 rgba(226,84,28,0)', '0 0 0 12px rgba(226,84,28,0)', '0 0 0 0 rgba(226,84,28,0)'] }
+            : { scale: 1 }
+        }
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         style={{
           width: 36,
           height: 36,
@@ -430,8 +541,8 @@ function Step({ number, title, body, done, children }: StepProps) {
           flexShrink: 0,
         }}
       >
-        {number}
-      </span>
+        {done ? <Check size={16} aria-hidden="true" /> : number}
+      </motion.span>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div
           style={{

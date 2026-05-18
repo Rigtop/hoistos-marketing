@@ -12,12 +12,13 @@
  * Hard Rule #11: no em dashes anywhere in this file.
  */
 
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { clearSession, hasSession } from '../session'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { LevelUpOverlay } from '../celebration/LevelUpOverlay'
 import { SegmentedTrackerBar } from '../SegmentedTrackerBar'
+import { AuroraBackdropLight } from '../AuroraBackdropLight'
 
 export function EmpireLayout() {
   const location = useLocation()
@@ -49,13 +50,19 @@ export function EmpireLayout() {
       style={{
         background: 'rgb(var(--color-bg))',
         color: 'rgb(var(--color-fg))',
-        paddingTop: 'clamp(116px, 15vw, 140px)',
+        paddingTop: 'clamp(180px, 24vw, 220px)',
+        position: 'relative',
       }}
     >
+      {/* Round 8 (2026-05-18): AuroraBackdropLight is a paper-cream tinted
+          backdrop that drifts behind everything. Mounted before the bar so it
+          sits at the bottom of the stacking order. */}
+      <AuroraBackdropLight />
+
       {/* Round 7 (2026-05-18): SegmentedTrackerBar replaces JourneyTrackerBar
-          as the always-visible top chrome on every /empire descendant. Mounts
-          here so the bar persists across /empire, /empire/foundation,
-          /empire/timeline, /empire/bonus-extras, etc. */}
+          as the always-visible top chrome on every /empire descendant. Round
+          8 expanded the bar to absorb the EmpireWorks lockup + 3-pill tab nav
+          so there is no separate header band anymore. */}
       <SegmentedTrackerBar />
 
       {/* Skip-to-content link. Hidden until focused so keyboard users can
@@ -84,84 +91,19 @@ export function EmpireLayout() {
       >
         Skip to content
       </a>
+      {/* Round 8 (2026-05-18): the dedicated EmpireWorks Reconstruction header
+          band was eliminated. The brand lockup moved into the SegmentedTrackerBar
+          top-left, the 5-link nav moved out (3-pill tab nav lives in the bar).
+          Sign-out affordance only renders on auth routes now. */}
       <header
-        className="px-[6vw] py-4 md:py-6 flex items-center justify-between border-b gap-3"
-        style={{ borderColor: 'rgb(var(--color-border))', background: '#f5f4ed' }}
+        className="px-[6vw] py-2 flex items-center justify-end gap-3"
+        style={{
+          borderColor: 'rgb(var(--color-border))',
+          background: 'transparent',
+          minHeight: 0,
+          display: !onAuthSurface && hasSession() && !isMobile ? 'flex' : 'none',
+        }}
       >
-        {/* F8 fix (cycle-4 iter-2): split the HoistOS lockup out of the
-            EmpireWorks Link so a click on the HoistOS H-mark does not navigate
-            to /empire (a tap on HoistOS now does nothing visually-misleading;
-            it is rendered as a static sibling). The brand framing reads
-            "EmpireWorks Reconstruction on HoistOS" so the click affordance
-            now matches the words. */}
-        <div
-          className="flex items-center gap-3 md:gap-5 min-w-0"
-          style={{ paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
-        >
-          <Link
-            to="/empire"
-            className="group flex items-center min-w-0"
-            style={{ paddingLeft: 4 }}
-            aria-label="EmpireWorks Reconstruction overview"
-          >
-            {/* EmpireWorks lockup. PNG with 25% transparent margin renders
-                directly on the header bg (no pill wrapper). The transparent
-                margin gives the breathing room. S205 2026-05-13: removed the
-                rgba off-cream pill that visually clipped RECONSTRUCTION. */}
-            <img
-              src="/brand/empireworks-lockup-v3.png"
-              alt="EmpireWorks Reconstruction"
-              style={{
-                height: isMobile ? 40 : 56,
-                width: 'auto',
-                display: 'block',
-                objectFit: 'contain',
-                objectPosition: 'left center',
-                flexShrink: 0,
-              }}
-            />
-          </Link>
-          {/* "on HoistOS" sub-mark renders only at lg+ (>= 1024). Below 1024
-              the desktop nav already crowds the header at 768-1023 (iPad
-              portrait, Surface laptop minor), and the badge overprints the
-              first nav link "Overview" at that range. The HoistOS brand is
-              repeated in the mobile menu drawer for the mobile (<768) path
-              and stays visible at every tap-target laptop width (>= 1024).
-              F8: this lives outside the Link so it is no longer a clickable
-              area pretending to go somewhere. */}
-          {!isMobile ? (
-            <span className="hidden lg:contents">
-              <span
-                aria-hidden="true"
-                className="h-7 w-px"
-                style={{ background: 'rgba(20,20,19,0.18)' }}
-              />
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  fontFamily: "'Newsreader', serif",
-                  fontSize: 18,
-                  color: '#3a3a36',
-                  letterSpacing: '-0.005em',
-                }}
-              >
-                <span style={{ fontStyle: 'italic', color: '#5e5d59' }}>on</span>
-                <img
-                  src="/brand/HoistOS-Lockup-Horizontal.svg"
-                  alt="HoistOS"
-                  style={{ height: 22, width: 'auto', display: 'block' }}
-                />
-              </span>
-            </span>
-          ) : null}
-        </div>
-        {/* Round 7 (2026-05-18): the 5-link header nav (Overview, Foundation,
-            Advanced, Timeline, Book a walkthrough) was stripped per the brief.
-            The 3-pill tab nav (Your Journey, Pack Catalog, Command Center)
-            now lives inside EmpireLanding and only renders on the /empire
-            index route. Sign-out affordance kept for the auth flow. */}
         {!isMobile && !onAuthSurface && hasSession() ? (
           <nav aria-label="Account" style={{ display: 'inline-flex' }}>
             <button
@@ -171,7 +113,7 @@ export function EmpireLayout() {
                 color: 'rgb(var(--color-fg-subtle))',
                 background: 'transparent',
                 border: 'none',
-                padding: '8px 12px',
+                padding: '6px 10px',
                 fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
                 fontSize: 11,
                 letterSpacing: '0.16em',
@@ -189,7 +131,7 @@ export function EmpireLayout() {
           stripped. Tab nav now lives inside EmpireLanding and is mobile-aware
           via flex-wrap on the pill row. */}
 
-      <main id="empire-main-content" className="flex-1">
+      <main id="empire-main-content" className="flex-1" style={{ position: 'relative', zIndex: 1 }}>
         <Outlet />
       </main>
 

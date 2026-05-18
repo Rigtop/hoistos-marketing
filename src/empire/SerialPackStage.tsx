@@ -32,6 +32,7 @@ import { listActivated, onActivatedChange } from '../lib/activate'
 import { readIntake } from '../lib/intake-state'
 import { useIsMobile } from '../lib/useIsMobile'
 import { PackInstallFlow } from './PackInstallFlow'
+import { sendEvent } from '../lib/telemetry'
 
 const PAIN_TO_OUTCOME_TAG: Record<string, string> = {
   emails: 'faster emails',
@@ -132,6 +133,16 @@ export function SerialPackStage() {
 
   const active = useMemo(() => pickActivePack(installed, q2), [installed, q2])
   const allInstalled = installed.length >= FOUNDATION_CARDS.length
+
+  useEffect(() => {
+    if (active?.card?.packId) {
+      void sendEvent('pack_view', {
+        packId: active.card.packId,
+        surface: (q3[0] ?? 'browser') as 'browser' | 'desktop' | 'code',
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?.card?.packId])
 
   const greeting = useMemo(() => {
     if (intake.name) {
@@ -332,38 +343,56 @@ export function SerialPackStage() {
             {active.after}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setInstalling(true)}
-          style={{
-            width: '100%',
-            background: '#E2541C',
-            color: '#FBFAF3',
-            padding: '16px 24px',
-            borderRadius: 12,
-            border: 'none',
-            cursor: 'pointer',
-            fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            fontSize: 13,
-            minHeight: 52,
-            transition: 'transform 200ms, box-shadow 200ms',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)'
-            e.currentTarget.style.boxShadow = '0 12px 32px rgba(226,84,28,0.38)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = 'none'
-          }}
-        >
-          Install this pack
-        </button>
+        <MagneticInstallButton onClick={() => setInstalling(true)} reduce={reduce ?? false} />
       </motion.div>
     </div>
+  )
+}
+
+function MagneticInstallButton({ onClick, reduce }: { onClick: () => void; reduce: boolean }) {
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  function handleMove(e: React.MouseEvent<HTMLButtonElement>) {
+    if (reduce) return
+    const r = e.currentTarget.getBoundingClientRect()
+    const cx = r.left + r.width / 2
+    const cy = r.top + r.height / 2
+    const dx = (e.clientX - cx) / (r.width / 2)
+    const dy = (e.clientY - cy) / (r.height / 2)
+    setOffset({ x: dx * 4, y: dy * 4 })
+  }
+  function handleLeave() {
+    setOffset({ x: 0, y: 0 })
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{
+        width: '100%',
+        background: 'linear-gradient(135deg, #E2541C, #FF7A3C)',
+        color: '#FBFAF3',
+        padding: '16px 24px',
+        borderRadius: 12,
+        border: 'none',
+        cursor: 'pointer',
+        fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase',
+        fontWeight: 600,
+        fontSize: 13,
+        minHeight: 52,
+        transform: `translate(${offset.x}px, ${offset.y}px)`,
+        transition: 'transform 200ms ease-out, box-shadow 200ms ease-out',
+        boxShadow:
+          offset.x !== 0 || offset.y !== 0
+            ? '0 14px 36px rgba(226,84,28,0.42)'
+            : '0 8px 24px rgba(226,84,28,0.28)',
+      }}
+    >
+      Install this pack
+    </button>
   )
 }
 
