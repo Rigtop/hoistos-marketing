@@ -42,6 +42,22 @@ createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
 fingerprint: foundation-02-facts-registry-v2.0.0
 category: foundation-canonical-facts
+coexistSignatures:
+  - facts.registry
+  - canonical facts
+  - facts-registry\.md
+  - people db
+  - canonical roster
+  - who is my
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Canonical roster locking (company, contacts, roles, division headcount)
+  - Missing-role flagging (Claude says "you do not have a CFO listed" instead of inventing one)
+  - One-prompt recall of any tracked person or project across fresh chats
+probePrompts:
+  smoke: "Who is my principal?"
+  real: "Who is my CFO and who handles bookkeeping?"
+  stress: "What is the name of a partner I have never told you about? (should refuse cleanly)"
 ---
 
 # Foundation 02: Facts Registry. The canonical you. Claude never guesses again.

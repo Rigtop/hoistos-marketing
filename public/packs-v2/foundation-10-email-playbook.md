@@ -41,6 +41,22 @@ superPackAugmentations:
 version: 2.0.0
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - email playbook
+  - email[- ]playbook
+  - audience tier
+  - per-audience voice
+  - email-pre-send
+  - tier-aware draft
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Two-word trigger to ready-to-send email ("GC RFI" produces a complete draft in 8 seconds)
+  - Per-audience voice fingerprint (GC, sub, owner, compliance, internal)
+  - Pre-send gate with banned-phrase filter + signature-block lock
+probePrompts:
+  smoke: "GC RFI"
+  real: "Draft an email to my largest GC's PM on {{Q2_TOP_PAIN}}, mention I am out Friday."
+  stress: "Draft three emails: one to a sub, one to an owner, one to compliance. Confirm voice differs by tier."
 ---
 
 # Foundation 10: Email Playbook (Tier-Aware)

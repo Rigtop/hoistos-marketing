@@ -53,6 +53,21 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "f-11-notion-write-gate-v2.0.0"
 category: foundation-tier-write-verification
+coexistSignatures:
+  - notion write gate
+  - notion[- ]write[- ]gate
+  - post.write.verify
+  - hidden formula dependency
+  - notion-write-with-verify
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Post-write read-back verification on every Notion property change
+  - Hidden formula dependency detection (catches "Status still Open because Resolution Date empty")
+  - Auto-remediate up to 3 loops, then escalate with diff
+probePrompts:
+  smoke: "Update the test row in Notion."
+  real: "Close out the RFI in Notion. Test that the gate verifies and handles dependencies."
+  stress: "Update a row with hidden formula dependencies and confirm the gate detects the ghost-state."
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

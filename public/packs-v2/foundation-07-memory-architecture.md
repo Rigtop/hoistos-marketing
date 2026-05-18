@@ -45,6 +45,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "foundation-07-mem-v2.0.0"
 category: foundation-memory-and-learning
+coexistSignatures:
+  - memory architecture
+  - memory[- ]architecture
+  - capture[- ]memory
+  - corrections compound
+  - topic memory
+  - persistent memory
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Cross-chat correction persistence (tell Tuesday, holds in Wednesday's fresh chat)
+  - Topic-file storage separate from atomic facts (registry holds who, memory holds context)
+  - Memory audit + de-dup against the registry on every write
+probePrompts:
+  smoke: "Remember this: the architect on project X is the owner-builder, not the GC."
+  real: "On Tuesday I told you {{Q2_TOP_PAIN}} matters most. Confirm you carry that into this chat."
+  stress: "What corrections have I made over the last week, and what topic files did they land in?"
 ---
 
 # Foundation 07: Memory Architecture
