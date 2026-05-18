@@ -121,17 +121,10 @@ export function LevelUpOverlay() {
               boxShadow: '0 24px 60px -16px rgb(0 0 0 / 0.28)',
             }}
           >
-            <div
-              style={{
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: 11,
-                letterSpacing: '0.24em',
-                color: 'rgb(var(--color-accent))',
-                marginBottom: 12,
-              }}
-            >
-              Level up
-            </div>
+            {/* F3 fix (cycle-4 iter-6): drop the "Level up" eyebrow so the
+                dialog reads "Level N" + milestone name without the duplicate
+                "Level" framing the eyebrow + H1 produced. Medal/backdrop and
+                aria-label still carry the level-up class. */}
             <div
               style={{
                 fontFamily: 'Newsreader, Georgia, serif',
@@ -140,15 +133,16 @@ export function LevelUpOverlay() {
                 lineHeight: 1.05,
                 letterSpacing: '-0.01em',
                 color: 'rgb(var(--color-fg))',
-                marginBottom: 8,
+                marginBottom: 10,
               }}
             >
               Level {active.num}
             </div>
             <div
               style={{
-                fontSize: 16,
-                color: 'rgb(var(--color-fg-muted))',
+                fontSize: 18,
+                fontWeight: 600,
+                color: 'rgb(var(--color-fg))',
                 marginBottom: 22,
               }}
             >

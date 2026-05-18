@@ -334,26 +334,24 @@ function FoundationCardTile({
     my.set(0)
   }
 
-  // Primary action: open the mini-form. If the form is already open and the
-  // user clicks Confirm install, we kick activateSkill with the customware
-  // answers. F2 fix (S217 iter-2): the button label changes on each state so
-  // the user can tell the difference between "I opened a form" and "I just
-  // installed."
+  // F2 fix (cycle-4 iter-6): "Install" verb fires the install. Click "Install"
+  // on the default card-state and activateSkill kicks immediately with empty
+  // VP_NAME_SLUG + DIVISION_SLUG (the customware substitution template handles
+  // empty case fine, mirrors handleSkipPersonalization). Users who want to
+  // fill the personalization fields tap "Customize first" to open the form;
+  // primary button then reads "Confirm install" and uses the entered values.
+  // Resolves the cycle-4 verb-action mismatch where "Install" opened a form.
   async function handleInstall(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
     e.stopPropagation()
-    if (!showForm) {
-      setShowForm(true)
-      return
-    }
     setInstalling(true)
     try {
       await activateSkill({
         slug: card.packId,
         packUrl: packUrlFor(card.packId),
         customwareAnswers: {
-          VP_NAME_SLUG: slugify(vpName),
-          DIVISION_SLUG: slugify(division),
+          VP_NAME_SLUG: showForm ? slugify(vpName) : '',
+          DIVISION_SLUG: showForm ? slugify(division) : '',
         },
       })
       setInstalled(true)
@@ -362,6 +360,12 @@ function FoundationCardTile({
     } finally {
       setInstalling(false)
     }
+  }
+
+  function handleOpenCustomize(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowForm(true)
   }
 
   // F3 fix (S217 iter-2): explicit "skip personalization" path so the user
@@ -641,6 +645,22 @@ function FoundationCardTile({
               </>
             )}
           </button>
+          {!installed && !showForm && !installing ? (
+            <button
+              type="button"
+              onClick={handleOpenCustomize}
+              aria-label={`Customize ${card.title} before installing`}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+            >
+              Customize first
+            </button>
+          ) : null}
           {!installed && showForm && !installing ? (
             <button
               type="button"

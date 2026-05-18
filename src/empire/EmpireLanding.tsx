@@ -226,15 +226,18 @@ export function EmpireLanding() {
           className="max-w-4xl mx-auto text-center relative"
           style={isMobile ? undefined : { flex: '1 1 0%', minWidth: 0 }}
         >
-        {/* F9 fix (cycle-4 iter-2): retire the font-mono console-log
-            treatment on the brand eyebrow. Sans-serif small-caps at the same
-            signal-orange hue reads as a branded eyebrow instead of terminal
-            output. Stripe + Linear pattern for above-the-hero eyebrows. */}
+        {/* F6 + F7 fix (cycle-4 iter-6): compress chrome above the H1 by
+            consolidating the brand eyebrow + author byline into a single line,
+            and dropping `uppercase` for a sentence-case treatment matching the
+            Stripe-Atlas locked direction. The standalone AuthorByline mount
+            and the Setup pill move below the subhead so the H1 lands higher on
+            the first viewport. AuthorFooter at the bottom of EmpireLayout
+            still carries the canonical signature. */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-xs uppercase tracking-[0.14em] mb-6 flex items-center justify-center gap-3 flex-wrap"
+          className="text-xs tracking-[0.04em] mb-6 flex items-center justify-center gap-3 flex-wrap"
           style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}
         >
           <span>HoistOS</span>
@@ -244,42 +247,11 @@ export function EmpireLanding() {
               ? 'For Steve, Spencer, Jay and the EmpireWorks VPs'
               : 'For EmpireWorks Reconstruction'}
           </span>
+          <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
+          <span style={{ color: 'rgb(var(--color-fg-muted))', fontWeight: 500 }}>
+            Created by Eugeen Bernan
+          </span>
         </motion.div>
-
-        {/* Author byline. The authority transfer block. Eugeen's name lands
-            above the h1 so visitors who know him from LinkedIn see the
-            connection on viewport one. The avatar is initials-only as a
-            placeholder, swap to a real headshot in /public/brand/ when
-            available. */}
-        <AuthorByline />
-
-        {/* Setup pill. Always surfaces when the modal is closed so the user
-            has a path into intake on first visit (no auto-open per MASTER_PLAN
-            v2 S2) and on return visits. Tap target 44px per HR #35 / R067. */}
-        {!intakeGate.open ? (
-          <div className="mb-4">
-            <button
-              type="button"
-              onClick={intakeGate.reopen}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium tracking-[0.005em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
-              style={{
-                minHeight: 44,
-                border: '1px solid rgb(var(--color-fg) / 0.18)',
-                background: 'rgb(var(--color-fg) / 0.02)',
-                color: 'rgb(var(--color-fg-muted))',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.06)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.02)'
-              }}
-              aria-label={intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
-            >
-              {intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
-            </button>
-          </div>
-        ) : null}
 
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -312,6 +284,40 @@ export function EmpireLanding() {
           Pack by pack. Voice, memory, sources, routing, validation. A Claude that knows
           your business by tomorrow and keeps getting sharper every week after that.
         </motion.p>
+
+        {/* F6 relocation (cycle-4 iter-6): Setup pill moved from above-H1 to
+            below the subhead so the H1 lands higher on the first viewport.
+            Still surfaces on the first scroll, still 44px tap target, still
+            opens the same intake gate. */}
+        {!intakeGate.open ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.16 }}
+            className="mb-7 flex justify-center"
+          >
+            <button
+              type="button"
+              onClick={intakeGate.reopen}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium tracking-[0.005em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                minHeight: 44,
+                border: '1px solid rgb(var(--color-fg) / 0.18)',
+                background: 'rgb(var(--color-fg) / 0.02)',
+                color: 'rgb(var(--color-fg-muted))',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.06)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgb(var(--color-fg) / 0.02)'
+              }}
+              aria-label={intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
+            >
+              {intakeGate.complete ? 'Edit your setup' : 'Personalize my Claude'}
+            </button>
+          </motion.div>
+        ) : null}
 
         {/* MASTER_PLAN Round 5 line 47 delete: the 6-teaser-card grid (Rules
             locked / Memory compounds / Routing knows where / Source-checked
@@ -438,7 +444,7 @@ export function EmpireLanding() {
           aria-label="Scroll to learn how it works"
         >
           <span
-            className="text-xs uppercase tracking-[0.14em] font-medium transition-colors duration-300"
+            className="text-xs tracking-[0.04em] font-medium transition-colors duration-300"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             How it works
@@ -478,7 +484,7 @@ export function EmpireLanding() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.6 }}
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-5"
+          className="text-xs tracking-[0.04em] font-medium mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Your move
@@ -530,7 +536,7 @@ export function EmpireLanding() {
       {/* NOTE: origin framing (Steve Hultgren) + IP confidentiality lock */}
       <section className="mt-24 max-w-3xl mx-auto">
         <p
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-4"
+          className="text-xs tracking-[0.04em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Why this exists
@@ -545,7 +551,7 @@ export function EmpireLanding() {
         </p>
 
         <p
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-4 mt-10"
+          className="text-xs tracking-[0.04em] font-medium mb-4 mt-10"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Confidential to EmpireWorks
@@ -747,29 +753,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 // AuthorByline. Authority-transfer block above the h1.
 // ---------------------------------------------------------------------------
 
-/**
- * Hero byline. Single understated line "Created by Eugeen Bernan" lands above
- * the h1. No avatar, no title block, no LinkedIn. The LinkedIn link moves to
- * the footer in `AuthorFooter` (rendered at the bottom of EmpireLayout).
- * Decision Log 2026-05-11: editorial restraint over portfolio-pill density.
- */
-function AuthorByline() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, delay: 0.03 }}
-      className="mb-7"
-    >
-      <span
-        className="font-mono text-[11px] tracking-[0.04em]"
-        style={{ color: 'rgb(var(--color-fg-muted))' }}
-      >
-        Created by Eugeen Bernan
-      </span>
-    </motion.div>
-  )
-}
+// AuthorByline removed cycle-4 iter-6 per F6 chrome-compress. The "Created
+// by Eugeen Bernan" signature is now inlined in the hero brand eyebrow and
+// canonically lives in AuthorFooter at the bottom of EmpireLayout.
 
 // ---------------------------------------------------------------------------
 // AuroraBackdropLight. Editorial-theme-fitted backdrop.

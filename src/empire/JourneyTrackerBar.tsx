@@ -120,6 +120,11 @@ export function JourneyTrackerBar() {
               whiteSpace: 'nowrap',
             }}
           >
+            {/* F5 fix (cycle-4 iter-6): soften the empty-state numerator so
+                "0 / 11" reads as a quiet fraction (same 12px/500/muted as the
+                denominator). Once at least one pack is installed, the count
+                flips to the 18px/700 ink emphasis so the meaningful number
+                lands as the visual anchor of the tracker. */}
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={installed.length}
@@ -127,13 +132,23 @@ export function JourneyTrackerBar() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={reduceMotion ? { opacity: 1 } : { scale: 1.18, opacity: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.24, ease: 'easeOut' }}
-                style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: 'rgb(var(--color-fg))',
-                  lineHeight: 1,
-                  display: 'inline-block',
-                }}
+                style={
+                  installed.length === 0
+                    ? {
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: 'rgb(var(--color-fg-muted))',
+                        lineHeight: 1,
+                        display: 'inline-block',
+                      }
+                    : {
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: 'rgb(var(--color-fg))',
+                        lineHeight: 1,
+                        display: 'inline-block',
+                      }
+                }
               >
                 {installed.length}
               </motion.span>
@@ -226,7 +241,11 @@ export function JourneyTrackerBar() {
             whiteSpace: 'nowrap',
           }}
         >
-          <AnimatePresence mode="popLayout" initial={false}>
+          {/* F4 fix (cycle-4 iter-6): mode="wait" so the exit pill finishes
+              before the enter pill renders. Prevents the brief 300-500ms
+              window where both L0 and L1 lockups cohabit the DOM on a
+              threshold cross. Matches Linear's level-progression pattern. */}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={level.num}
               initial={reduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.6, opacity: 0 }}

@@ -857,7 +857,7 @@ export function EmpireBonusExtras() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-3 flex items-center justify-center gap-3 flex-wrap"
+          className="text-xs tracking-[0.04em] font-medium mb-3 flex items-center justify-center gap-3 flex-wrap"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           <span>HoistOS</span>
@@ -1048,7 +1048,7 @@ export function EmpireBonusExtras() {
 
       <section className="mt-24 max-w-3xl mx-auto">
         <p
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-4"
+          className="text-xs tracking-[0.04em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Confidential to EmpireWorks
@@ -1106,7 +1106,7 @@ function ClaudeCodeCLIHeroBreak() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.5 }}
-          className="text-xs uppercase tracking-[0.14em] font-medium mb-4"
+          className="text-xs tracking-[0.04em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           The 10x move
@@ -1342,7 +1342,7 @@ function TellSteveCTA() {
         />
         <div className="relative">
           <div
-            className="text-xs uppercase tracking-[0.14em] font-medium mb-4"
+            className="text-xs tracking-[0.04em] font-medium mb-4"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             Loved this?
