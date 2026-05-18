@@ -1,34 +1,36 @@
 /**
- * EmpirePacksGallery. Pack Catalog tab. Browse-and-install grid view that
- * lets users pick any pack out of order, not just the next ranked one.
+ * EmpirePacksGallery. Round 8 (2026-05-18) rewrite.
  *
- * Mockup reference: mockup-A-v3.html lines 435-443 (screen-catalog grid).
- *
- * Behavior:
- *   - Renders all 11 FOUNDATION_CARDS as a 3-column grid (1 col mobile).
- *   - Each card surfaces layer + badge, title, purpose, and an MCP badge
- *     based on the user's first q3 surface preference.
- *   - Tier filter chip row at top (Foundation / Advanced visible, others
- *     hidden behind tiers.ts visible:false flag).
- *   - Click an uninstalled card opens PackInstallFlow inline (replacing the
- *     grid). Click an installed card surfaces a "Already in your stack"
- *     pill with no action (idempotent).
+ * Round 8 changes:
+ *   - A1: tier filter is now driven by the ?tier= URL param so the
+ *     SegmentedTrackerBar tier chips actually filter the catalog.
+ *   - A2: catalog renders ALL 43 packs (11 real Foundation + 32 locked
+ *     placeholders from src/empire/content/locked-packs.ts). Locked cards
+ *     have grayscale palette, lock glyph, "Ships <quarter>" badge, and
+ *     do not open the install flow.
+ *   - B7: installed Foundation cards render with a BorderBeam rotating
+ *     gradient border to signal the active state.
+ *   - B10: subtle dotted-grid background pattern (Mockup C vocabulary) on
+ *     the gallery wrapper for visual texture.
  *
  * Hard Rule #11: no em dashes.
- * R047 voice: no banned openers, plain English.
- * R067 mobile-first: 1 col on <640, 2 col on 640-1024, 3 col on >1024.
- * Context7 (HR #31): react@19.2.5 useState/useEffect/useMemo verified
- *   live 2026-05-18. motion@12.38 motion.div + useReducedMotion verified.
+ * R047 voice, R087 plain English.
+ * R067 mobile-first: 1 col under 640, then auto-fill.
+ * Context7 (HR #31): react@19.2.5, motion@12.38, lucide-react@1.14, react-
+ *   router-dom@7.15 useSearchParams. Verified live 2026-05-18.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
-import { Check } from 'lucide-react'
+import { Check, Lock } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { FOUNDATION_CARDS, type FoundationCard } from './content/foundation-cards'
+import { LOCKED_PACKS, type LockedPack } from './content/locked-packs'
 import { TIERS } from './content/tiers'
 import { listActivated, onActivatedChange } from '../lib/activate'
 import { useIsMobile } from '../lib/useIsMobile'
 import { PackInstallFlow } from './PackInstallFlow'
+import { BorderBeam } from '../components/BorderBeam'
 
 const LAYER_COLOR: Record<FoundationCard['layer'], string> = {
   Voice: '#E2541C',
@@ -54,23 +56,44 @@ function readQ3Surface(): 'browser' | 'desktop' | 'code' {
   }
 }
 
+type GalleryCard =
+  | { kind: 'foundation'; card: FoundationCard }
+  | { kind: 'locked'; pack: LockedPack }
+
 export function EmpirePacksGallery() {
   const isMobile = useIsMobile()
   const reduce = useReducedMotion()
   const [installed, setInstalled] = useState<string[]>(() => listActivated())
   const [active, setActive] = useState<FoundationCard | null>(null)
-  const [tier, setTier] = useState<string>('all')
+  const [params] = useSearchParams()
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const tier = params.get('tier') ?? 'all'
 
   useEffect(() => onActivatedChange(() => setInstalled(listActivated())), [])
 
-  const visibleTiers = useMemo(() => TIERS.filter((t) => t.visible), [])
   const installedSet = useMemo(() => new Set(installed), [installed])
   const surface = useMemo(() => readQ3Surface(), [installed])
 
-  const visibleCards = useMemo(() => {
-    if (tier === 'all' || tier === 'foundation') return FOUNDATION_CARDS
-    return []
+  const visibleCards = useMemo<GalleryCard[]>(() => {
+    if (tier === 'all') {
+      return [
+        ...FOUNDATION_CARDS.map((card) => ({ kind: 'foundation' as const, card })),
+        ...LOCKED_PACKS.map((pack) => ({ kind: 'locked' as const, pack })),
+      ]
+    }
+    if (tier === 'foundation') {
+      return FOUNDATION_CARDS.map((card) => ({ kind: 'foundation' as const, card }))
+    }
+    return LOCKED_PACKS.filter((p) => p.tier === tier).map((pack) => ({
+      kind: 'locked' as const,
+      pack,
+    }))
   }, [tier])
+
+  function fireLockedToast(p: LockedPack) {
+    setToastMsg(`${p.title} ships ${p.shipsBadge.replace('Ships ', '')}. Email Eugeen to join the waitlist.`)
+    window.setTimeout(() => setToastMsg(null), 4000)
+  }
 
   if (active) {
     return (
@@ -86,6 +109,8 @@ export function EmpirePacksGallery() {
     )
   }
 
+  const visibleTiers = useMemo(() => TIERS.filter((t) => t.visible), [])
+
   return (
     <div
       data-component="empire-packs-gallery"
@@ -93,105 +118,226 @@ export function EmpirePacksGallery() {
         maxWidth: 1200,
         margin: '0 auto',
         padding: isMobile ? '24px 16px 64px' : '40px 24px 80px',
+        position: 'relative',
+        backgroundImage:
+          'radial-gradient(circle at 1px 1px, rgba(20,20,10,0.06) 1px, transparent 0)',
+        backgroundSize: '22px 22px',
+        backgroundPosition: '-1px -1px',
+        borderRadius: 12,
       }}
     >
-      <h2
+      <div
         style={{
-          fontFamily: "'Newsreader', Georgia, serif",
-          fontSize: isMobile ? '2.4rem' : '3.2rem',
-          fontWeight: 500,
-          color: '#14140A',
-          margin: 0,
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
           marginBottom: 8,
-          letterSpacing: '-0.015em',
         }}
       >
-        Pack Catalog
-      </h2>
+        <h2
+          style={{
+            fontFamily: "'Newsreader', Georgia, serif",
+            fontSize: isMobile ? '2.4rem' : '3.2rem',
+            fontWeight: 500,
+            color: '#14140A',
+            margin: 0,
+            letterSpacing: '-0.015em',
+          }}
+        >
+          Pack Catalog
+        </h2>
+        <span
+          style={{
+            fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+            fontSize: 11,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: '#8A8A78',
+          }}
+        >
+          {currentFilterLabel(tier, visibleTiers)} · {visibleCards.length} packs
+        </span>
+      </div>
       <p
         style={{
-          fontSize: 17,
+          fontSize: 16,
           color: '#4A4A3A',
           margin: 0,
           marginBottom: 28,
           fontFamily: "'Newsreader', Georgia, serif",
         }}
       >
-        All Foundation packs. Pick any of them out of order. Advanced tier ships next.
+        Pick any of the 11 Foundation packs out of order. Locked cards ship later, in the quarter on each badge.
       </p>
-
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          marginBottom: 24,
-        }}
-      >
-        <FilterChip label="All" active={tier === 'all'} onClick={() => setTier('all')} />
-        {visibleTiers.map((t) => (
-          <FilterChip
-            key={t.id}
-            label={t.label}
-            active={tier === t.id}
-            onClick={() => setTier(t.id)}
-          />
-        ))}
-      </div>
 
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile
             ? '1fr'
-            : 'repeat(auto-fill, minmax(320px, 1fr))',
-          gap: 16,
+            : 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: 14,
         }}
       >
-        {visibleCards.map((card, idx) => {
-          const isInstalled = installedSet.has(card.packId)
+        {visibleCards.map((entry, idx) => {
+          if (entry.kind === 'foundation') {
+            const card = entry.card
+            const isInstalled = installedSet.has(card.packId)
+            return (
+              <motion.button
+                key={card.packId}
+                type="button"
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : { duration: 0.4, delay: Math.min(idx * 0.025, 0.4), ease: [0.22, 1, 0.36, 1] }
+                }
+                onClick={() => {
+                  if (isInstalled) return
+                  setActive(card)
+                }}
+                style={{
+                  position: 'relative',
+                  textAlign: 'left',
+                  background: 'white',
+                  border: `1px solid ${isInstalled ? '#E2541C' : 'rgba(20,20,10,0.08)'}`,
+                  borderRadius: 18,
+                  padding: '22px 24px',
+                  cursor: isInstalled ? 'default' : 'pointer',
+                  color: '#14140A',
+                  fontFamily: "'Newsreader', Georgia, serif",
+                  boxShadow: isInstalled
+                    ? '0 10px 32px rgba(226,84,28,0.18)'
+                    : '0 6px 20px rgba(20,20,10,0.04)',
+                  transition: 'transform 200ms, box-shadow 200ms',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  overflow: 'hidden',
+                }}
+                onMouseEnter={(e) => {
+                  if (isInstalled) return
+                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.boxShadow = '0 16px 36px rgba(20,20,10,0.08)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = isInstalled
+                    ? '0 10px 32px rgba(226,84,28,0.18)'
+                    : '0 6px 20px rgba(20,20,10,0.04)'
+                }}
+              >
+                {isInstalled ? (
+                  <BorderBeam size={36} duration={8} colorFrom="#E2541C" colorTo="#C89A3C" />
+                ) : null}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                      fontSize: 10,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: LAYER_COLOR[card.layer],
+                    }}
+                  >
+                    {card.layer} · {card.badge}
+                  </span>
+                  {isInstalled ? (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '4px 10px',
+                        borderRadius: 999,
+                        background: 'rgba(226,84,28,0.1)',
+                        color: '#E2541C',
+                        border: '1px solid rgba(226,84,28,0.35)',
+                        fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                        fontSize: 10,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      <Check size={10} aria-hidden="true" />
+                      Installed
+                    </span>
+                  ) : null}
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Newsreader', Georgia, serif",
+                    fontSize: '1.4rem',
+                    fontWeight: 500,
+                    margin: 0,
+                    color: '#14140A',
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 14,
+                    color: '#4A4A3A',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {card.purpose}
+                </p>
+              </motion.button>
+            )
+          }
+
+          const pack = entry.pack
           return (
             <motion.button
-              key={card.packId}
+              key={pack.packId}
               type="button"
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={
                 reduce
                   ? { duration: 0 }
-                  : { duration: 0.45, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }
+                  : { duration: 0.4, delay: Math.min(idx * 0.02, 0.4), ease: [0.22, 1, 0.36, 1] }
               }
-              onClick={() => {
-                if (isInstalled) return
-                setActive(card)
-              }}
+              onClick={() => fireLockedToast(pack)}
               style={{
+                position: 'relative',
                 textAlign: 'left',
-                background: 'white',
-                border: `1px solid ${isInstalled ? '#E2541C' : 'rgba(20,20,10,0.08)'}`,
+                background: 'rgba(255,255,255,0.4)',
+                border: '1px dashed rgba(20,20,10,0.16)',
                 borderRadius: 18,
                 padding: '22px 24px',
-                cursor: isInstalled ? 'default' : 'pointer',
-                color: '#14140A',
+                cursor: 'pointer',
+                color: '#8A8A78',
                 fontFamily: "'Newsreader', Georgia, serif",
-                boxShadow: isInstalled
-                  ? '0 10px 32px rgba(226,84,28,0.18)'
-                  : '0 6px 20px rgba(20,20,10,0.04)',
-                transition: 'transform 200ms, box-shadow 200ms',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 12,
+                filter: 'grayscale(0.7)',
+                transition: 'filter 200ms, transform 200ms',
               }}
               onMouseEnter={(e) => {
-                if (isInstalled) return
-                e.currentTarget.style.transform = 'translateY(-3px)'
-                e.currentTarget.style.boxShadow = '0 16px 36px rgba(20,20,10,0.08)'
+                e.currentTarget.style.filter = 'grayscale(0.3)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.filter = 'grayscale(0.7)'
                 e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = isInstalled
-                  ? '0 10px 32px rgba(226,84,28,0.18)'
-                  : '0 6px 20px rgba(20,20,10,0.04)'
               }}
             >
               <div
@@ -208,32 +354,29 @@ export function EmpirePacksGallery() {
                     fontSize: 10,
                     letterSpacing: '0.18em',
                     textTransform: 'uppercase',
-                    color: LAYER_COLOR[card.layer],
+                    color: '#8A8A78',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  {card.layer} · {card.badge}
+                  <Lock size={10} aria-hidden="true" />
+                  {pack.tier.charAt(0).toUpperCase() + pack.tier.slice(1)} · {pack.badge}
                 </span>
-                {isInstalled ? (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      background: 'rgba(226,84,28,0.1)',
-                      color: '#E2541C',
-                      border: '1px solid rgba(226,84,28,0.35)',
-                      fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-                      fontSize: 10,
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    <Check size={10} aria-hidden="true" />
-                    Installed
-                  </span>
-                ) : null}
+                <span
+                  style={{
+                    fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                    fontSize: 9,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: '#A8A89A',
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    background: 'rgba(20,20,10,0.05)',
+                  }}
+                >
+                  {pack.shipsBadge}
+                </span>
               </div>
               <h3
                 style={{
@@ -241,22 +384,22 @@ export function EmpirePacksGallery() {
                   fontSize: '1.4rem',
                   fontWeight: 500,
                   margin: 0,
-                  color: '#14140A',
+                  color: '#5A5A4A',
                   letterSpacing: '-0.01em',
                   lineHeight: 1.15,
                 }}
               >
-                {card.title}
+                {pack.title}
               </h3>
               <p
                 style={{
                   margin: 0,
                   fontSize: 14,
-                  color: '#4A4A3A',
+                  color: '#8A8A78',
                   lineHeight: 1.5,
                 }}
               >
-                {card.purpose}
+                {pack.purpose}
               </p>
             </motion.button>
           )
@@ -269,44 +412,49 @@ export function EmpirePacksGallery() {
               fontFamily: "'Newsreader', Georgia, serif",
             }}
           >
-            Advanced tier packs ship next. Foundation is in flight today.
+            Nothing in this tier yet.
           </p>
         ) : null}
       </div>
+
+      {toastMsg ? (
+        <motion.div
+          role="status"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          style={{
+            position: 'fixed',
+            bottom: 28,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#14140A',
+            color: '#FBFAF3',
+            padding: '14px 22px',
+            borderRadius: 999,
+            fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+            fontSize: 12,
+            letterSpacing: '0.04em',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.32)',
+            zIndex: 90,
+            maxWidth: '90vw',
+          }}
+        >
+          {toastMsg}
+        </motion.div>
+      ) : null}
     </div>
   )
 }
 
-function FilterChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: '10px 18px',
-        borderRadius: 10,
-        border: `1px solid ${active ? '#14140A' : 'rgba(20,20,10,0.08)'}`,
-        background: active ? '#14140A' : 'transparent',
-        color: active ? '#FBFAF3' : '#4A4A3A',
-        fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-        fontSize: 11,
-        letterSpacing: '0.16em',
-        textTransform: 'uppercase',
-        cursor: 'pointer',
-        minHeight: 40,
-      }}
-    >
-      {label}
-    </button>
-  )
+function currentFilterLabel(
+  tier: string,
+  visibleTiers: typeof TIERS,
+): string {
+  if (tier === 'all') return 'All tiers'
+  const match = visibleTiers.find((t) => t.id === tier)
+  if (match) return `${match.label} only`
+  return tier.charAt(0).toUpperCase() + tier.slice(1)
 }
 
 export default EmpirePacksGallery

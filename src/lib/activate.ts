@@ -146,8 +146,12 @@ export function onActivatedChange(cb: () => void): () => void {
  * Fetch the pack markdown body. Used to seed the clipboard with the actual
  * SKILL.md content so the VP can paste it directly into claude.ai / a new
  * Project Knowledge file.
+ *
+ * Round 8 (2026-05-18): exposed as a named export so PackInstallFlow can
+ * call it directly instead of generating a stub starter prompt inline.
+ * Reflection move #2 from round 7.
  */
-async function fetchPackBody(packUrl: string): Promise<string> {
+export async function fetchPackBody(packUrl: string): Promise<string> {
   const res = await fetch(packUrl, { method: 'GET' })
   if (!res.ok) {
     throw new Error(`pack fetch failed ${res.status}`)

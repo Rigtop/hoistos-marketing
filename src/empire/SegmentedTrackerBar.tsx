@@ -1,37 +1,43 @@
 /**
- * SegmentedTrackerBar. Full-width fixed-top progress strip rendered on every
- * /empire route. Replaces the prior JourneyTrackerBar.
+ * SegmentedTrackerBar. Round 8 (2026-05-18) rewrite.
  *
- * Mockup reference: mockup-A-v3.html lines 34-90 (CSS), 235-272 (markup).
+ * Single unified chrome strip for every /empire route. Eats what used to be
+ * three separate elements (the bar + the EmpireWorks band + the 3-pill tab
+ * nav) so there is no cream gap, no dead zone, no visual stitch lines.
  *
- * Structure:
- *   Row 1: "Your Claude N/43" eyebrow + tier-toggle chip row + level display.
- *   Row 2: 5-segment progress bar, one segment per layer (voice, memory,
- *          sources, routing, validation), fill driven by listActivated()
- *          intersected with FOUNDATION_CARDS grouped by layer.
- *   Row 3: 5 layer labels with "N/M" counts.
- *   Click on any segment opens a detail panel inline below the bar listing
- *   installed packs in that layer plus the next-recommended pack.
+ * Rows:
+ *   1. EmpireWorks lockup left + "Your Claude N/43" eyebrow + tier-chip
+ *      strip center + level display right.
+ *   2. 5-segment progress bar with click-to-detail panel.
+ *   3. 5 layer labels with N/M counts.
+ *   4. 3-pill tab nav (Your Journey / Pack Catalog / Command Center) with
+ *      orange active-state and motion.layoutId smooth slide.
+ *
+ * Tier chips (A1 gamification):
+ *   - Hex-clip-path glyph badge per tier (Mockup B HUD vocabulary)
+ *   - Active chip glows signal-orange with a motion.div layoutId slide
+ *   - Locked tiers (Advanced this round) carry a small lock glyph + label
+ *   - Click sets ?tier= URL param so EmpirePacksGallery reads same source
  *
  * Hard Rule #11: no em dashes.
- * R047 voice: no banned openers, plain English.
- * R087 plain English: sentence-case prose, no ALL-CAPS body labels.
- * R067 mobile-first: tier-strip and segment labels collapse legibly at
- *   320 / 375 / 768 widths.
- * Context7 (HR #31): react@19.2.5 useState/useEffect/useMemo verified live
- *   2026-05-18 via context7 query. motion@12.38 motion.div + AnimatePresence
- *   + useReducedMotion from motion/react verified live 2026-05-18.
- *   lucide-react@1.14 named exports with size/color/strokeWidth props +
- *   aria-hidden auto-applied verified live 2026-05-18.
+ * R047 voice: no banned openers.
+ * R087 plain English in copy.
+ * R067 mobile-first: tier-strip collapses to glyph-only at <768, EW lockup
+ *   collapses to flag glyph at <640.
+ * Context7 (HR #31): react@19.2.5, motion@12.38, lucide-react@1.14, react-
+ *   router-dom@7.15 useSearchParams + useNavigate + useLocation + Link all
+ *   verified live 2026-05-18.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { ChevronRight, X } from 'lucide-react'
+import { ChevronRight, Lock, X } from 'lucide-react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { LAYERS_BY_ORDER, type LayerConfig, type LayerId } from './content/layers'
 import { TIERS } from './content/tiers'
 import { computeLevel, computeNextLevel, packsToNextLevel } from './content/levels'
 import { FOUNDATION_CARDS, type FoundationCard } from './content/foundation-cards'
+import { LOCKED_COUNT_BY_TIER } from './content/locked-packs'
 import { listActivated, onActivatedChange } from '../lib/activate'
 import { rankNextPacks } from '../lib/compounding-ranker'
 import { useIsMobile } from '../lib/useIsMobile'
@@ -100,6 +106,10 @@ function useIntakeOutcomeTags(): string[] {
   return tags
 }
 
+type TabId = 'journey' | 'catalog' | 'stack'
+
+const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+
 export function SegmentedTrackerBar() {
   const isMobile = useIsMobile()
   const reduce = useReducedMotion()
@@ -110,7 +120,12 @@ export function SegmentedTrackerBar() {
   const intakeTags = useIntakeOutcomeTags()
 
   const [openLayer, setOpenLayer] = useState<LayerId | null>(null)
-  const [activeTier, setActiveTier] = useState<string>('all')
+  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const activeTier = params.get('tier') ?? 'all'
+  const activeTab: TabId = parseTab(params.get('tab'))
 
   const nextPicks = useMemo(
     () => rankNextPacks(installed, intakeTags, FOUNDATION_CARDS),
@@ -121,7 +136,23 @@ export function SegmentedTrackerBar() {
     setOpenLayer((prev) => (prev === id ? null : id))
   }
 
-  const visibleTiers = useMemo(() => TIERS.filter((t) => t.visible), [])
+  function setTier(tierId: string) {
+    const next = new URLSearchParams(params)
+    if (tierId === 'all') next.delete('tier')
+    else next.set('tier', tierId)
+    setParams(next, { replace: true })
+  }
+
+  function goTab(tabId: TabId) {
+    const next = new URLSearchParams(params)
+    next.set('tab', tabId)
+    setParams(next, { replace: false })
+    const onEmpireRoute =
+      location.pathname === '/empire' || location.pathname === '/empireworksreconstruction'
+    if (!onEmpireRoute) {
+      navigate(`/empire?${next.toString()}`, { replace: false })
+    }
+  }
 
   return (
     <div
@@ -136,7 +167,7 @@ export function SegmentedTrackerBar() {
         backdropFilter: 'saturate(180%) blur(14px)',
         WebkitBackdropFilter: 'saturate(180%) blur(14px)',
         borderBottom: '1px solid rgba(20, 20, 10, 0.08)',
-        padding: isMobile ? '10px 16px 10px' : '14px 28px 12px',
+        padding: isMobile ? '10px 14px 6px' : '12px 28px 8px',
         fontFamily: "'Newsreader', Georgia, serif",
       }}
     >
@@ -146,74 +177,72 @@ export function SegmentedTrackerBar() {
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: isMobile ? 'wrap' : 'nowrap',
-          gap: isMobile ? 8 : 20,
-          marginBottom: 10,
+          gap: isMobile ? 8 : 18,
+          marginBottom: 8,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          <span
-            style={{
-              fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-              fontSize: 10,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: '#8A8A78',
-            }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+          <Link
+            to="/empire"
+            aria-label="EmpireWorks Reconstruction home"
+            style={{ display: 'inline-flex', alignItems: 'center' }}
           >
-            Your Claude
-          </span>
-          <span
+            <img
+              src="/brand/empireworks-lockup-v3.png"
+              alt="EmpireWorks Reconstruction"
+              style={{
+                height: isMobile ? 24 : 32,
+                width: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+              }}
+            />
+          </Link>
+          <div
+            aria-hidden="true"
             style={{
-              fontFamily: "'Newsreader', Georgia, serif",
-              fontSize: isMobile ? 22 : 28,
-              fontWeight: 700,
-              color: '#14140A',
-              lineHeight: 1,
+              width: 1,
+              height: 22,
+              background: 'rgba(20,20,10,0.12)',
             }}
-          >
-            {total}
-          </span>
-          <span
-            style={{
-              fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-              fontSize: 11,
-              color: '#8A8A78',
-            }}
-          >
-            / {TOTAL_PACKS}
-          </span>
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                fontSize: 10,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: '#8A8A78',
+              }}
+            >
+              Your Claude
+            </span>
+            <span
+              style={{
+                fontFamily: "'Newsreader', Georgia, serif",
+                fontSize: isMobile ? 20 : 26,
+                fontWeight: 700,
+                color: '#14140A',
+                lineHeight: 1,
+              }}
+            >
+              {total}
+            </span>
+            <span
+              style={{
+                fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                fontSize: 11,
+                color: '#8A8A78',
+              }}
+            >
+              / {TOTAL_PACKS}
+            </span>
+          </div>
         </div>
 
         {!isMobile ? (
-          <div
-            role="tablist"
-            aria-label="Pack tier filter"
-            style={{
-              display: 'flex',
-              gap: 4,
-              padding: 4,
-              background: 'rgba(20, 20, 10, 0.04)',
-              borderRadius: 12,
-            }}
-          >
-            <TierChip
-              label="All"
-              count={TOTAL_PACKS}
-              active={activeTier === 'all'}
-              onClick={() => setActiveTier('all')}
-            />
-            {visibleTiers.map((t) => (
-              <TierChip
-                key={t.id}
-                label={t.label}
-                glyph={t.glyph}
-                color={t.color}
-                count={tierCount(t.id)}
-                active={activeTier === t.id}
-                onClick={() => setActiveTier(t.id)}
-              />
-            ))}
-          </div>
+          <TierChipStrip activeTier={activeTier} onSelect={setTier} reduce={reduce ?? false} />
         ) : null}
 
         <div
@@ -227,7 +256,7 @@ export function SegmentedTrackerBar() {
           <span
             style={{
               fontFamily: "'Newsreader', Georgia, serif",
-              fontSize: isMobile ? 28 : 36,
+              fontSize: isMobile ? 26 : 32,
               fontWeight: 800,
               background: 'linear-gradient(135deg, #E2541C, #FF7A3C)',
               WebkitBackgroundClip: 'text',
@@ -266,14 +295,27 @@ export function SegmentedTrackerBar() {
         </div>
       </div>
 
+      {isMobile ? (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: 8,
+            overflowX: 'auto',
+          }}
+        >
+          <TierChipStrip activeTier={activeTier} onSelect={setTier} reduce={reduce ?? false} compact />
+        </div>
+      ) : null}
+
       <div
         role="group"
         aria-label="Layer progress"
         style={{
           display: 'flex',
           gap: 4,
-          height: 14,
-          borderRadius: 9,
+          height: 12,
+          borderRadius: 8,
           background: 'rgba(20,20,10,0.04)',
           padding: 3,
         }}
@@ -299,7 +341,7 @@ export function SegmentedTrackerBar() {
                 cursor: 'pointer',
                 position: 'relative',
                 overflow: 'hidden',
-                minHeight: 8,
+                minHeight: 6,
               }}
             >
               <motion.div
@@ -315,6 +357,7 @@ export function SegmentedTrackerBar() {
                   bottom: 0,
                   background: layer.color,
                   borderRadius: 6,
+                  boxShadow: `0 0 8px ${layer.color}66`,
                 }}
               />
             </button>
@@ -326,7 +369,8 @@ export function SegmentedTrackerBar() {
         style={{
           display: 'flex',
           gap: 4,
-          marginTop: 6,
+          marginTop: 5,
+          marginBottom: 8,
           padding: '0 3px',
         }}
       >
@@ -354,6 +398,8 @@ export function SegmentedTrackerBar() {
         ))}
       </div>
 
+      <TabPillRow active={activeTab} onChange={goTab} isMobile={isMobile} />
+
       <AnimatePresence>
         {openLayer ? (
           <motion.div
@@ -364,9 +410,9 @@ export function SegmentedTrackerBar() {
             transition={reduce ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             style={{
               overflow: 'hidden',
-              marginTop: 12,
+              marginTop: 8,
               borderTop: '1px solid rgba(20,20,10,0.08)',
-              paddingTop: 12,
+              paddingTop: 10,
             }}
           >
             <LayerDetail
@@ -387,73 +433,242 @@ export function SegmentedTrackerBar() {
   )
 }
 
-interface TierChipProps {
-  label: string
-  count: number
-  active: boolean
-  onClick: () => void
-  glyph?: string
-  color?: string
+function parseTab(v: string | null): TabId {
+  if (v === 'catalog') return 'catalog'
+  if (v === 'stack') return 'stack'
+  return 'journey'
 }
 
-function TierChip({ label, count, active, onClick, glyph, color }: TierChipProps) {
+interface TierChipStripProps {
+  activeTier: string
+  onSelect: (tier: string) => void
+  reduce: boolean
+  compact?: boolean
+}
+
+function TierChipStrip({ activeTier, onSelect, reduce, compact }: TierChipStripProps) {
+  const tiers = useMemo(() => TIERS.filter((t) => t.visible), [])
+  return (
+    <div
+      role="tablist"
+      aria-label="Pack tier filter"
+      style={{
+        display: 'flex',
+        gap: 4,
+        padding: 4,
+        background: 'rgba(20, 20, 10, 0.04)',
+        borderRadius: 12,
+        position: 'relative',
+      }}
+    >
+      <TierChip
+        active={activeTier === 'all'}
+        label="All"
+        glyph="★"
+        color="#14140A"
+        count={43}
+        onClick={() => onSelect('all')}
+        reduce={reduce}
+        compact={compact}
+        layoutId="active-tier-pill"
+      />
+      {tiers.map((t) => {
+        const count = tierCount(t.id)
+        const locked = LOCKED_COUNT_BY_TIER[t.id] != null && t.id !== 'foundation'
+        return (
+          <TierChip
+            key={t.id}
+            active={activeTier === t.id}
+            label={t.label}
+            glyph={t.glyph}
+            color={t.color}
+            count={count}
+            locked={locked}
+            onClick={() => onSelect(t.id)}
+            reduce={reduce}
+            compact={compact}
+            layoutId="active-tier-pill"
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+interface TierChipProps {
+  active: boolean
+  label: string
+  glyph: string
+  color: string
+  count: number
+  onClick: () => void
+  reduce: boolean
+  compact?: boolean
+  locked?: boolean
+  layoutId: string
+}
+
+function TierChip({
+  active,
+  label,
+  glyph,
+  color,
+  count,
+  onClick,
+  reduce,
+  compact,
+  locked,
+  layoutId,
+}: TierChipProps) {
   return (
     <button
       type="button"
       role="tab"
       aria-selected={active}
+      aria-label={`${label} tier, ${count} packs${locked ? ', locked until ship' : ''}`}
       onClick={onClick}
       style={{
+        position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
-        padding: '6px 12px',
+        padding: compact ? '5px 10px' : '6px 12px',
         borderRadius: 8,
         border: 'none',
-        background: active ? 'white' : 'transparent',
-        color: active ? '#14140A' : '#8A8A78',
+        background: 'transparent',
+        color: active ? '#FBFAF3' : locked ? '#A8A89A' : '#4A4A3A',
         cursor: 'pointer',
         fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-        fontSize: 10,
+        fontSize: compact ? 9 : 10,
         letterSpacing: '0.16em',
         textTransform: 'uppercase',
-        boxShadow: active ? '0 2px 6px rgba(20,20,10,0.08)' : 'none',
-        minHeight: 32,
+        minHeight: 30,
+        zIndex: 1,
+        transition: 'color 200ms ease-out',
       }}
     >
-      {glyph ? (
-        <span
+      {active ? (
+        <motion.span
+          layoutId={layoutId}
+          transition={
+            reduce
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 360, damping: 28, mass: 0.7 }
+          }
           aria-hidden="true"
           style={{
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: color ?? '#14140A',
-            color: 'white',
-            fontSize: 10,
-            fontWeight: 700,
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 8,
+            background: 'linear-gradient(135deg, #E2541C, #FF7A3C)',
+            boxShadow: '0 4px 14px rgba(226, 84, 28, 0.32)',
+            zIndex: -1,
           }}
-        >
-          {glyph}
-        </span>
-      ) : (
-        <span style={{ fontWeight: 700 }}>{label[0]}</span>
-      )}
-      <span>{label}</span>
+        />
+      ) : null}
+      <span
+        aria-hidden="true"
+        style={{
+          width: 18,
+          height: 18,
+          clipPath: HEX_CLIP,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: active ? 'rgba(255,255,255,0.18)' : locked ? '#A8A89A' : color,
+          color: '#FBFAF3',
+          fontSize: 9,
+          fontWeight: 800,
+          letterSpacing: 0,
+        }}
+      >
+        {locked ? <Lock size={9} aria-hidden="true" /> : glyph}
+      </span>
+      {!compact ? <span>{label}</span> : null}
       <span
         style={{
           fontFamily: "'Newsreader', Georgia, serif",
           fontSize: 11,
           fontWeight: 700,
-          color: active ? '#14140A' : '#4A4A3A',
+          color: active ? '#FBFAF3' : locked ? '#A8A89A' : '#14140A',
         }}
       >
         {count}
       </span>
     </button>
+  )
+}
+
+interface TabPillRowProps {
+  active: TabId
+  onChange: (tab: TabId) => void
+  isMobile: boolean
+}
+
+function TabPillRow({ active, onChange, isMobile }: TabPillRowProps) {
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'journey', label: 'Your Journey' },
+    { id: 'catalog', label: 'Pack Catalog' },
+    { id: 'stack', label: 'Command Center' },
+  ]
+  return (
+    <nav
+      aria-label="Empire surfaces"
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 4,
+        padding: '6px 0 0',
+        flexWrap: 'wrap',
+        position: 'relative',
+      }}
+    >
+      {tabs.map((t) => {
+        const isActive = active === t.id
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(t.id)}
+            style={{
+              position: 'relative',
+              padding: isMobile ? '8px 14px' : '10px 22px',
+              borderRadius: 10,
+              border: 'none',
+              background: 'transparent',
+              color: isActive ? '#FBFAF3' : '#4A4A3A',
+              cursor: 'pointer',
+              fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+              fontSize: isMobile ? 10 : 11,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              minHeight: 40,
+              zIndex: 1,
+              transition: 'color 200ms ease-out',
+            }}
+          >
+            {isActive ? (
+              <motion.span
+                layoutId="active-tab-pill"
+                transition={{ type: 'spring', stiffness: 360, damping: 28, mass: 0.7 }}
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, #E2541C, #FF7A3C)',
+                  boxShadow: '0 6px 18px rgba(226, 84, 28, 0.32)',
+                  zIndex: -1,
+                }}
+              />
+            ) : null}
+            {t.label}
+          </button>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -466,13 +681,7 @@ interface LayerDetailProps {
 
 function LayerDetail({ layer, installedInLayer, nextRecommended, onClose }: LayerDetailProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div
         style={{
           display: 'flex',
@@ -540,7 +749,16 @@ function LayerDetail({ layer, installedInLayer, nextRecommended, onClose }: Laye
           Nothing installed in this layer yet.
         </p>
       ) : (
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+          }}
+        >
           {installedInLayer.map((card) => (
             <li
               key={card.packId}
@@ -583,7 +801,7 @@ function LayerDetail({ layer, installedInLayer, nextRecommended, onClose }: Laye
 
 function tierCount(tierId: string): number {
   if (tierId === 'foundation') return FOUNDATION_CARDS.length
-  if (tierId === 'advanced') return 7
+  if (tierId === 'advanced') return LOCKED_COUNT_BY_TIER.advanced ?? 7
   return TOTAL_PACKS
 }
 

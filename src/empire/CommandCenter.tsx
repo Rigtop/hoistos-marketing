@@ -29,7 +29,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform, animate as motionAnimate } from 'motion/react'
 import { Check, Copy, ExternalLink, Sparkles, X } from 'lucide-react'
 import { CAPABILITY_CELLS, type CapabilityCell } from './content/capabilities'
 import { FOUNDATION_CARDS, type FoundationCard } from './content/foundation-cards'
@@ -106,6 +106,30 @@ function computeMultiplier(installed: number, layersLit: number): number {
   if (installed === 0) return 0
   const raw = 1.0 + (installed - 1) * 0.4 + layersLit * 0.15
   return Math.min(4.8, Math.round(raw * 10) / 10)
+}
+
+interface CountUpProps {
+  value: number
+  decimals?: number
+  duration?: number
+}
+
+function CountUp({ value, decimals = 0, duration = 0.8 }: CountUpProps) {
+  const reduce = useReducedMotion()
+  const mv = useMotionValue(0)
+  const display = useTransform(mv, (v) => v.toFixed(decimals))
+  useEffect(() => {
+    if (reduce) {
+      mv.set(value)
+      return
+    }
+    const controls = motionAnimate(mv, value, {
+      duration,
+      ease: [0.34, 1.56, 0.64, 1],
+    })
+    return controls.stop
+  }, [value, mv, duration, reduce])
+  return <motion.span>{display}</motion.span>
 }
 
 function timeAgo(ts: string): string {
@@ -279,7 +303,7 @@ export function CommandCenter() {
                 lineHeight: 0.9,
               }}
             >
-              {level.num}
+              <CountUp value={level.num} />
             </span>
             <div style={{ paddingBottom: 12 }}>
               <div
@@ -316,9 +340,24 @@ export function CommandCenter() {
             minWidth: 200,
           }}
         >
-          <StatTile label="Packs installed" value={String(installed.length)} />
-          <StatTile label="Layers lit" value={`${layersLit} / ${LAYERS_BY_ORDER.length}`} />
-          <StatTile label="Saved per week" value={`~${hours.toFixed(1)} hr`} accent />
+          <StatTile label="Packs installed" valueNode={<CountUp value={installed.length} />} />
+          <StatTile
+            label="Layers lit"
+            valueNode={
+              <>
+                <CountUp value={layersLit} /> / {LAYERS_BY_ORDER.length}
+              </>
+            }
+          />
+          <StatTile
+            label="Saved per week"
+            accent
+            valueNode={
+              <>
+                ~<CountUp value={hours} decimals={1} /> hr
+              </>
+            }
+          />
         </div>
       </motion.div>
 
@@ -351,19 +390,35 @@ export function CommandCenter() {
               gap: 8,
             }}
           >
-            {CAPABILITY_CELLS.map((cell) => {
+            {CAPABILITY_CELLS.map((cell, idx) => {
               const lit = litCellIds.has(cell.id)
               return (
-                <button
+                <motion.button
                   key={cell.id}
                   type="button"
                   onClick={() => setOpenCell(cell)}
                   aria-label={`${cell.label}${lit ? ', powered' : ', not yet installed'}`}
+                  initial={reduce ? false : { opacity: 0, scale: 0.85 }}
+                  animate={
+                    reduce
+                      ? { opacity: 1, scale: 1 }
+                      : lit
+                        ? { opacity: [1, 0.78, 1], scale: 1 }
+                        : { opacity: 1, scale: 1 }
+                  }
+                  transition={
+                    reduce
+                      ? { duration: 0 }
+                      : lit
+                        ? { delay: Math.min(idx * 0.03, 0.6), duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                        : { delay: Math.min(idx * 0.03, 0.6), duration: 0.35, ease: [0.22, 1, 0.36, 1] }
+                  }
+                  whileHover={reduce ? undefined : { scale: 1.06, rotate: 0.5 }}
                   style={{
                     aspectRatio: '1',
                     borderRadius: 10,
                     background: lit
-                      ? 'linear-gradient(135deg, rgba(226,84,28,0.15), rgba(226,84,28,0.05))'
+                      ? 'linear-gradient(135deg, rgba(226,84,28,0.18), rgba(200,154,60,0.08))'
                       : 'rgba(20,20,10,0.04)',
                     color: lit ? '#14140A' : '#8A8A78',
                     border: `1px solid ${lit ? '#E2541C' : 'transparent'}`,
@@ -373,21 +428,15 @@ export function CommandCenter() {
                     fontWeight: lit ? 600 : 400,
                     textAlign: 'center',
                     cursor: 'pointer',
-                    transition: 'transform 200ms, box-shadow 200ms',
                     minHeight: 60,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.04)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)'
+                    boxShadow: lit ? '0 6px 18px rgba(226,84,28,0.18)' : 'none',
                   }}
                 >
                   {cell.label}
-                </button>
+                </motion.button>
               )
             })}
           </div>
@@ -396,8 +445,13 @@ export function CommandCenter() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <Card>
             <CardEyebrow>Compounding Multiplier</CardEyebrow>
-            <div
+            <motion.div
+              key={`mult-${installed.length}-${layersLit}`}
+              initial={reduce ? false : { scale: 1 }}
+              animate={reduce ? { scale: 1 } : { scale: [1, 1.18, 1] }}
+              transition={reduce ? { duration: 0 } : { duration: 0.45, times: [0, 0.4, 1], ease: [0.34, 1.56, 0.64, 1] }}
               style={{
+                position: 'relative',
                 fontFamily: "'Newsreader', Georgia, serif",
                 fontSize: 72,
                 fontWeight: 800,
@@ -408,10 +462,11 @@ export function CommandCenter() {
                 color: '#E2541C',
                 lineHeight: 1,
                 marginBottom: 12,
+                display: 'inline-block',
               }}
             >
               {installed.length === 0 ? '0x' : `${multiplier.toFixed(1)}x`}
-            </div>
+            </motion.div>
             <p
               style={{
                 fontSize: 14,
@@ -779,7 +834,17 @@ function CardEyebrow({ children }: { children: React.ReactNode }) {
   )
 }
 
-function StatTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function StatTile({
+  label,
+  value,
+  valueNode,
+  accent,
+}: {
+  label: string
+  value?: string
+  valueNode?: React.ReactNode
+  accent?: boolean
+}) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <span
@@ -791,7 +856,7 @@ function StatTile({ label, value, accent }: { label: string; value: string; acce
           lineHeight: 1,
         }}
       >
-        {value}
+        {valueNode ?? value}
       </span>
       <span
         style={{

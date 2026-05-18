@@ -1,42 +1,29 @@
 /**
- * EmpireLanding. Round 7 shell. Hand-port from mockup-A-v3.html.
+ * EmpireLanding. Round 8 (2026-05-18) further simplified shell.
  *
- * Replaced the 2232-line iteration-polished landing surface with a 3-pill
- * tab router gated by InlineIntake completion. The old "Enterprise Level
- * Claude that compounds every week" hero, Bridge module, ModuleOneTeaser,
- * timeline section, 6-teaser-card grid, and 5-tab nav were all stripped
- * per the round-7 handoff brief (~/Desktop/round-7-handoff-mockup-A-v3-port.md).
+ * The 3-pill tab nav moved into SegmentedTrackerBar as its 4th row in
+ * round 8. This file now only handles the InlineIntake gate + tab content
+ * switch. The bar owns the tab nav AND drives the tab change via URL
+ * search params, so we just read ?tab= here and render the matching
+ * surface.
  *
- * Render contract:
- *   1. If intake is not complete -> render InlineIntake. On completion the
- *      component routes back here via ?tab=journey.
- *   2. Otherwise render the 3-pill nav (Your Journey / Pack Catalog /
- *      Command Center) plus the tab content matching the ?tab= URL param.
- *
- * SegmentedTrackerBar lives in EmpireLayout so it persists across every
- * /empire descendant route, not just the index. LevelUpOverlay also lives
- * in the layout (unchanged from round 6).
- *
- * The audience flag (?steve=1, ?ew=1) is preserved as a sessionStorage
- * lock so a Steve-arrived demo link still personalizes downstream copy
- * even after this round's strip. The hook is exported so future copy can
- * read it without re-implementing.
+ * AnimatePresence wraps the tab content so switching surfaces fades the
+ * outgoing tree out and fades the incoming tree in. Key off the URL tab
+ * param so React Router stays the source of truth.
  *
  * Hard Rule #11: no em dashes.
- * R047: counter-led voice, no banned openers.
- * R087 plain English.
- * Context7 (HR #31): react-router-dom@7.15 useNavigate + useSearchParams +
- *   useLocation verified live 2026-05-18 (same pattern as AppRouter.tsx).
+ * R047 voice, R087 plain English.
+ * Context7 (HR #31): react-router-dom@7.15 + motion@12.38 verified.
  */
 
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { InlineIntake } from './InlineIntake'
 import { SerialPackStage } from './SerialPackStage'
 import { EmpirePacksGallery } from './EmpirePacksGallery'
 import { CommandCenter } from './CommandCenter'
 import { isIntakeComplete, onIntakeChange, readIntake } from '../lib/intake-state'
-import { useIsMobile } from '../lib/useIsMobile'
 
 type Audience = 'default' | 'empireworks'
 type TabId = 'journey' | 'catalog' | 'stack'
@@ -74,10 +61,8 @@ function parseTab(value: string | null): TabId {
 }
 
 export function EmpireLanding() {
-  const navigate = useNavigate()
-  const location = useLocation()
   const [params, setParams] = useSearchParams()
-  const isMobile = useIsMobile()
+  const reduce = useReducedMotion()
   useAudience()
 
   const [complete, setComplete] = useState<boolean>(() => isIntakeComplete(readIntake()))
@@ -95,13 +80,6 @@ export function EmpireLanding() {
     })
   }, [params, setParams])
 
-  function go(tabId: TabId) {
-    const nextParams = new URLSearchParams(params)
-    nextParams.set('tab', tabId)
-    setParams(nextParams)
-    navigate(`${location.pathname}?${nextParams.toString()}`, { replace: false })
-  }
-
   if (!complete) {
     return (
       <div>
@@ -118,76 +96,21 @@ export function EmpireLanding() {
   }
 
   return (
-    <div>
-      <TabPills active={tab} onChange={go} isMobile={isMobile} />
-      <div style={{ paddingTop: 8 }}>
-        {tab === 'journey' ? <SerialPackStage /> : null}
-        {tab === 'catalog' ? <EmpirePacksGallery /> : null}
-        {tab === 'stack' ? <CommandCenter /> : null}
-      </div>
+    <div style={{ position: 'relative', zIndex: 1 }}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={reduce ? false : { opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, x: -20 }}
+          transition={reduce ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {tab === 'journey' ? <SerialPackStage /> : null}
+          {tab === 'catalog' ? <EmpirePacksGallery /> : null}
+          {tab === 'stack' ? <CommandCenter /> : null}
+        </motion.div>
+      </AnimatePresence>
     </div>
-  )
-}
-
-interface TabPillsProps {
-  active: TabId
-  onChange: (tab: TabId) => void
-  isMobile: boolean
-}
-
-function TabPills({ active, onChange, isMobile }: TabPillsProps) {
-  const tabs: { id: TabId; label: string }[] = [
-    { id: 'journey', label: 'Your Journey' },
-    { id: 'catalog', label: 'Pack Catalog' },
-    { id: 'stack', label: 'Command Center' },
-  ]
-  return (
-    <nav
-      aria-label="Empire surfaces"
-      style={{
-        position: 'sticky',
-        top: 'clamp(116px, 15vw, 140px)',
-        zIndex: 40,
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 4,
-        padding: '10px 0',
-        background: 'rgba(251,250,243,0.96)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(20,20,10,0.08)',
-        flexWrap: 'wrap',
-      }}
-    >
-      {tabs.map((t) => {
-        const isActive = active === t.id
-        return (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => onChange(t.id)}
-            style={{
-              padding: isMobile ? '8px 14px' : '10px 22px',
-              borderRadius: 10,
-              border: 'none',
-              background: isActive ? '#14140A' : 'transparent',
-              color: isActive ? '#FBFAF3' : '#8A8A78',
-              cursor: 'pointer',
-              fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
-              fontSize: isMobile ? 10 : 11,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              boxShadow: isActive ? '0 4px 12px rgba(20,20,10,0.18)' : 'none',
-              minHeight: 40,
-            }}
-          >
-            {t.label}
-          </button>
-        )
-      })}
-    </nav>
   )
 }
 

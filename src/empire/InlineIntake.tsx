@@ -31,6 +31,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { ArrowRight, Check } from 'lucide-react'
 import { useIsMobile } from '../lib/useIsMobile'
 import { completeIntake, writeIntake } from '../lib/intake-state'
+import { sendEvent } from '../lib/telemetry'
 
 type Screen = 'q1' | 'q2' | 'q3' | 'cookup'
 
@@ -142,6 +143,10 @@ export function InlineIntake({ onComplete }: InlineIntakeProps) {
         surfaces: surfaces as Array<'browser' | 'desktop' | 'code'>,
         customOutcome: other.trim() || undefined,
       } as Parameters<typeof completeIntake>[0])
+      void sendEvent('intake_completed', {
+        surface: (surfaces[0] ?? 'browser') as 'browser' | 'desktop' | 'code',
+        meta: { pains: finalPains.join(','), painCount: finalPains.length },
+      })
       onComplete()
     }, 2500)
   }, [name, role, pains, other, surfaces, onComplete])
@@ -150,6 +155,10 @@ export function InlineIntake({ onComplete }: InlineIntakeProps) {
     if (typeof window === 'undefined') return
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [screen])
+
+  useEffect(() => {
+    void sendEvent('intake_started')
+  }, [])
 
   const cookupText = useMemo(
     () =>
