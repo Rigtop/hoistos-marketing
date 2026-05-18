@@ -232,25 +232,24 @@ function VerifyCTA() {
               className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Verify Foundation landed before you install anything else
+              Verify Foundation landed first
             </div>
             <h2 className="font-display text-xl sm:text-2xl leading-tight mb-2">
-              Paste this prompt into your Claude Project
+              Paste this into your Claude Project
             </h2>
             <p
               className="text-sm leading-relaxed m-0"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              Claude reads the manifest, confirms Foundation is installed, lists every
-              pack, and tells you what to ask next. If anything is off, it says so on
-              the same line.
+              Claude reads the manifest, confirms what landed, and tells you what to ask
+              next. If anything is off, it says so on the same line.
             </p>
           </div>
           <button
             type="button"
             onClick={copy}
             aria-label={copied ? 'Verify prompt copied to clipboard' : 'Copy verify prompt to clipboard'}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               background: copied ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -261,7 +260,7 @@ function VerifyCTA() {
             }}
           >
             {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
-            {copied ? 'Copied' : 'Copy verify prompt'}
+            {copied ? 'Copied' : 'Copy prompt'}
           </button>
         </div>
         <pre
@@ -580,7 +579,7 @@ function FoundationCardTile({
                 className="text-xs m-0"
                 style={{ color: '#5e5d59' }}
               >
-                Both fields are optional. They swap into the pack body before it copies.
+                Both optional. They swap into the pack body before copy.
               </p>
             </div>
           </div>
@@ -607,7 +606,7 @@ function FoundationCardTile({
                     ? `Confirm install of ${card.title}`
                     : `Install ${card.title}`
             }
-            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -647,7 +646,7 @@ function FoundationCardTile({
               type="button"
               onClick={handleSkipPersonalization}
               aria-label={`Install ${card.title} with placeholders, skip personalization`}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -662,7 +661,7 @@ function FoundationCardTile({
             <button
               type="button"
               onClick={handleRemove}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 background: 'transparent',
                 color: 'rgb(var(--color-fg-muted))',
@@ -677,7 +676,7 @@ function FoundationCardTile({
           ) : null}
           <Link
             to={`${routePrefix}/pack/${card.packId}`}
-            className="inline-flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               color: 'rgb(var(--color-accent))',
               textDecoration: 'none',
@@ -697,6 +696,9 @@ function FoundationCardTile({
 }
 
 function BottomCTA({ routePrefix }: { routePrefix: string }) {
+  // iter-4-polish: respect prefers-reduced-motion on the hover-lift so the
+  // VOiceOver-on-Mac VP with motion-reduced doesn't get a juddery transform.
+  const reduceMotion = useReducedMotion() ?? false
   return (
     <motion.section
       initial={{ opacity: 0, y: 16 }}
@@ -723,17 +725,19 @@ function BottomCTA({ routePrefix }: { routePrefix: string }) {
       </p>
       <Link
         to={`${routePrefix}/bonus-extras`}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
         style={{
           background: 'rgb(var(--color-accent))',
           color: '#fbfaf3',
           boxShadow: '0 12px 30px rgba(204,110,46,0.28)',
         }}
         onMouseEnter={(e) => {
+          if (reduceMotion) return
           e.currentTarget.style.transform = 'translateY(-2px)'
           e.currentTarget.style.boxShadow = '0 16px 36px rgba(204,110,46,0.42)'
         }}
         onMouseLeave={(e) => {
+          if (reduceMotion) return
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = '0 12px 30px rgba(204,110,46,0.28)'
         }}

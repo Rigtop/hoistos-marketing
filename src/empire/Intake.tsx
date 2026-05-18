@@ -207,7 +207,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           onClick={dismiss}
           aria-label="Close intake (Escape also works)"
           aria-keyshortcuts="Escape"
-          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             width: 44,
             height: 44,
@@ -304,7 +304,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
             type="button"
             onClick={goBack}
             aria-label={`Back to step ${step} of ${STEP_COUNT}`}
-            className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',
@@ -331,7 +331,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
                 type="button"
                 onClick={goNext}
                 aria-label="Skip this step, the gallery still works with blanks"
-                className="rounded-lg px-3 text-xs underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                className="rounded-lg px-3 text-xs underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
                 style={{
                   minHeight: 44,
                   width: isMobile ? '100%' : 'auto',
@@ -346,7 +346,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
               type="button"
               onClick={goNext}
               aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
-              className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
               style={{
                 minHeight: 44,
                 width: isMobile ? '100%' : 'auto',
@@ -363,7 +363,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
             type="button"
             onClick={submit}
             aria-label="Finish intake and build my Claude journey"
-            className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',
@@ -518,9 +518,13 @@ function StepIndustry({
       </p>
 
       <label className="block mb-4">
+        {/* iter-4-polish: R087 codemod continuing F3 from iter-2.
+            Industry / Role / Primary trade / Custom outcome labels were the
+            last four ALL-CAPS console-log treatments in this file. Drop to
+            the same sentence-case sans-serif as Name + Division. */}
         <span
-          className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+          style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
           Industry
         </span>
@@ -553,8 +557,8 @@ function StepIndustry({
         >
           <label className="block">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Role
             </span>
@@ -582,8 +586,8 @@ function StepIndustry({
 
           <label className="block">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Primary trade
             </span>
@@ -647,8 +651,8 @@ function StepOutcomes({ outcomes, customOutcome, onRankChange, onCustomChange, i
         {showCustomBox ? (
           <label className="block mt-2">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Custom outcome
             </span>

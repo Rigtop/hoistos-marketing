@@ -374,14 +374,8 @@ export function EmpireLanding() {
               }}
             >
               <div
-                style={{
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                  fontSize: 10,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: 'rgb(var(--color-fg-subtle))',
-                  marginBottom: 8,
-                }}
+                className="text-xs font-medium uppercase tracking-[0.14em] mb-2"
+                style={{ color: 'rgb(var(--color-fg-subtle))' }}
               >
                 Surface note
               </div>
@@ -444,7 +438,7 @@ export function EmpireLanding() {
           aria-label="Scroll to learn how it works"
         >
           <span
-            className="font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-300"
+            className="text-xs uppercase tracking-[0.14em] font-medium transition-colors duration-300"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             How it works
@@ -484,7 +478,7 @@ export function EmpireLanding() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
+          className="text-xs uppercase tracking-[0.14em] font-medium mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Your move
@@ -499,17 +493,19 @@ export function EmpireLanding() {
         >
           <Link
             to={`${routePrefix}/foundation`}
-            className="group relative inline-flex items-center gap-3 rounded-2xl px-10 py-5 text-lg md:text-xl font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="group relative inline-flex items-center gap-3 rounded-2xl px-10 py-5 text-lg md:text-xl font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               background: 'rgb(var(--color-accent))',
               color: 'rgb(var(--color-bg))',
               boxShadow: '0 12px 40px rgb(var(--color-accent) / 0.35)',
             }}
             onMouseEnter={(e) => {
+              if (reduced) return
               e.currentTarget.style.boxShadow = '0 16px 56px rgb(var(--color-accent) / 0.55)'
               e.currentTarget.style.transform = 'translateY(-2px)'
             }}
             onMouseLeave={(e) => {
+              if (reduced) return
               e.currentTarget.style.boxShadow = '0 12px 40px rgb(var(--color-accent) / 0.35)'
               e.currentTarget.style.transform = 'translateY(0)'
             }}
@@ -534,7 +530,7 @@ export function EmpireLanding() {
       {/* NOTE: origin framing (Steve Hultgren) + IP confidentiality lock */}
       <section className="mt-24 max-w-3xl mx-auto">
         <p
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-4"
+          className="text-xs uppercase tracking-[0.14em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Why this exists
@@ -549,7 +545,7 @@ export function EmpireLanding() {
         </p>
 
         <p
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-4 mt-10"
+          className="text-xs uppercase tracking-[0.14em] font-medium mb-4 mt-10"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Confidential to EmpireWorks
