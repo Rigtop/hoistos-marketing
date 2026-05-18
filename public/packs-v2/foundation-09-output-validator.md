@@ -47,6 +47,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "foundation-09-output-validator-v2.0.0"
 category: foundation-quality-gate
+coexistSignatures:
+  - output[- ]validator
+  - validate this
+  - pre-delivery gate
+  - self[- ]verify
+  - validator gate
+  - self-rating
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 11-check pre-delivery gate (em-dash, name verify, source citation, identity stamp, banned patterns, self-rating)
+  - Audit log per fail+fix so catches compound into pattern memory
+  - Self-rating floor of 8.5 required to ship; below that, draft revises automatically
+probePrompts:
+  smoke: "Validate this draft: Best, John"
+  real: "Draft a follow-up to my top GC contact on {{Q2_TOP_PAIN}}, two paragraphs, mention I am out Friday."
+  stress: "Draft something with three intentional violations. Confirm the validator catches and fixes all three."
 ---
 
 # Foundation 09: Output Validator

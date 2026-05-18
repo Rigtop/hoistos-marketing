@@ -31,6 +31,21 @@ foundationAugmentations:
 version: 2.0.0
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - decision log
+  - decision[- ]log\.md
+  - what did i decide
+  - alternatives rejected
+  - reason codes (CORRECTION|POLICY|ARCHITECTURE)
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Word-for-word recall of past decisions with original reasoning intact
+  - Alternative-rejection context preserved (why X over Y, with the option set)
+  - Append-only structure with reason codes (CORRECTION, POLICY, ARCHITECTURE, DECISION)
+probePrompts:
+  smoke: "Log this decision: I priced unit turnover at X."
+  real: "What did I decide about pricing on the prevailing-wage in-unit work last month?"
+  stress: "Recall a decision from 3 months ago and surface the alternatives I rejected at the time."
 ---
 
 # Foundation 04: Decision Log

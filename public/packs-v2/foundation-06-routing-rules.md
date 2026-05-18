@@ -39,6 +39,22 @@ prerequisites:
 version: 2.0.0
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - routing rules
+  - routing[- ]rules\.md
+  - folder routing
+  - routing gate
+  - Routing:
+  - where does this go
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Per-save folder routing without path-typing
+  - 4-deliverables-in-one-breath save (change order + GC follow-up + SOP + daily report all routed)
+  - Routing disclosure stamp on every save (audit trail per file)
+probePrompts:
+  smoke: "Save this draft to the right folder."
+  real: "Save the change order, the GC follow-up, the safety SOP, and tomorrow's daily report all in one go."
+  stress: "Try to save into Claude Workspace/ (test the routing block). Should refuse with reroute."
 ---
 
 # Foundation 06: Routing Rules

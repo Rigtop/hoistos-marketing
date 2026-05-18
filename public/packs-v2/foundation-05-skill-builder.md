@@ -32,6 +32,21 @@ foundationAugmentations:
 version: 2.0.0
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - skill[- ]builder
+  - skill-creator
+  - package this workflow
+  - build me a skill
+  - SKILL\.md scaffold
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 8-minute first-build cycle (write SKILL.md, validate, install, trigger-test)
+  - Meta-skill: VP ships their own packs without waiting on the roadmap
+  - Library compounds at the speed of the VP's work, not the vendor's
+probePrompts:
+  smoke: "Build me a skill that drafts a change order."
+  real: "I keep writing {{Q2_TOP_PAIN}} the same way every time. Make a skill for that."
+  stress: "Build a skill, install it, and verify it triggers in this same chat."
 ---
 
 # Foundation 05: Skill Builder

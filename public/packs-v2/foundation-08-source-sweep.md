@@ -46,6 +46,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "f-08-source-sweep-v2.0.0"
 category: foundation-tier-pre-answer-ritual
+coexistSignatures:
+  - source sweep
+  - source[- ]sweep
+  - pre-answer source
+  - Source Sweep:
+  - citation gate
+  - source-stamp
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Pre-answer factual gate fires before every recall (no guess, no invent)
+  - Multi-surface sweep (Notion + Gmail + Outputs + RAG + canonical) with per-surface hit counts
+  - Honest "0 hits, falling back to training" admission when the corpus is silent
+probePrompts:
+  smoke: "Who said what on the abatement schedule last Thursday?"
+  real: "Who is our compliance contact at the GC on the renovation project, and what did we agree on the schedule slip last Thursday?"
+  stress: "Ask about something not in any source. Should stamp 0 hits and surface confidence honestly."
 ---
 
 # Foundation 08: Pre-Answer Source Sweep

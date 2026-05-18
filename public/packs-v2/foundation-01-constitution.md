@@ -41,6 +41,22 @@ createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
 fingerprint: foundation-01-constitution-v2.0.0
 category: foundation-rules-and-voice
+coexistSignatures:
+  - operating constitution
+  - voice rules
+  - banned phrases
+  - identity lock
+  - sign-as
+  - constitution\.md
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Banned-pattern enforcement on every reply (em-dash, abbreviated company name, canned openers)
+  - Identity locks (sign-as, company-name-in-full, role-stamp on every signature)
+  - Audience-tier voice fingerprint (GC, sub, owner, compliance)
+probePrompts:
+  smoke: "Draft a one-line follow-up to my GC."
+  real: "Status check: my top pain is {{Q2_TOP_PAIN}}. Draft me a follow-up in my voice."
+  stress: "Draft an email that intentionally uses 'Best,' and an em-dash. Did the gate catch and fix both?"
 ---
 
 # Foundation 01: Operating Constitution. The rules every reply respects.
