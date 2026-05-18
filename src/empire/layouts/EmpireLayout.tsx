@@ -13,23 +13,16 @@
  */
 
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { clearSession, hasSession } from '../session'
 import { useIsMobile } from '../../lib/useIsMobile'
 import { LevelUpOverlay } from '../celebration/LevelUpOverlay'
-import { JourneyTrackerBar } from '../JourneyTrackerBar'
+import { SegmentedTrackerBar } from '../SegmentedTrackerBar'
 
 export function EmpireLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // Close the mobile menu drawer whenever the route changes so a nav-click
-  // never leaves the drawer hanging open over the next page.
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [location.pathname])
 
   // The /empire surface always renders against the LIGHT brand palette.
   // We set data-theme on documentElement so body bg + cascade match.
@@ -56,15 +49,14 @@ export function EmpireLayout() {
       style={{
         background: 'rgb(var(--color-bg))',
         color: 'rgb(var(--color-fg))',
-        paddingTop: 'clamp(48px, 6vw, 56px)',
+        paddingTop: 'clamp(116px, 15vw, 140px)',
       }}
     >
-      {/* MASTER_PLAN v2 S5: the gamify bar is the always-visible progress
-          chrome. Mounted at the layout level (was previously only on the
-          EmpireLanding root in iter-9 walk; iter-10 closes F1 by hoisting it
-          here so every /empire descendant renders it). The 56px clamp top
-          padding above offsets its fixed position. */}
-      <JourneyTrackerBar />
+      {/* Round 7 (2026-05-18): SegmentedTrackerBar replaces JourneyTrackerBar
+          as the always-visible top chrome on every /empire descendant. Mounts
+          here so the bar persists across /empire, /empire/foundation,
+          /empire/timeline, /empire/bonus-extras, etc. */}
+      <SegmentedTrackerBar />
 
       {/* Skip-to-content link. Hidden until focused so keyboard users can
           jump past the header. WCAG 2.4.1. */}
@@ -165,203 +157,37 @@ export function EmpireLayout() {
             </span>
           ) : null}
         </div>
-        {isMobile ? (
-          <nav aria-label="Primary" style={{ display: 'inline-flex' }}>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            aria-controls="empire-mobile-menu"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 44,
-              height: 44,
-              minWidth: 44,
-              borderRadius: 10,
-              background: 'rgba(20,20,19,0.04)',
-              border: '1px solid rgba(20,20,19,0.12)',
-              color: '#141413',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            {/* Hand-rolled hamburger / close glyph so we do not add a new
-                icon import for a 3-line shape. lucide-react Menu/X would
-                also work; inline SVG keeps the bundle one icon lighter. */}
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-              {menuOpen ? (
-                <path
-                  d="M6 6l12 12M18 6l-12 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              ) : (
-                <>
-                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </>
-              )}
-            </svg>
-          </button>
-          </nav>
-        ) : (
-          <nav
-            aria-label="Primary"
-            className="flex items-center gap-8 text-sm"
-            style={{ color: '#5e5d59', fontFamily: "'Newsreader', serif" }}
-          >
-            <Link
-              to="/empire"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Overview
-            </Link>
-            <Link
-              to="/empire/foundation"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Foundation
-            </Link>
-            <Link
-              to="/empire/bonus-extras"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Advanced
-            </Link>
-            <Link
-              to="/empire/timeline"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Timeline
-            </Link>
-            <a
-              href="https://calendly.com/eugeenbernan"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: '#fbfaf3',
-                fontWeight: 600,
-                fontSize: 14,
-                background: '#cc6e2e',
-                padding: '12px 18px',
-                borderRadius: 999,
-                textDecoration: 'none',
-                boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                minHeight: 44,
-              }}
-            >
-              Book a walkthrough
-            </a>
-            {!onAuthSurface && hasSession() ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="text-sm hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)] rounded"
-                style={{ color: 'rgb(var(--color-fg-subtle))' }}
-              >
-                Sign out
-              </button>
-            ) : null}
-          </nav>
-        )}
-      </header>
-
-      {/* Mobile drawer. Renders below the header when menuOpen is true.
-          Stacks every nav link + CTA vertically with tap targets ≥44px per
-          iOS Human Interface Guidelines. The drawer closes on route change
-          via the useEffect at component top. */}
-      {isMobile && menuOpen ? (
-        <nav
-          id="empire-mobile-menu"
-          aria-label="Mobile menu"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            padding: '12px 6vw 20px',
-            borderBottom: '1px solid rgb(var(--color-border))',
-            background: '#f5f4ed',
-            fontFamily: "'Newsreader', serif",
-          }}
-        >
-          {[
-            { to: '/empire', label: 'Overview' },
-            { to: '/empire/foundation', label: 'Foundation' },
-            { to: '/empire/bonus-extras', label: 'Advanced' },
-            { to: '/empire/timeline', label: 'Timeline' },
-          ].map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setMenuOpen(false)}
-              style={{
-                display: 'block',
-                padding: '14px 12px',
-                fontSize: 17,
-                fontWeight: 500,
-                color: '#141413',
-                textDecoration: 'none',
-                borderRadius: 8,
-                background:
-                  location.pathname === item.to
-                    ? 'rgba(204,110,46,0.08)'
-                    : 'transparent',
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <a
-            href="https://calendly.com/eugeenbernan"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              marginTop: 8,
-              padding: '14px 16px',
-              fontSize: 16,
-              fontWeight: 600,
-              color: '#fbfaf3',
-              background: '#cc6e2e',
-              borderRadius: 12,
-              textDecoration: 'none',
-              boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
-            }}
-          >
-            Book a walkthrough
-          </a>
-          {!onAuthSurface && hasSession() ? (
+        {/* Round 7 (2026-05-18): the 5-link header nav (Overview, Foundation,
+            Advanced, Timeline, Book a walkthrough) was stripped per the brief.
+            The 3-pill tab nav (Your Journey, Pack Catalog, Command Center)
+            now lives inside EmpireLanding and only renders on the /empire
+            index route. Sign-out affordance kept for the auth flow. */}
+        {!isMobile && !onAuthSurface && hasSession() ? (
+          <nav aria-label="Account" style={{ display: 'inline-flex' }}>
             <button
               type="button"
-              onClick={() => {
-                setMenuOpen(false)
-                handleSignOut()
-              }}
+              onClick={handleSignOut}
               style={{
-                marginTop: 4,
-                padding: '12px 12px',
-                fontSize: 14,
-                color: '#5e5d59',
+                color: 'rgb(var(--color-fg-subtle))',
                 background: 'transparent',
                 border: 'none',
-                textAlign: 'left',
+                padding: '8px 12px',
+                fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
                 cursor: 'pointer',
               }}
             >
               Sign out
             </button>
-          ) : null}
-        </nav>
-      ) : null}
+          </nav>
+        ) : null}
+      </header>
+
+      {/* Round 7 (2026-05-18): the mobile drawer for the legacy 4-tab nav was
+          stripped. Tab nav now lives inside EmpireLanding and is mobile-aware
+          via flex-wrap on the pill row. */}
 
       <main id="empire-main-content" className="flex-1">
         <Outlet />
