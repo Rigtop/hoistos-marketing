@@ -34,6 +34,8 @@ import type { FoundationCard } from './content/foundation-cards'
 import { fetchPackBody, listActivated, markActivated } from '../lib/activate'
 import { useIsMobile } from '../lib/useIsMobile'
 import { sendEvent } from '../lib/telemetry'
+import { applyCustomware } from '../lib/customware'
+import { readIntake } from '../lib/intake-state'
 
 const CONFIRMED_KEY = 'scrolophyte.install.confirmedFor'
 const ACTIVITY_KEY = 'scrolophyte.activity'
@@ -165,7 +167,17 @@ export function PackInstallFlow({
     fetchPackBody(url)
       .then((text) => {
         if (cancelled) return
-        promptBodyRef.current = text
+        const intake = readIntake() as unknown as Record<string, unknown>
+        const wrapped = applyCustomware(
+          text,
+          intake as Parameters<typeof applyCustomware>[1],
+          {},
+          {
+            surface: surface === 'browser' ? 'desktop' : surface,
+            installedPackIds: listActivated(),
+          },
+        )
+        promptBodyRef.current = wrapped
         setBodyState('real')
       })
       .catch(() => {
@@ -176,7 +188,7 @@ export function PackInstallFlow({
     return () => {
       cancelled = true
     }
-  }, [pack.packId, stubPrompt])
+  }, [pack.packId, stubPrompt, surface])
 
   const triggerCopyFlash = useCallback(() => {
     setCopyFlash(true)
@@ -194,6 +206,11 @@ export function PackInstallFlow({
     setHasCopied(true)
     triggerCopyFlash()
     void sendEvent('pack_copy', { packId: pack.packId, surface })
+    void sendEvent('pack_install_wrapped', {
+      packId: pack.packId,
+      surface,
+      meta: { bodyState, wrapped: bodyState === 'real' ? 'yes' : 'no' },
+    })
     if (instruction.ctaUrl) {
       window.open(instruction.ctaUrl, '_blank', 'noopener')
     } else if (surface === 'code') {

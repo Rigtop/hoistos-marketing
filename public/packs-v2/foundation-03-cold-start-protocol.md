@@ -43,6 +43,21 @@ createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
 fingerprint: foundation-03-cold-start-protocol-v2.0.0
 category: foundation-boot-sequence
+coexistSignatures:
+  - cold[- ]start
+  - session briefing
+  - boot sequence
+  - COLD-START:
+  - SESSION_BRIEFING
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Explicit COLD-START stamp format on line 1 of every reply (F-01 + F-02 + F-03 confirmation marks)
+  - Role-conditional briefing fields (BD, Ops, Compliance, Default branches)
+  - Briefing freshness signal (days-since-refresh counter that flags stale > 7 days)
+probePrompts:
+  smoke: Hi
+  real: "Status check: my top pain is {{Q2_TOP_PAIN}}. What is on watch this week?"
+  stress: How fresh is the briefing right now? Stamp the days-since-refresh value.
 ---
 
 # Foundation 03: Cold Start Protocol. The 30-second ritual every session runs at open.
