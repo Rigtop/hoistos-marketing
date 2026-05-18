@@ -28,6 +28,22 @@ prerequisites:
   - "8 minutes of attention"
 createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - skill creator
+  - skill-creator
+  - /skill-creator
+  - workflow to skill
+  - build a custom skill
+  - meta-skill
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Workflow-to-skill conversion in 8 minutes, walks the VP through 8 questions then ships a SKILL.md
+  - workflow-validator sibling catches trigger collisions and missing input fields before install
+  - voice-enforcer sibling strips banned openers, closers, and em dashes from every output the new skill produces
+probePrompts:
+  smoke: "Build me a skill"
+  real: "Build a skill for the {{Q2_TOP_PAIN}} workflow I repeat 3+ times a week"
+  stress: "Build a skill whose trigger phrase overlaps another installed skill; confirm the validator catches the collision before install"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

@@ -33,6 +33,22 @@ v2Augmentations:
   - polished_holy_shit_moment: true
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - desktop organizer
+  - organize my desktop
+  - file-organizer
+  - /declutter
+  - desktop cleanup
+  - jobsite photos
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Project-named folder structure (folders named per your active GCs and pursuits, not generic Documents)
+  - NEVER_TOUCH safelist for sensitive folders (litigation, payroll) honored on every pass
+  - Dry-run-then-confirm execution with rename-only-no-delete safety, plus jobsite-photo-router sibling routes photos to per-project folders
+probePrompts:
+  smoke: "Organize my desktop"
+  real: "Sort my desktop by {{Q2_TOP_PAIN}} relevance"
+  stress: "Run organize-my-desktop on a desktop with a NEVER_TOUCH litigation folder; confirm the folder is untouched in the dry-run diff"
 ---
 
 # Cowork Organized My Desktop in 12 Minutes

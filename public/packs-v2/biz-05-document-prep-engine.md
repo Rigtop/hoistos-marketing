@@ -46,6 +46,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-05-document-prep-engine-v2.0.0"
 category: business-vertical-document-engine
+coexistSignatures:
+  - document prep
+  - /document
+  - doc-engine
+  - .docx generator
+  - branded document
+  - perennial standard
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Perennial Standard format (BLUF + SCQA + dual-coded sections + F-pattern bullets + action headers) enforced on every output
+  - KPI card builder sibling renders metric rows with the right callout colors (orange for risk, green for opportunity)
+  - Code-tier python-docx render path produces true .docx with brand colors and linked TOC, not just markdown
+probePrompts:
+  smoke: "Make a doc"
+  real: "Build a strategic memo on {{Q2_TOP_PAIN}}, 3 pages, BLUF on top, Perennial Standard format"
+  stress: "Generate a 30-page report with linked TOC, 6 KPI cards, and 3 SCQA sections; confirm the linked structure resolves in Word"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

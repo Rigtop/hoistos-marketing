@@ -47,6 +47,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-03-email-triage-responder-v2.0.0"
 category: business-vertical-email
+coexistSignatures:
+  - email triage
+  - email responder
+  - /email-scan
+  - gmail draft
+  - triage inbox
+  - morning email routine
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 4-skill chain (scan + rank + draft + morning routine) productizes the 15-minute morning email routine
+  - Batch drafts only, never auto-sends; per-thread voice match driven by F-10 Email Playbook tone matrix
+  - Decisions surfaced as a short list for the VP to resolve, not auto-resolved by the model
+probePrompts:
+  smoke: "Run my morning routine"
+  real: "Triage my inbox for {{Q2_TOP_PAIN}} threads and draft replies for the urgent ones"
+  stress: "Run morning routine on a 100-thread inbox; confirm fewer than 10% land in the HIGH bucket (false-priority guardrail)"
 ---
 
 # BIZ 03: Email Triage and Responder

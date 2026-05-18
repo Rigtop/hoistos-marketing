@@ -32,6 +32,21 @@ v2Augmentations:
   - polished_holy_shit_moment: true
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - first skill
+  - skill bootstrap
+  - my first skill
+  - /skill-creator first run
+  - custom skill
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Zero-to-shipped-skill in 8 minutes (markdown file, no engineering toolchain)
+  - Tier-aware install path (Project Knowledge on Pro, ~/.claude/skills/SKILL.md on Code)
+  - skill-tester sibling pre-flight checks the new skill on first activation, skill-versioner sibling tracks revisions across edits
+probePrompts:
+  smoke: "Make me a skill"
+  real: "Build my first skill for the {{Q2_TOP_PAIN}} workflow"
+  stress: "Test the new skill in the same chat it was built in; confirm the trigger phrase fires and the workflow executes"
 ---
 
 # Your First Custom Skill (in 8 Minutes)

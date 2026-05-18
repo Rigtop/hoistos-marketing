@@ -32,6 +32,22 @@ v2Augmentations:
   - polished_holy_shit_moment: true
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - voice to task
+  - voice memo
+  - dictate task
+  - voice capture
+  - claude ios dictation
+  - mac dictation
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Mac dictation and Claude iOS app pipeline (no Telegram or Whisper install required)
+  - Voice transcript routed to your Notion Tasks DB with project tag, priority, and due date auto-parsed
+  - F-11 Notion Write Gate fires on every task write so the dictated task is verified before landing in Notion
+probePrompts:
+  smoke: "Voice note"
+  real: "Capture a voice note about {{Q2_TOP_PAIN}}"
+  stress: "Dictate a 90-second voice memo with 3 tasks and 1 decision; confirm the 3 tasks land with correct project tags and the decision routes separately"
 ---
 
 # Talk to Claude. Tasks Appear in Your List.

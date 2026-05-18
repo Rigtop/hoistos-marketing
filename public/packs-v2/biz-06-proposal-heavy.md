@@ -50,6 +50,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-06-proposal-heavy-v2.0.0"
 category: business-vertical-proposal-engine
+coexistSignatures:
+  - proposal heavy
+  - full proposal
+  - $500K proposal
+  - megaproject proposal
+  - multi-option pricing
+  - RFP package
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 5-skill chain (build + research + price + jury + finalize) for $500K-and-up bids, Fortune 500 Clean design system
+  - Line-item pricing with labor, materials, burden, and gross profit roll-up via the pricing-engine sibling
+  - 4-lens jury review (GC PM lens, compliance lens, finance lens, executive lens) before finalize via the proposal-review-jury sibling
+probePrompts:
+  smoke: "Heavy proposal"
+  real: "Build a heavy proposal for a {{Q2_TOP_PAIN}} RFP, target 35% gross profit"
+  stress: "Generate a heavy proposal with 5 line items and a 4-lens jury review; confirm the executive lens lands a verdict and the math reconciles"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

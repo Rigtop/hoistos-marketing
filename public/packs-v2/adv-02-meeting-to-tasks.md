@@ -29,6 +29,22 @@ prerequisites:
   - "9 minutes of uninterrupted attention"
 createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - meeting transcript
+  - action items
+  - /meeting-processor
+  - meeting capture
+  - otter\.ai
+  - extract decisions
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Action items by owner with explicit due dates pulled from transcript context
+  - Attendee names auto-resolved to canonical Notion users via the attendee-roster-resolver sibling
+  - Notion Tasks DB write integration through notion-task-writer with approve-before-write gate
+probePrompts:
+  smoke: "Process this transcript"
+  real: "Extract action items from the {{Q2_TOP_PAIN}} meeting"
+  stress: "Process a transcript with 3 owners and 1 ambiguous owner; confirm the ambiguous one routes to approval instead of guessing"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

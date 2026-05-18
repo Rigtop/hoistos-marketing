@@ -31,6 +31,22 @@ prerequisites:
   - "9 minutes of uninterrupted attention"
 createdBy: "the BD AI Training pack"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - bd ai training
+  - bd training
+  - bd curriculum
+  - 12-week bd
+  - bd-pipeline curriculum
+  - bd onboarding
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 12-week BD curriculum native to Claude (Project Knowledge blocks per session, not a printable PDF)
+  - 4-skill chain (load-bd-session + bd-homework-tracker + bd-skill-deploy + bd-progress-report) runs the rollout end-to-end
+  - VP becomes facilitator only, pack ships sessions, homework, skills, and weekly progress digest with zero curriculum-writing time
+probePrompts:
+  smoke: "Load BD session"
+  real: "Load BD session 3 for my two BDs and deploy the {{Q2_TOP_PAIN}}-related skill"
+  stress: "Run bd-progress-report after 3 weeks; confirm the digest shows email-time savings per BD and flags any BD who has not completed homework"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

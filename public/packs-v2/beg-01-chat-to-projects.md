@@ -32,6 +32,21 @@ v2Augmentations:
   - polished_holy_shit_moment: true
 createdBy: HoistOS Empire Activation v2.0
 createdAt: 2026-05-08
+coexistSignatures:
+  - chat to projects
+  - project knowledge
+  - claude\.ai projects
+  - /personal-cos
+  - personal chief of staff
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - First-time-user onboarding (no prior Claude experience required), 5-minute setup
+  - Project Knowledge auto-populated from a 1-paragraph role intro so every chat opens with role, division, and active pursuits loaded
+  - personal-cos seed installed so the Project acts like a personal chief of staff across sessions
+probePrompts:
+  smoke: "Hi"
+  real: "Help me set up my Project for the {{Q2_TOP_PAIN}} work"
+  stress: "Open a fresh chat in this Project and ask who am I without retyping context; confirm Claude pulls your role from Project Knowledge"
 ---
 
 # From Chat to Projects: Claude Remembers You Now
