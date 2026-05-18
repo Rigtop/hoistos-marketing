@@ -90,6 +90,10 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   const ph = new PostHog(apiKey, { host, flushAt: 1, flushInterval: 0 })
+  const source =
+    typeof payload.meta?.route === 'string' && payload.meta.route.length > 0
+      ? payload.meta.route
+      : '/empire'
   try {
     ph.capture({
       distinctId: payload.sessionId,
@@ -97,7 +101,7 @@ export default async function handler(req: Request): Promise<Response> {
       properties: {
         packId: payload.packId,
         surface: payload.surface,
-        source: '/empire',
+        source,
         ts: payload.ts,
         ...payload.meta,
       },
