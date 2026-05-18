@@ -27,6 +27,7 @@ export type TelemetryEventName =
   | 'pack_view'
   | 'pack_copy'
   | 'pack_confirmed'
+  | 'pack_install_wrapped'
 
 export interface TelemetryEvent {
   event: TelemetryEventName

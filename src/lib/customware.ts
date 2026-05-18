@@ -26,6 +26,42 @@ import defaults from './customware-defaults.json'
 import { readTier, type ClaudeTier } from '../empire/lib/claude-deep-link'
 
 /**
+ * Round 9 (2026-05-18): bulletproof install meta-layer.
+ *
+ * The engine wraps every pack body with a state-aware pre-flight + post-flight
+ * verification probe so any pack inherits "tally before install, branch on
+ * existing state, probe after install" behavior without per-pack rewrite.
+ *
+ * Pack authors get bulletproof installs for free. Per-pack frontmatter
+ * additions (coexistSignatures, probePrompts, companionSkillCollisionPolicy,
+ * uniqueValueAdds) are optional, with sensible defaults.
+ */
+
+/** The inferred tier used by the wrapper. Distinct from ClaudeTier (the surface
+ *  tier) because the wrapper handles power-user heuristics that the legacy
+ *  Pro/Code split does not. */
+export type InferredTier = 'pro' | 'max' | 'code' | 'cowork-power-user'
+
+/** Minimal frontmatter shape the wrapper reads. Pack authors can add more
+ *  fields, but only these drive the pre-flight + post-flight. */
+export interface PackMeta {
+  pack?: string
+  name?: string
+  tier?: string
+  targetSkill?: string
+  prerequisites?: string[]
+  companionSkills?: string[]
+  coexistSignatures?: string[]
+  probePrompts?: {
+    smoke?: string
+    real?: string
+    stress?: string
+  }
+  companionSkillCollisionPolicy?: 'prompt' | 'rename-to-v2' | 'overwrite'
+  uniqueValueAdds?: string[]
+}
+
+/**
  * Intake answers shape. Agent A owns `intake-state.ts`; this module imports
  * its shape via `IntakeAnswers` but defines the contract here for clarity.
  * Keys are loose `string | number | string[]` so per-question answer types
@@ -52,6 +88,12 @@ export interface ApplyCustomwareOptions {
   surface?: ClaudeTier
   /** Disable tier-block stripping (debug only). */
   keepAllTierBlocks?: boolean
+  /** Round 9: installed pack ids (from listActivated()). Drives tally + prereq check. */
+  installedPackIds?: string[]
+  /** Round 9: audience flag from useAudience() (default | empireworks). */
+  audienceFlag?: string
+  /** Round 9: skip the round 9 pre/post-flight wrapping (legacy callers). */
+  skipBulletproofWrapping?: boolean
 }
 
 const TOKEN_REGEX = /\{\{\s*([A-Z][A-Z0-9_]*)\s*\}\}/g
@@ -246,6 +288,11 @@ function stripTierTableRows(body: string, allowed: Set<string>): string {
  * Call order matters. Token substitution first so any `{{TIER}}` style tokens
  * resolve to the user's actual answer before tier-block stripping reads the
  * literal tier labels in headers and tables.
+ *
+ * Round 9: After the existing substitute + strip pass, the engine parses the
+ * pack frontmatter and wraps the body with renderPreFlight + renderPostFlight.
+ * Legacy callers can pass `skipBulletproofWrapping: true` to opt out (e.g. for
+ * raw pack body copy in dev mode).
  */
 export function applyCustomware(
   packMarkdown: string,
@@ -254,18 +301,371 @@ export function applyCustomware(
   options: ApplyCustomwareOptions = {},
 ): string {
   const surface = options.surface ?? readTier()
+  const installedPackIds = options.installedPackIds ?? []
+  const audienceFlag = options.audienceFlag ?? readAudienceFlag()
+  const inferredTier = resolveInferredTier({
+    surface,
+    audienceFlag,
+    installedPackIds,
+    intakeAnswers,
+  })
 
-  // Layer 1+2+3 token substitution.
-  let body = substituteTokens(packMarkdown, intakeAnswers, perPackAnswers)
+  // Round 9: parse frontmatter before substitution so the auto-tokens include
+  // pack metadata (companionSkills count, prereq count, etc.).
+  const { meta, body: rawBody } = parsePackFrontmatter(packMarkdown)
 
-  if (options.keepAllTierBlocks) return body
+  // Round 9: enrich intake with auto-injected tokens so packs can reference
+  // them via {{KNOWN_INSTALLED_PACK_IDS}}, {{INFERRED_TIER}}, etc.
+  const enrichedIntake: CustomwareAnswers = {
+    ...intakeAnswers,
+    KNOWN_INSTALLED_PACK_IDS:
+      installedPackIds.length > 0 ? installedPackIds.join(', ') : 'none yet',
+    Q3_PRIMARY_SURFACE: pickQ3Primary(intakeAnswers),
+    Q2_TOP_PAIN: pickQ2Top(intakeAnswers),
+    INTAKE_VP_NAME: stringOrEmpty(intakeAnswers.name) || 'operator',
+    INTAKE_VP_ROLE: stringOrEmpty(intakeAnswers.division) || 'operator',
+    INFERRED_TIER: inferredTier,
+    AUDIENCE_FLAG: audienceFlag,
+  }
 
-  const allowed = tierAllowlist(surface)
-  if (allowed === null) return body
+  // Layer 1+2+3 token substitution on the FULL markdown (frontmatter included
+  // because some packs reference tokens in displayName etc.).
+  let body = substituteTokens(packMarkdown, enrichedIntake, perPackAnswers)
 
-  body = stripTierBlocks(body, allowed)
-  body = stripTierTableRows(body, allowed)
-  return body
+  if (!options.keepAllTierBlocks) {
+    const allowed = tierAllowlist(surface)
+    if (allowed !== null) {
+      body = stripTierBlocks(body, allowed)
+      body = stripTierTableRows(body, allowed)
+    }
+  }
+
+  // Round 9: wrap with pre/post flight unless explicitly disabled or no
+  // frontmatter (e.g. plain markdown without YAML header).
+  if (options.skipBulletproofWrapping || !meta) {
+    return body
+  }
+
+  void rawBody // raw body kept for future direct-render use
+  const pre = renderPreFlight(meta, enrichedIntake, installedPackIds, inferredTier)
+  const post = renderPostFlight(meta, enrichedIntake)
+  return `${pre}\n\n---\n\n${body}\n\n---\n\n${post}`
+}
+
+// ---------------------------------------------------------------------------
+// Round 9 helpers.
+// ---------------------------------------------------------------------------
+
+function stringOrEmpty(v: CustomwareValue): string {
+  if (v === null || v === undefined) return ''
+  if (Array.isArray(v)) return v.join(', ')
+  return String(v)
+}
+
+function pickQ2Top(intake: CustomwareAnswers): string {
+  const q2 = intake.q2Pains
+  if (Array.isArray(q2) && q2.length > 0) return String(q2[0])
+  const customOutcome = intake.customOutcome
+  if (typeof customOutcome === 'string' && customOutcome.trim().length > 0) {
+    return customOutcome
+  }
+  return 'general productivity'
+}
+
+function pickQ3Primary(intake: CustomwareAnswers): string {
+  const q3 = intake.q3Surfaces
+  if (Array.isArray(q3) && q3.length > 0) return String(q3[0])
+  const surfaces = intake.surfaces
+  if (Array.isArray(surfaces) && surfaces.length > 0) return String(surfaces[0])
+  return 'browser'
+}
+
+function readAudienceFlag(): string {
+  if (typeof window === 'undefined') return 'default'
+  try {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('ew') === '1' || params.get('steve') === '1') return 'empireworks'
+    const stored = window.sessionStorage.getItem('hoistos.empire.audience')
+    if (stored === 'empireworks') return 'empireworks'
+  } catch {
+    // ignore
+  }
+  return 'default'
+}
+
+/** Infer the user's tier from a basket of signals. */
+export function resolveInferredTier(args: {
+  surface: ClaudeTier
+  audienceFlag: string
+  installedPackIds: string[]
+  intakeAnswers: CustomwareAnswers
+}): InferredTier {
+  const { surface, audienceFlag, installedPackIds, intakeAnswers } = args
+  if (surface === 'code') return 'code'
+  const q3 = intakeAnswers.q3Surfaces
+  const multiSurface = Array.isArray(q3) && q3.length >= 2
+  const powerUser =
+    audienceFlag === 'empireworks' && installedPackIds.length >= 2 && multiSurface
+  if (powerUser) return 'cowork-power-user'
+  if (multiSurface) return 'max'
+  return 'pro'
+}
+
+const FRONTMATTER_BOUNDARY = /^---\s*\n([\s\S]*?)\n---\s*\n?/
+
+/** Tiny YAML-ish parser. Handles top-level string / number / list-of-strings
+ *  scalars + simple nested object fields. Returns null when no frontmatter. */
+export function parsePackFrontmatter(markdown: string): {
+  meta: PackMeta | null
+  body: string
+} {
+  const match = markdown.match(FRONTMATTER_BOUNDARY)
+  if (!match) return { meta: null, body: markdown }
+  const frontmatterBlock = match[1]
+  const body = markdown.slice(match[0].length)
+  const meta = parseYamlMinimal(frontmatterBlock)
+  return { meta, body }
+}
+
+function parseYamlMinimal(yaml: string): PackMeta {
+  const meta: Record<string, unknown> = {}
+  const lines = yaml.split('\n')
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    if (!line.trim() || line.trim().startsWith('#')) {
+      i += 1
+      continue
+    }
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$/)
+    if (!m) {
+      i += 1
+      continue
+    }
+    const key = m[1]
+    const rest = m[2].trim()
+    if (rest === '') {
+      // Multi-line value: list (next non-blank line starts with "  - ") or
+      // nested object (next non-blank line starts with "  key:").
+      const block: string[] = []
+      let j = i + 1
+      while (j < lines.length && (lines[j].startsWith('  ') || lines[j].trim() === '')) {
+        block.push(lines[j])
+        j += 1
+      }
+      const trimmedBlock = block.map((l) => l.replace(/^ {2}/, ''))
+      const isList = trimmedBlock.some((l) => l.trim().startsWith('- '))
+      if (isList) {
+        const items: string[] = trimmedBlock
+          .filter((l) => l.trim().startsWith('- '))
+          .map((l) => l.trim().slice(2).trim())
+          .map((l) => String(unquoteScalar(l)))
+        meta[key] = items
+      } else {
+        const nested = parseYamlMinimal(trimmedBlock.join('\n'))
+        meta[key] = nested
+      }
+      i = j
+      continue
+    }
+    meta[key] = unquoteScalar(rest)
+    i += 1
+  }
+  return meta as PackMeta
+}
+
+function unquoteScalar(v: string): string | number | boolean {
+  let trimmed = v.trim()
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    trimmed = trimmed.slice(1, -1)
+  } else if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    trimmed = trimmed.slice(1, -1)
+  }
+  if (trimmed === 'true') return true
+  if (trimmed === 'false') return false
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
+  return trimmed
+}
+
+/** Render the pre-flight block that runs BEFORE the install body. */
+export function renderPreFlight(
+  meta: PackMeta,
+  intake: CustomwareAnswers,
+  installedPackIds: string[],
+  inferredTier: InferredTier,
+): string {
+  const name = stringOrEmpty(intake.name) || 'operator'
+  const role = stringOrEmpty(intake.division) || 'operator'
+  const pain = pickQ2Top(intake)
+  const surface = pickQ3Primary(intake)
+  const audience = stringOrEmpty(intake.AUDIENCE_FLAG) || 'default'
+  const installedList = installedPackIds.length > 0 ? installedPackIds.join(', ') : 'none yet'
+  const packName = meta.pack || meta.name || 'this pack'
+
+  const prereqsBlock = renderPrereqCheck(meta.prerequisites ?? [], installedPackIds)
+  const branchBlock = renderBranchSelection(meta, inferredTier)
+  const collisionBlock = renderCollisionCheck(
+    meta.companionSkills ?? [],
+    meta.companionSkillCollisionPolicy ?? 'prompt',
+    inferredTier,
+  )
+
+  return [
+    '# Bulletproof Install: Pre-Flight',
+    '',
+    `> Read this section first. Do not run the install body below until each gate passes.`,
+    '',
+    '## Tally (what I already know about you)',
+    '',
+    `- Name: ${name}`,
+    `- Role: ${role}`,
+    `- Top pain: ${pain}`,
+    `- Primary surface: ${surface}`,
+    `- Audience: ${audience}`,
+    `- Inferred tier: ${inferredTier}`,
+    `- Installed packs: ${installedList}`,
+    `- Pack being installed: ${packName}`,
+    '',
+    `I have these answers already. I will not ask you to retype them. I will ask only delta questions for this pack.`,
+    '',
+    prereqsBlock,
+    '',
+    branchBlock,
+    '',
+    collisionBlock,
+  ].join('\n')
+}
+
+function renderPrereqCheck(prereqs: string[], installedPackIds: string[]): string {
+  if (prereqs.length === 0) return ''
+  const installedSet = new Set(installedPackIds.map((id) => id.toLowerCase()))
+  const lines: string[] = ['## Prereq Check', '']
+  let allClear = true
+  for (const req of prereqs) {
+    const reqLower = req.toLowerCase()
+    // Heuristic: if the prereq mentions a pack id like "F-01" or "foundation-01",
+    // try to match against installedPackIds. Otherwise just print as advisory.
+    const codeMatch = reqLower.match(/f-0?(\d+)|foundation-0?(\d+)/)
+    if (codeMatch) {
+      const num = codeMatch[1] || codeMatch[2]
+      const padded = num.padStart(2, '0')
+      const matches = Array.from(installedSet).filter((id) =>
+        id.includes(`foundation-${padded}`),
+      )
+      const mark = matches.length > 0 ? '✓' : '✗'
+      if (matches.length === 0) allClear = false
+      lines.push(`- ${mark} ${req}`)
+    } else {
+      lines.push(`- ? ${req} (advisory, check yourself)`)
+    }
+  }
+  if (!allClear) {
+    lines.push('')
+    lines.push(
+      'HALT: at least one prereq pack is not detected. Install the missing prereq first, then re-paste this pack. Do not proceed with the install body below.',
+    )
+  }
+  return lines.join('\n')
+}
+
+function renderBranchSelection(meta: PackMeta, inferredTier: InferredTier): string {
+  const signatures = meta.coexistSignatures ?? []
+  if (signatures.length === 0) {
+    return [
+      '## Branch Selection',
+      '',
+      `No coexist signatures declared by this pack. Proceeding on the FRESH branch by default.`,
+    ].join('\n')
+  }
+  const valueAdds = meta.uniqueValueAdds ?? []
+  return [
+    '## Branch Selection',
+    '',
+    `Scan the user's Project Knowledge / loaded context for these regex signatures:`,
+    ...signatures.map((s) => `- \`${s}\``),
+    '',
+    `If ZERO signatures match, this is a FRESH install. Proceed with the body below.`,
+    '',
+    `If SOME signatures match but the user's existing tool is missing key features, this is an UPGRADE install. Ask only the delta questions and skip the rest.`,
+    '',
+    `If signatures match AND the inferred tier is "cowork-power-user" (this user has tooling that supersedes the pack), this is a COEXIST install. DO NOT scaffold the artifacts below verbatim. Instead, tell the user:`,
+    '',
+    `> Your existing setup already covers most of what this pack ships. Here are the unique value-adds you could splice into your existing tool:`,
+    valueAdds.length > 0
+      ? valueAdds.map((v) => `> - ${v}`).join('\n')
+      : '> - (no unique value-adds declared by this pack)',
+    '',
+    `Then ask the user if they want to splice. If yes, output ONLY the relevant splice fragments. If no, stop. Inferred tier for this user: ${inferredTier}.`,
+  ].join('\n')
+}
+
+function renderCollisionCheck(
+  companionSkills: string[],
+  policy: 'prompt' | 'rename-to-v2' | 'overwrite',
+  inferredTier: InferredTier,
+): string {
+  if (companionSkills.length === 0) return ''
+  const lines: string[] = ['## Companion Skill Collision Check', '']
+  for (const skill of companionSkills) {
+    if (inferredTier === 'code') {
+      lines.push(`- Check: \`ls ~/.claude/skills/${skill}/SKILL.md\``)
+    } else {
+      lines.push(
+        `- Check: scan Project Knowledge for \`name: ${skill}\` frontmatter (a SKILL.md block already present in this Project).`,
+      )
+    }
+  }
+  const policyText =
+    policy === 'overwrite'
+      ? 'If any exist, OVERWRITE them with the new versions in this pack.'
+      : policy === 'rename-to-v2'
+        ? 'If any exist, RENAME the new versions to `<original-name>-v2` and install alongside the old.'
+        : 'If any exist, ASK the user: overwrite, rename to -v2, or skip.'
+  lines.push('')
+  lines.push(`Policy: ${policyText}`)
+  return lines.join('\n')
+}
+
+/** Render the post-flight verification probe block. */
+export function renderPostFlight(meta: PackMeta, intake: CustomwareAnswers): string {
+  const probes = meta.probePrompts ?? {}
+  const pain = pickQ2Top(intake)
+  const smoke = probes.smoke || 'Hi'
+  const real = (probes.real || `Quick status: ${pain} pulse this week?`)
+    .replace(/\{\{Q2_TOP_PAIN\}\}/g, pain)
+  const stress = probes.stress || 'How fresh is the briefing right now?'
+
+  return [
+    '# Bulletproof Install: Post-Flight Verification',
+    '',
+    `> Run these three probes IN THIS SAME CHAT immediately after the install body lands. Do not declare success until the INSTALL_VERIFIED stamp appears.`,
+    '',
+    `## Probe 1 (smoke)`,
+    '',
+    `Type: \`${smoke}\``,
+    '',
+    `Expected: the cold-start stamp (or pack-specific stamp) lands on line 1. PROBE 1 ✓ if it does, PROBE 1 ✗ if it does not.`,
+    '',
+    `## Probe 2 (real task)`,
+    '',
+    `Type: \`${real}\``,
+    '',
+    `Expected: the reply pulls from the pack's installed fields, not from training data. PROBE 2 ✓ if it does, PROBE 2 ✗ if it does not.`,
+    '',
+    `## Probe 3 (stress)`,
+    '',
+    `Type: \`${stress}\``,
+    '',
+    `Expected: pack edge-case behavior fires correctly. PROBE 3 ✓ if it does, PROBE 3 ✗ if it does not.`,
+    '',
+    `## Stamp`,
+    '',
+    `After running all three probes, emit on a single line:`,
+    '',
+    `\`PROBE 1 [✓|✗] | PROBE 2 [✓|✗] | PROBE 3 [✓|✗] | INSTALL_VERIFIED [yes|no|partial]\``,
+    '',
+    `If any probe failed, surface the matching "Common Breaks" entry from the install body above and offer recovery. If probes could not run (e.g. the user moved on before you could fire them), stamp \`INSTALL_DEFERRED\` and tell the user how to run the probes manually.`,
+  ].join('\n')
 }
 
 /**
