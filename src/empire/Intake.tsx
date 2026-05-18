@@ -220,7 +220,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
 
       <div className="mb-5">
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em]"
+          className="font-mono text-[11px] tracking-[0.02em]"
           style={{ color: 'rgb(var(--color-accent))' }}
           role="status"
           aria-live="polite"
@@ -298,7 +298,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           onClick={goBack}
           disabled={step === 0}
           aria-label={step === 0 ? 'Back (disabled on first step)' : `Back to step ${step} of ${STEP_COUNT}`}
-          className="inline-flex items-center gap-2 rounded-lg border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             width: isMobile ? '100%' : 'auto',
@@ -340,7 +340,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
               type="button"
               onClick={goNext}
               aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
-              className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{
                 minHeight: 44,
                 width: isMobile ? '100%' : 'auto',
@@ -357,7 +357,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
             type="button"
             onClick={submit}
             aria-label="Finish intake and build my Claude journey"
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',

@@ -161,12 +161,12 @@ export function EmpireCapabilityLayer() {
             border: '1px solid rgb(var(--color-accent) / 0.22)',
           }}
         >
-          <div
+          <h2
             className="font-mono text-[10px] tracking-[0.22em] mb-3"
-            style={{ color: 'rgb(var(--color-accent))' }}
+            style={{ color: 'rgb(var(--color-accent))', margin: 0, marginBottom: 12, fontWeight: 400 }}
           >
             Monday morning, after install
-          </div>
+          </h2>
           <p
             className="text-base sm:text-lg leading-relaxed m-0"
             style={{ color: '#141413' }}
@@ -187,12 +187,12 @@ export function EmpireCapabilityLayer() {
             border: '1px solid rgba(20,20,19,0.08)',
           }}
         >
-          <div
-            className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
-            style={{ color: 'rgb(var(--color-accent))' }}
+          <h2
+            className="font-mono text-[10px] tracking-[0.02em] mb-3"
+            style={{ color: 'rgb(var(--color-accent))', margin: 0, marginBottom: 12, fontWeight: 400 }}
           >
             Why this compounds
-          </div>
+          </h2>
           <p
             className="text-base sm:text-lg leading-relaxed m-0"
             style={{ color: '#3a3a36' }}
@@ -209,12 +209,12 @@ export function EmpireCapabilityLayer() {
           transition={{ duration: 0.6 }}
           className="mb-10"
         >
-          <div
+          <h2
             className="font-mono text-[10px] tracking-[0.22em] mb-3"
-            style={{ color: 'rgb(var(--color-accent))' }}
+            style={{ color: 'rgb(var(--color-accent))', margin: 0, marginBottom: 12, fontWeight: 400 }}
           >
             The packs your Claude runs on
-          </div>
+          </h2>
           <p
             className="text-sm leading-relaxed mb-4 m-0"
             style={{ color: 'rgb(var(--color-fg-muted))' }}
