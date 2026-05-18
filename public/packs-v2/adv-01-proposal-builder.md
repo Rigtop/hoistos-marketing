@@ -29,6 +29,22 @@ prerequisites:
   - "8 minutes of uninterrupted attention"
 createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - proposal builder
+  - proposal[- ]template
+  - branded proposal
+  - /proposal command
+  - build a proposal
+  - proposal-heavy
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Per-division branded proposal output, GC-quirk insurance language auto-applied
+  - GC-quirk library wired in as a sibling skill so insurance, payment, and exclusion language adapts per-GC
+  - Cover letter ships with the proposal in your voice via the cover-letter-drafter sibling
+probePrompts:
+  smoke: "Draft a proposal"
+  real: "Draft a proposal for {{Q2_TOP_PAIN}} scope on a $200K bid"
+  stress: "Draft a proposal where the GC is on the never-list; confirm the engine flags it before sending"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

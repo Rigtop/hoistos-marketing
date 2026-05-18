@@ -45,6 +45,21 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-01-notion-mcp-setup-v2.0.0"
 category: business-vertical-notion-onramp
+coexistSignatures:
+  - notion mcp
+  - notion connector
+  - notion-mcp-server
+  - claude\.ai/connect/notion
+  - notion api integration
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Unified cross-database query via relation traversal (one ask, results from Tasks + RFIs + Compliance)
+  - Plain-English Notion teaching for VPs who use Notion as a Word doc with a sidebar
+  - notion-database-suggest sibling proposes structure when DBs are junk-drawer-shaped, before connecting
+probePrompts:
+  smoke: "Set up Notion"
+  real: "Wire Notion and show me everything I owe a response on across {{Q2_TOP_PAIN}}"
+  stress: "Query across 3 different Notion DBs and follow a 2-hop relation chain; confirm the response surfaces the right rows from all 3"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

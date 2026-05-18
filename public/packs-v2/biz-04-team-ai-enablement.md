@@ -47,6 +47,22 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-04-team-ai-enablement-v2.0.0"
 category: business-vertical-team-rollout
+coexistSignatures:
+  - team enablement
+  - ai onboarding
+  - team training
+  - /role-onboarding
+  - ai adoption pack
+  - team rollout
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - 4-week structured rollout cadence (week 1 provision Projects, week 2 ship starter Skill kit, week 3 weekly review, week 4 measure adoption)
+  - Ships F-05 Skill Builder into every report's Project so reports build their own skills without VP help
+  - adoption-metrics sibling tracks who is using what and surfaces the wins for the VP at week 4
+probePrompts:
+  smoke: "Onboard a team member"
+  real: "Roll out the {{Q2_TOP_PAIN}}-aware Project and Skill kit to 5 direct reports"
+  stress: "Run the 4-week rollout and the week-4 adoption-metrics report; confirm at least 3 of 5 reports built their own skill by week 4"
 ---
 
 # BIZ 04: Team AI Enablement

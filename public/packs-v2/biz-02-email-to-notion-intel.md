@@ -48,6 +48,21 @@ createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
 fingerprint: "biz-02-email-to-notion-intel-v2.0.0"
 category: business-vertical-email-synthesis
+coexistSignatures:
+  - email to notion
+  - gmail to notion
+  - email intelligence
+  - email[- ]pipeline
+  - threaded email tracking
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Per-thread Notion row creation with sender, topic, and urgency auto-classification
+  - Cross-DB synthesis query (what is the state of <project> this week) returns a 5-bullet briefing with citations across email, RFI, task, and compliance
+  - Weekly intelligence brief auto-generated via the weekly-intelligence-brief sibling, runs Monday mornings
+probePrompts:
+  smoke: "Process my unread"
+  real: "What is the state of {{Q2_TOP_PAIN}} this week, synthesized across email and Notion"
+  stress: "Process 50 mixed-urgency threads; confirm the classification distribution is sane (most are LOW or MEDIUM, not all HIGH)"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

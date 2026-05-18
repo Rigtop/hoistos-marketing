@@ -28,6 +28,22 @@ prerequisites:
   - "9 minutes for setup, 2 minutes per contract afterward"
 createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - contract review
+  - contract[- ]risk
+  - redline
+  - indemnification clause
+  - termination clause
+  - AIA contract
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Jurisdiction-aware statute flagging (NY Lien Law, NJ Trust Fund, CA anti-indemnification, FL prompt payment) via the state-statute-flagger sibling
+  - Plain-English risk explanation per flagged clause with page number and verbatim quote
+  - Paste-ready Word redline language drafted in your voice via the redline-drafter sibling
+probePrompts:
+  smoke: "Review this contract"
+  real: "Flag the {{Q2_TOP_PAIN}} risks in this AIA-style subcontract"
+  stress: "Review a contract with a Type 1 indemnification clause copy-pasted from a CA template into a NY project; confirm the jurisdiction flag fires"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 

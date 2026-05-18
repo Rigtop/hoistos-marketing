@@ -31,6 +31,22 @@ prerequisites:
   - "7 minutes of uninterrupted attention"
 createdBy: "HoistOS / your company"
 createdAt: "2026-05-08"
+coexistSignatures:
+  - proposal light
+  - change order
+  - quick quote
+  - T&M
+  - line item quote
+  - small scope add
+companionSkillCollisionPolicy: prompt
+uniqueValueAdds:
+  - Auto-detects change-order vs quick-quote shape and applies the right document template (CO cites original contract with dual signature, quick quote standalone single signature)
+  - Dual-signature block (foreman + principal) auto-attached on change orders, foreman line correctly placed
+  - proposal-light-send sibling routes the PDF to the correct project folder under Outputs/<Company>/Proposals/<client>/ and lands a copy on Desktop ready to attach
+probePrompts:
+  smoke: "Quick CO"
+  real: "Change order for {{Q2_TOP_PAIN}} scope add, signed by foreman and principal"
+  stress: "Generate a T&M quote with realistic hours and rates and the dual-signature block; confirm the file lands in the right project folder and on Desktop"
 ---
 <!-- ACTIVATION-REWRITE-2026-05-11 -->
 
