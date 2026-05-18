@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useMemo, useState, type CSSProperties, type JSX } from 'react'
+import { useReducedMotion } from 'motion/react'
 
 import useIsMobile from '../lib/useIsMobile'
 import { listActivated, onActivatedChange } from '../lib/activate'
@@ -37,55 +38,55 @@ import {
 } from '../lib/intake-state'
 
 const RULES_NODES: ReadonlyArray<{ packId: string; label: string }> = [
-  { packId: 'foundation-01-constitution', label: 'F-01 Constitution' },
-  { packId: 'foundation-08-source-sweep', label: 'F-08 Source Sweep' },
-  { packId: 'foundation-09-output-validator', label: 'F-09 Validator' },
-  { packId: 'foundation-11-notion-write-gate', label: 'F-11 Write Gate' },
+  { packId: 'foundation-01-constitution', label: 'Constitution' },
+  { packId: 'foundation-08-source-sweep', label: 'Source Sweep' },
+  { packId: 'foundation-09-output-validator', label: 'Output Validator' },
+  { packId: 'foundation-11-notion-write-gate', label: 'Notion Write Gate' },
 ]
 
 const KNOWLEDGE_NODES: ReadonlyArray<{ packId: string; label: string }> = [
-  { packId: 'foundation-02-facts-registry', label: 'F-02 Facts' },
-  { packId: 'foundation-04-decision-log', label: 'F-04 Decision Log' },
-  { packId: 'foundation-07-memory-architecture', label: 'F-07 Memory' },
-  { packId: 'bonus-06-auto-memory-architecture', label: 'B-06 Auto-Memory' },
+  { packId: 'foundation-02-facts-registry', label: 'Facts Registry' },
+  { packId: 'foundation-04-decision-log', label: 'Decision Log' },
+  { packId: 'foundation-07-memory-architecture', label: 'Memory Architecture' },
+  { packId: 'bonus-06-auto-memory-architecture', label: 'Auto-Memory' },
 ]
 
 const SKILLS_NODES: ReadonlyArray<{ packId: string; label: string }> = [
-  { packId: 'intro-00-tier-guide', label: 'I-00 Tier Guide' },
-  { packId: 'foundation-03-cold-start-protocol', label: 'F-03 Cold Start' },
-  { packId: 'foundation-05-skill-builder', label: 'F-05 Skill Builder' },
-  { packId: 'foundation-06-routing-rules', label: 'F-06 Routing' },
-  { packId: 'foundation-10-email-playbook', label: 'F-10 Email Playbook' },
-  { packId: 'biz-01-notion-mcp-setup', label: 'BIZ-01 Notion MCP' },
-  { packId: 'biz-02-email-to-notion-intel', label: 'BIZ-02 Email Intel' },
-  { packId: 'biz-03-email-triage-responder', label: 'BIZ-03 Email Triage' },
-  { packId: 'biz-04-team-ai-enablement', label: 'BIZ-04 Team Enablement' },
-  { packId: 'biz-05-document-prep-engine', label: 'BIZ-05 Doc Prep' },
-  { packId: 'biz-06-proposal-heavy', label: 'BIZ-06 Proposal Heavy' },
-  { packId: 'biz-07-proposal-light', label: 'BIZ-07 Proposal Light' },
-  { packId: 'biz-08-bd-ai-training', label: 'BIZ-08 BD Training' },
-  { packId: 'mid-01-email-playbook-tier-aware', label: 'MID-01 Email Tier' },
-  { packId: 'mid-02-expense-automation', label: 'MID-02 Expense' },
-  { packId: 'mid-03-daily-briefing', label: 'MID-03 Daily Briefing' },
-  { packId: 'mid-04-knowledge-search', label: 'MID-04 Knowledge Search' },
-  { packId: 'pow-01-cold-start-protocol', label: 'POW-01 Cold Start Plus' },
-  { packId: 'pow-02-rag-knowledge-search', label: 'POW-02 RAG Search' },
-  { packId: 'pow-04-multi-model-jury', label: 'POW-04 Jury' },
-  { packId: 'adv-01-proposal-builder', label: 'ADV-01 Proposal Builder' },
-  { packId: 'adv-02-meeting-to-tasks', label: 'ADV-02 Meeting To Tasks' },
-  { packId: 'adv-03-contract-review', label: 'ADV-03 Contract Review' },
-  { packId: 'adv-04-skill-creator-meta', label: 'ADV-04 Skill Creator' },
-  { packId: 'beg-01-chat-to-projects', label: 'BEG-01 Chat To Projects' },
-  { packId: 'beg-02-desktop-organizer', label: 'BEG-02 Desktop Organizer' },
-  { packId: 'beg-03-voice-to-task', label: 'BEG-03 Voice To Task' },
-  { packId: 'beg-04-first-skill-bootstrap', label: 'BEG-04 First Skill' },
-  { packId: 'bonus-00-overview', label: 'B-00 Overview' },
-  { packId: 'bonus-01-notion-foundation', label: 'B-01 Notion Foundation' },
-  { packId: 'bonus-02-notion-operating-layer', label: 'B-02 Notion Operating' },
-  { packId: 'bonus-03-rag-setup', label: 'B-03 RAG Setup' },
-  { packId: 'bonus-04-telegram-bridge', label: 'B-04 Telegram' },
-  { packId: 'bonus-05-code-cli-setup', label: 'B-05 Code CLI' },
-  { packId: 'bonus-07-hooks-and-daemons', label: 'B-07 Hooks + Daemons' },
+  { packId: 'intro-00-tier-guide', label: 'Tier Guide' },
+  { packId: 'foundation-03-cold-start-protocol', label: 'Cold Start' },
+  { packId: 'foundation-05-skill-builder', label: 'Skill Builder' },
+  { packId: 'foundation-06-routing-rules', label: 'Routing Rules' },
+  { packId: 'foundation-10-email-playbook', label: 'Email Playbook' },
+  { packId: 'biz-01-notion-mcp-setup', label: 'Notion MCP' },
+  { packId: 'biz-02-email-to-notion-intel', label: 'Email Intel' },
+  { packId: 'biz-03-email-triage-responder', label: 'Email Triage' },
+  { packId: 'biz-04-team-ai-enablement', label: 'Team Enablement' },
+  { packId: 'biz-05-document-prep-engine', label: 'Doc Prep' },
+  { packId: 'biz-06-proposal-heavy', label: 'Proposal Heavy' },
+  { packId: 'biz-07-proposal-light', label: 'Proposal Light' },
+  { packId: 'biz-08-bd-ai-training', label: 'BD Training' },
+  { packId: 'mid-01-email-playbook-tier-aware', label: 'Email Tier' },
+  { packId: 'mid-02-expense-automation', label: 'Expense' },
+  { packId: 'mid-03-daily-briefing', label: 'Daily Briefing' },
+  { packId: 'mid-04-knowledge-search', label: 'Knowledge Search' },
+  { packId: 'pow-01-cold-start-protocol', label: 'Cold Start Plus' },
+  { packId: 'pow-02-rag-knowledge-search', label: 'RAG Search' },
+  { packId: 'pow-04-multi-model-jury', label: 'Multi-Model Jury' },
+  { packId: 'adv-01-proposal-builder', label: 'Proposal Builder' },
+  { packId: 'adv-02-meeting-to-tasks', label: 'Meeting To Tasks' },
+  { packId: 'adv-03-contract-review', label: 'Contract Review' },
+  { packId: 'adv-04-skill-creator-meta', label: 'Skill Creator' },
+  { packId: 'beg-01-chat-to-projects', label: 'Chat To Projects' },
+  { packId: 'beg-02-desktop-organizer', label: 'Desktop Organizer' },
+  { packId: 'beg-03-voice-to-task', label: 'Voice To Task' },
+  { packId: 'beg-04-first-skill-bootstrap', label: 'First Skill' },
+  { packId: 'bonus-00-overview', label: 'Overview' },
+  { packId: 'bonus-01-notion-foundation', label: 'Notion Foundation' },
+  { packId: 'bonus-02-notion-operating-layer', label: 'Notion Operating' },
+  { packId: 'bonus-03-rag-setup', label: 'RAG Setup' },
+  { packId: 'bonus-04-telegram-bridge', label: 'Telegram' },
+  { packId: 'bonus-05-code-cli-setup', label: 'Code CLI' },
+  { packId: 'bonus-07-hooks-and-daemons', label: 'Hooks + Daemons' },
 ]
 
 const TOTAL_PACK_COUNT = 43
@@ -184,7 +185,11 @@ function ColumnNode(props: {
   asterisked: boolean
 }): JSX.Element {
   const { label, installed, asterisked } = props
+  const reduced = useReducedMotion()
   const lit = installed
+  const stateTransition = reduced
+    ? 'none'
+    : 'background 200ms ease-in-out, opacity 200ms ease-in-out, border 200ms ease-in-out'
   return (
     <div
       style={{
@@ -196,7 +201,7 @@ function ColumnNode(props: {
         background: lit ? COLORS.accentSoft : 'transparent',
         border: lit ? `1px solid ${COLORS.accentMid}` : `1px dashed ${COLORS.paperLine}`,
         opacity: lit ? 1 : 0.55,
-        transition: 'background 180ms ease, opacity 180ms ease, border 180ms ease',
+        transition: stateTransition,
       }}
     >
       <span
@@ -349,6 +354,7 @@ function CodeIntroPanel(props: {
         <button
           type="button"
           onClick={onPrimary}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             padding: '10px 18px',
@@ -369,6 +375,7 @@ function CodeIntroPanel(props: {
         <button
           type="button"
           onClick={onSecondary}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             minHeight: 44,
             padding: '10px 14px',
@@ -404,12 +411,38 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
   }, [intakeEventName])
 
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
   const installed = useInstalledPackIds()
   const intake = useIntakeState()
   const surfaceMix = useMemo(() => surfacesToMix(intake.surfaces), [intake.surfaces])
   const outcomes = useMemo(() => readSelectedOutcomes(intake), [intake])
   const packCount = installed.length
   const prose = useMemo(() => buildClaudeKnowsProse(installed, intake), [installed, intake])
+
+  // Per-session collapse: once the user has packs installed and has dismissed
+  // the columns at least once this session, start collapsed on return so the
+  // hero CTA can breathe. Default open on first visit.
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return window.sessionStorage.getItem('scrolophyte.tracker-collapsed') !== '1'
+    } catch {
+      return true
+    }
+  })
+  function toggleOpen() {
+    setOpen((prev) => {
+      const next = !prev
+      try {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('scrolophyte.tracker-collapsed', next ? '0' : '1')
+        }
+      } catch {
+        // sessionStorage unavailable, ignore
+      }
+      return next
+    })
+  }
 
   const tierCounts = useMemo(() => {
     const buckets = { foundation: 0, business: 0, power: 0, advanced: 0, beginner: 0, bonus: 0 }
@@ -451,14 +484,63 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
       <header style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: COLORS.accent,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
           }}
         >
-          Claude is growing
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: COLORS.accent,
+            }}
+          >
+            Claude is growing
+          </div>
+          <button
+            type="button"
+            onClick={toggleOpen}
+            aria-expanded={open}
+            aria-controls="tracker-body"
+            aria-label={open ? 'Collapse tracker columns' : 'Expand tracker columns'}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 44,
+              minHeight: 44,
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: `1px solid ${COLORS.paperLine}`,
+              background: 'transparent',
+              color: COLORS.inkSoft,
+              cursor: 'pointer',
+              fontSize: 12,
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style={{
+                transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: reduced ? 'none' : 'transform 200ms ease-in-out',
+              }}
+            >
+              <path
+                d="M6 9l6 6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
           <span
@@ -471,13 +553,44 @@ export function JourneyTracker(props: JourneyTrackerProps): JSX.Element {
           </span>
         </div>
         <div style={{ fontSize: 12, color: COLORS.dim, lineHeight: 1.4 }}>
-          Foundation {tierCounts.foundation} . Business {tierCounts.business} . Power{' '}
-          {tierCounts.power} . Advanced {tierCounts.advanced} . Beginner {tierCounts.beginner} .
+          Foundation {tierCounts.foundation} · Business {tierCounts.business} · Power{' '}
+          {tierCounts.power} · Advanced {tierCounts.advanced} · Beginner {tierCounts.beginner} ·
           Bonus {tierCounts.bonus}
         </div>
       </header>
 
-      <div style={columnsStyle}>
+      {packCount === 0 ? (
+        <div
+          role="status"
+          style={{
+            fontSize: 12,
+            color: COLORS.inkSoft,
+            lineHeight: 1.5,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: `1px dashed ${COLORS.paperLine}`,
+            background: 'transparent',
+          }}
+        >
+          Nothing installed yet. The columns light up as you install. Start with
+          Tier Guide, then drop in the Constitution and the Facts Registry.
+        </div>
+      ) : null}
+
+      <div
+        id="tracker-body"
+        style={{
+          ...columnsStyle,
+          maxHeight: open ? 4000 : 0,
+          opacity: open ? 1 : 0,
+          overflow: 'hidden',
+          transition: reduced
+            ? 'none'
+            : 'max-height 320ms ease-in-out, opacity 200ms ease-in-out',
+          pointerEvents: open ? 'auto' : 'none',
+        }}
+        aria-hidden={!open}
+      >
         <Column
           title="Rules"
           description="Voice, validation, source rigor."

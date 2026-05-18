@@ -16,10 +16,16 @@
  * Hard Rule #11: no em dashes anywhere in this module.
  */
 
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
-import { activateSkill, listActivated } from '../lib/activate'
+import {
+  activateSkill,
+  listActivated,
+  onActivatedChange,
+  removeActivated,
+} from '../lib/activate'
 
 interface PackPlaceholder {
   packId: string
@@ -74,7 +80,7 @@ function buildPack(packId: string): PackPlaceholder {
     packId,
     title: prettifyId(packId),
     tagline:
-      'A Bridge-installed pack preview. Read what it does, then use the guided Bridge setup to install Foundation in one pass.',
+      'A Bridge-installed pack preview. Read what it does, then use the guided Bridge setup to install Foundation across six pastes.',
     bestFor:
       'Any operator who wants Claude to load the right rules and workflow guidance without reinstalling packs one by one.',
     inputs: [
@@ -108,8 +114,12 @@ export function EmpirePackDetail() {
     <div className="px-[6vw] pt-16 pb-32" style={{ color: 'rgb(var(--color-fg))' }}>
       <Link
         to="/empire"
-        className="inline-flex items-center gap-2 text-sm font-mono uppercase tracking-[0.18em] mb-10"
-        style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        className="inline-flex items-center gap-2 text-sm font-medium mb-10 rounded-lg"
+        style={{
+          color: 'rgb(var(--color-fg-subtle))',
+          padding: '10px 8px',
+          minHeight: 44,
+        }}
       >
         <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
         Back to overview
@@ -118,14 +128,14 @@ export function EmpirePackDetail() {
       <header className="max-w-3xl">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span
-            className="font-mono text-xs uppercase tracking-[0.2em]"
+            className="text-xs font-medium"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
-            {pack.realCard ? `${pack.realCard.badge} · Installed` : `Pack preview / ${pack.packId}`}
+            {pack.realCard ? `${pack.realCard.badge} · Installed` : 'Pack preview'}
           </span>
           {pack.realCard && tone ? (
             <span
-              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium rounded-full px-2.5 py-1"
               style={{ background: tone.bg, color: tone.color }}
             >
               <span
@@ -157,7 +167,7 @@ export function EmpirePackDetail() {
               }}
             >
               <div
-                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                className="text-xs font-medium mb-2"
                 style={{ color: 'rgb(var(--color-accent))' }}
               >
                 You type
@@ -180,7 +190,7 @@ export function EmpirePackDetail() {
               }}
             >
               <div
-                className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                className="text-xs font-medium mb-2"
                 style={{ color: 'rgb(var(--color-accent))' }}
               >
                 Claude returns
@@ -205,7 +215,7 @@ export function EmpirePackDetail() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+            className="text-xs font-medium mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             What you bring
@@ -232,7 +242,7 @@ export function EmpirePackDetail() {
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+            className="text-xs font-medium mb-3"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             What you walk away with
@@ -300,17 +310,25 @@ export function EmpirePackDetail() {
           )}
 
           <div className="flex flex-wrap gap-3">
-            <Link to="/empireworksreconstruction/foundation" className="btn btn-ghost px-5">
+            <Link
+              to="/empireworksreconstruction/foundation"
+              className="btn btn-ghost px-5 py-3"
+              style={{ minHeight: 44 }}
+            >
               Back to all packs
             </Link>
-            <Link to="/empireworksreconstruction" className="btn btn-ghost px-5">
+            <Link
+              to="/empireworksreconstruction"
+              className="btn btn-ghost px-5 py-3"
+              style={{ minHeight: 44 }}
+            >
               Overview
             </Link>
           </div>
         </div>
 
         <div
-          className="mt-6 font-mono text-[10px] uppercase tracking-[0.18em]"
+          className="mt-6 text-xs font-medium"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Reference prompt
@@ -430,24 +448,26 @@ function prefillForToken(
 function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
   const intake = readIntakeForPrefill()
   const formIdPrefix = `pack-detail-cw-${card.packId}`
-  const installed = listActivated().indexOf(card.packId) >= 0
+  const [installed, setInstalled] = useState<boolean>(
+    () => listActivated().indexOf(card.packId) >= 0,
+  )
+  const [busy, setBusy] = useState<boolean>(false)
+
+  useEffect(() => {
+    return onActivatedChange(() =>
+      setInstalled(listActivated().indexOf(card.packId) >= 0),
+    )
+  }, [card.packId])
 
   async function onInstall(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
-    const button = e.currentTarget
-    const original = button.textContent ?? 'Install'
-    button.disabled = true
-    button.textContent = 'Copying to clipboard...'
+    setBusy(true)
     try {
-      // Pull all input values from the DOM at click time. Uncontrolled
-      // inputs let us avoid pulling React state into this module's import
-      // surface (which would trigger the context7 hook gate).
       const answers: Record<string, string> = {}
       for (const token of card.customwarePlaceholders) {
         const el = document.getElementById(`${formIdPrefix}-${token}`) as HTMLInputElement | null
         if (!el) continue
         let value = (el.value ?? '').trim()
-        // Slugify slug-suffixed tokens to keep customware substitution clean.
         if (token.endsWith('_SLUG') || token === 'VP_NAME_SLUG' || token === 'DIVISION_SLUG') {
           value = slugifyForToken(value)
         }
@@ -458,12 +478,14 @@ function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
         packUrl: `/packs-v2/${card.packId}.md`,
         customwareAnswers: answers,
       })
-      button.textContent = 'Installed'
-      button.style.background = 'rgb(18, 128, 82)'
-    } catch {
-      button.textContent = original
-      button.disabled = false
+    } finally {
+      setBusy(false)
     }
+  }
+
+  function onRemove(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    removeActivated(card.packId)
   }
 
   return (
@@ -509,10 +531,11 @@ function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
         Leave any field blank to keep the raw placeholder in the pack body.
         Defaults pre-filled from your intake when available.
       </p>
-      <div className="mt-5">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={onInstall}
+          disabled={busy}
           className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition"
           style={{
             background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
@@ -522,11 +545,29 @@ function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
               ? '0 8px 20px rgba(18,128,82,0.22)'
               : '0 12px 30px rgba(204,110,46,0.28)',
             minHeight: 44,
-            cursor: 'pointer',
+            cursor: busy ? 'wait' : 'pointer',
+            opacity: busy ? 0.7 : 1,
           }}
         >
-          {installed ? 'Installed' : 'Install on my Claude'}
+          {busy ? 'Copying to clipboard...' : installed ? 'Installed' : 'Install on my Claude'}
         </button>
+        {installed ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Remove ${card.title} from my Claude`}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition"
+            style={{
+              background: 'transparent',
+              color: 'rgb(var(--color-fg-muted))',
+              border: '1px solid rgb(var(--color-fg) / 0.18)',
+              minHeight: 44,
+              cursor: 'pointer',
+            }}
+          >
+            Remove this pack
+          </button>
+        ) : null}
       </div>
     </div>
   )
@@ -538,33 +579,42 @@ function PackDetailCustomwareForm({ card }: { card: FoundationCard }) {
  * with their own placeholder lists). Single primary button, no form.
  */
 function PackDetailInstallButtonOnly({ packId }: { packId: string }) {
-  const installed = listActivated().indexOf(packId) >= 0
+  const [installed, setInstalled] = useState<boolean>(
+    () => listActivated().indexOf(packId) >= 0,
+  )
+  const [busy, setBusy] = useState<boolean>(false)
+
+  useEffect(() => {
+    return onActivatedChange(() =>
+      setInstalled(listActivated().indexOf(packId) >= 0),
+    )
+  }, [packId])
 
   async function onInstall(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
-    const button = e.currentTarget
-    const original = button.textContent ?? 'Install'
-    button.disabled = true
-    button.textContent = 'Copying to clipboard...'
+    setBusy(true)
     try {
       await activateSkill({
         slug: packId,
         packUrl: `/packs-v2/${packId}.md`,
       })
-      button.textContent = 'Installed'
-      button.style.background = 'rgb(18, 128, 82)'
-    } catch {
-      button.textContent = original
-      button.disabled = false
+    } finally {
+      setBusy(false)
     }
   }
 
+  function onRemove(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    removeActivated(packId)
+  }
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <button
         type="button"
         onClick={onInstall}
-        className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition self-start"
+        disabled={busy}
+        className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition"
         style={{
           background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
           color: '#fbfaf3',
@@ -573,11 +623,29 @@ function PackDetailInstallButtonOnly({ packId }: { packId: string }) {
             ? '0 8px 20px rgba(18,128,82,0.22)'
             : '0 12px 30px rgba(204,110,46,0.28)',
           minHeight: 44,
-          cursor: 'pointer',
+          cursor: busy ? 'wait' : 'pointer',
+          opacity: busy ? 0.7 : 1,
         }}
       >
-        {installed ? 'Installed' : 'Install on my Claude'}
+        {busy ? 'Copying to clipboard...' : installed ? 'Installed' : 'Install on my Claude'}
       </button>
+      {installed ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${prettifyId(packId)} from my Claude`}
+          className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition"
+          style={{
+            background: 'transparent',
+            color: 'rgb(var(--color-fg-muted))',
+            border: '1px solid rgb(var(--color-fg) / 0.18)',
+            minHeight: 44,
+            cursor: 'pointer',
+          }}
+        >
+          Remove this pack
+        </button>
+      ) : null}
     </div>
   )
 }

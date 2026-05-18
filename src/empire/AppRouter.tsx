@@ -25,6 +25,7 @@ import { EmpireTimelinePage, EmpireStoryPage } from './EmpireTimelinePage'
 import { EmpirePackDetail } from './EmpirePackDetail'
 import { EmpireBonusExtras } from './EmpireBonusExtras'
 import { EmpireCapabilityLayer } from './EmpireCapabilityLayer'
+import { EmpireRouteStub } from './EmpireRouteStub'
 
 function ThemeRouteSync() {
   useEffect(() => {
@@ -67,7 +68,13 @@ export function AppRouter() {
         {/* Canonical: scrolophyte at /empireworksreconstruction.
             4-tab IA (2026-05-11): /foundation = 10 packs, /timeline = story,
             /bonus-extras = Advanced. Legacy /timeline alias kept pointing
-            at Foundation for any pre-restructure shared links. */}
+            at Foundation for any pre-restructure shared links.
+
+            S217 iter-2 (F1 close, severity 9.7): three vision-spec routes
+            (/dashboard, /bridge, /packs) get EmpireRouteStub placeholders
+            so the chrome renders instead of a blank document body. A
+            catch-all "*" entry below the named routes prevents any future
+            unmatched URL from looking like a hard failure. */}
         <Route path="/empireworksreconstruction" element={<EmpireLayout />}>
           <Route index element={<EmpireLanding />} />
           <Route path="foundation" element={<EmpireTimelinePage />} />
@@ -75,6 +82,10 @@ export function AppRouter() {
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
           <Route path="layer/:layerSlug" element={<EmpireCapabilityLayer />} />
+          <Route path="dashboard" element={<EmpireRouteStub kind="dashboard" />} />
+          <Route path="bridge" element={<EmpireRouteStub kind="bridge" />} />
+          <Route path="packs" element={<EmpireRouteStub kind="packs" />} />
+          <Route path="*" element={<EmpireRouteStub kind="not-found" />} />
         </Route>
 
         {/* Legacy alias: /empire */}
@@ -85,6 +96,10 @@ export function AppRouter() {
           <Route path="bonus-extras" element={<EmpireBonusExtras />} />
           <Route path="pack/:packId" element={<EmpirePackDetail />} />
           <Route path="layer/:layerSlug" element={<EmpireCapabilityLayer />} />
+          <Route path="dashboard" element={<EmpireRouteStub kind="dashboard" />} />
+          <Route path="bridge" element={<EmpireRouteStub kind="bridge" />} />
+          <Route path="packs" element={<EmpireRouteStub kind="packs" />} />
+          <Route path="*" element={<EmpireRouteStub kind="not-found" />} />
         </Route>
       </Routes>
     </>

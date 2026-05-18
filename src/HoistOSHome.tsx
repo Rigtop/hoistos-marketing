@@ -392,6 +392,31 @@ export function HoistOSHome() {
     >
       <PageBackground />
 
+      {/* Skip-to-content link. Hidden until focused so keyboard users can
+          jump past the header. WCAG 2.4.1. */}
+      <a
+        href="#hoistos-main"
+        className="sr-only focus:not-sr-only"
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          zIndex: 100,
+          minHeight: 44,
+          padding: '0 16px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          background: '#F25A00',
+          color: '#FFFFFF',
+          borderRadius: 8,
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+        }}
+      >
+        Skip to content
+      </a>
+
       {/* V8.1 Premium SaaS layout: top bar (lockup + countdown chip) sits
           full-width above a centered hero (Inter 800, gradient accent on "OS"),
           followed by stacked premium CTA cards. Wording preserved verbatim
@@ -421,6 +446,7 @@ export function HoistOSHome() {
       </header>
 
       <main
+        id="hoistos-main"
         className="relative flex flex-col items-center px-6 pt-12 pb-16"
         style={{ zIndex: 2 }}
       >
@@ -520,7 +546,7 @@ export function HoistOSHome() {
                         fontWeight: 500,
                       }}
                     >
-                      Internal · Perennial operators
+                      Operators
                     </div>
                     <div
                       className="text-[26px] mb-2.5 leading-[1.15]"
@@ -606,7 +632,7 @@ export function HoistOSHome() {
                         fontWeight: 500,
                       }}
                     >
-                      Internal · Empire VPs
+                      Customware install
                     </div>
                     <div
                       className="text-[26px] mb-2.5 leading-[1.15]"
@@ -695,7 +721,7 @@ export function HoistOSHome() {
                         fontWeight: 500,
                       }}
                     >
-                      Internal · Perennial Empire team
+                      Team workspace
                     </div>
                     <div
                       className="text-[26px] mb-2.5 leading-[1.15]"
@@ -739,7 +765,7 @@ export function HoistOSHome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="w-full pt-8 text-[11px] font-mono uppercase text-center"
+            className="w-full pt-8 text-[11px] font-mono text-center"
             style={{
               color: '#6B7785',
               borderTop: '1px solid rgba(11, 15, 20, 0.06)',

@@ -180,7 +180,7 @@ export function BranchCard() {
                   />
                 </svg>
                 <span
-                  className="text-[11px] uppercase tracking-[0.18em] font-medium"
+                  className="text-[11px] tracking-[0.04em] font-medium"
                   style={{ color: 'rgb(var(--color-accent))' }}
                 >
                   Customware ready. Yours, not Eugeen's.

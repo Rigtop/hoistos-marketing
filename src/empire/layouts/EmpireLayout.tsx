@@ -13,21 +13,16 @@
  */
 
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { clearSession, hasSession } from '../session'
 import { useIsMobile } from '../../lib/useIsMobile'
+import { LevelUpOverlay } from '../celebration/LevelUpOverlay'
+import { SegmentedTrackerBar } from '../SegmentedTrackerBar'
 
 export function EmpireLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // Close the mobile menu drawer whenever the route changes so a nav-click
-  // never leaves the drawer hanging open over the next page.
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [location.pathname])
 
   // The /empire surface always renders against the LIGHT brand palette.
   // We set data-theme on documentElement so body bg + cascade match.
@@ -51,38 +46,91 @@ export function EmpireLayout() {
     <div
       data-theme="hoistos-light"
       className="min-h-screen flex flex-col"
-      style={{ background: 'rgb(var(--color-bg))', color: 'rgb(var(--color-fg))' }}
+      style={{
+        background: 'rgb(var(--color-bg))',
+        color: 'rgb(var(--color-fg))',
+        paddingTop: 'clamp(116px, 15vw, 140px)',
+      }}
     >
+      {/* Round 7 (2026-05-18): SegmentedTrackerBar replaces JourneyTrackerBar
+          as the always-visible top chrome on every /empire descendant. Mounts
+          here so the bar persists across /empire, /empire/foundation,
+          /empire/timeline, /empire/bonus-extras, etc. */}
+      <SegmentedTrackerBar />
+
+      {/* Skip-to-content link. Hidden until focused so keyboard users can
+          jump past the header. WCAG 2.4.1. */}
+      <a
+        href="#empire-main-content"
+        className="sr-only focus:not-sr-only"
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          zIndex: 100,
+          minHeight: 44,
+          minWidth: 44,
+          padding: '0 24px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#cc6e2e',
+          color: '#fbfaf3',
+          borderRadius: 8,
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+        }}
+      >
+        Skip to content
+      </a>
       <header
         className="px-[6vw] py-4 md:py-6 flex items-center justify-between border-b gap-3"
         style={{ borderColor: 'rgb(var(--color-border))', background: '#f5f4ed' }}
       >
-        <Link
-          to="/empire"
-          className="flex items-center gap-3 md:gap-5 group min-w-0"
-          style={{ paddingLeft: 4, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
+        {/* F8 fix (cycle-4 iter-2): split the HoistOS lockup out of the
+            EmpireWorks Link so a click on the HoistOS H-mark does not navigate
+            to /empire (a tap on HoistOS now does nothing visually-misleading;
+            it is rendered as a static sibling). The brand framing reads
+            "EmpireWorks Reconstruction on HoistOS" so the click affordance
+            now matches the words. */}
+        <div
+          className="flex items-center gap-3 md:gap-5 min-w-0"
+          style={{ paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup. PNG with 25% transparent margin renders
-              directly on the header bg (no pill wrapper). The transparent
-              margin gives the breathing room. S205 2026-05-13: removed the
-              rgba off-cream pill that visually clipped RECONSTRUCTION. */}
-          <img
-            src="/brand/empireworks-lockup-v3.png"
-            alt="EmpireWorks Reconstruction"
-            style={{
-              height: isMobile ? 40 : 56,
-              width: 'auto',
-              display: 'block',
-              objectFit: 'contain',
-              objectPosition: 'left center',
-              flexShrink: 0,
-            }}
-          />
-          {/* "on HoistOS" sub-mark is hidden on mobile to keep the lockup
-              row narrow enough for the menu button. The HoistOS brand is
-              repeated in the mobile menu drawer below. */}
+          <Link
+            to="/empire"
+            className="group flex items-center min-w-0"
+            style={{ paddingLeft: 4 }}
+            aria-label="EmpireWorks Reconstruction overview"
+          >
+            {/* EmpireWorks lockup. PNG with 25% transparent margin renders
+                directly on the header bg (no pill wrapper). The transparent
+                margin gives the breathing room. S205 2026-05-13: removed the
+                rgba off-cream pill that visually clipped RECONSTRUCTION. */}
+            <img
+              src="/brand/empireworks-lockup-v3.png"
+              alt="EmpireWorks Reconstruction"
+              style={{
+                height: isMobile ? 40 : 56,
+                width: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+                objectPosition: 'left center',
+                flexShrink: 0,
+              }}
+            />
+          </Link>
+          {/* "on HoistOS" sub-mark renders only at lg+ (>= 1024). Below 1024
+              the desktop nav already crowds the header at 768-1023 (iPad
+              portrait, Surface laptop minor), and the badge overprints the
+              first nav link "Overview" at that range. The HoistOS brand is
+              repeated in the mobile menu drawer for the mobile (<768) path
+              and stays visible at every tap-target laptop width (>= 1024).
+              F8: this lives outside the Link so it is no longer a clickable
+              area pretending to go somewhere. */}
           {!isMobile ? (
-            <>
+            <span className="hidden lg:contents">
               <span
                 aria-hidden="true"
                 className="h-7 w-px"
@@ -106,204 +154,49 @@ export function EmpireLayout() {
                   style={{ height: 22, width: 'auto', display: 'block' }}
                 />
               </span>
-            </>
+            </span>
           ) : null}
-        </Link>
-        {isMobile ? (
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            aria-controls="empire-mobile-menu"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 44,
-              height: 44,
-              minWidth: 44,
-              borderRadius: 10,
-              background: 'rgba(20,20,19,0.04)',
-              border: '1px solid rgba(20,20,19,0.12)',
-              color: '#141413',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            {/* Hand-rolled hamburger / close glyph so we do not add a new
-                icon import for a 3-line shape. lucide-react Menu/X would
-                also work; inline SVG keeps the bundle one icon lighter. */}
-            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-              {menuOpen ? (
-                <path
-                  d="M6 6l12 12M18 6l-12 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              ) : (
-                <>
-                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 12h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </>
-              )}
-            </svg>
-          </button>
-        ) : (
-          <nav
-            className="flex items-center gap-8 text-sm"
-            style={{ color: '#5e5d59', fontFamily: "'Newsreader', serif" }}
-          >
-            <Link
-              to="/empire"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Overview
-            </Link>
-            <Link
-              to="/empire/foundation"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Foundation
-            </Link>
-            <Link
-              to="/empire/bonus-extras"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Advanced
-            </Link>
-            <Link
-              to="/empire/timeline"
-              style={{ color: '#5e5d59', fontWeight: 500, fontSize: 14, padding: '12px 0', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
-            >
-              Timeline
-            </Link>
-            <a
-              href="https://calendly.com/eugeenbernan"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: '#fbfaf3',
-                fontWeight: 600,
-                fontSize: 14,
-                background: '#cc6e2e',
-                padding: '6px 14px',
-                borderRadius: 999,
-                textDecoration: 'none',
-                boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
-              }}
-            >
-              Book a walkthrough
-            </a>
-            {!onAuthSurface && hasSession() ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="text-sm hover:text-fg transition-colors"
-                style={{ color: 'rgb(var(--color-fg-subtle))' }}
-              >
-                Sign out
-              </button>
-            ) : null}
-          </nav>
-        )}
-      </header>
-
-      {/* Mobile drawer. Renders below the header when menuOpen is true.
-          Stacks every nav link + CTA vertically with tap targets ≥44px per
-          iOS Human Interface Guidelines. The drawer closes on route change
-          via the useEffect at component top. */}
-      {isMobile && menuOpen ? (
-        <nav
-          id="empire-mobile-menu"
-          aria-label="Main menu"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-            padding: '12px 6vw 20px',
-            borderBottom: '1px solid rgb(var(--color-border))',
-            background: '#f5f4ed',
-            fontFamily: "'Newsreader', serif",
-          }}
-        >
-          {[
-            { to: '/empire', label: 'Overview' },
-            { to: '/empire/foundation', label: 'Foundation' },
-            { to: '/empire/bonus-extras', label: 'Advanced' },
-            { to: '/empire/timeline', label: 'Timeline' },
-          ].map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setMenuOpen(false)}
-              style={{
-                display: 'block',
-                padding: '14px 12px',
-                fontSize: 17,
-                fontWeight: 500,
-                color: '#141413',
-                textDecoration: 'none',
-                borderRadius: 8,
-                background:
-                  location.pathname === item.to
-                    ? 'rgba(204,110,46,0.08)'
-                    : 'transparent',
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <a
-            href="https://calendly.com/eugeenbernan"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              marginTop: 8,
-              padding: '14px 16px',
-              fontSize: 16,
-              fontWeight: 600,
-              color: '#fbfaf3',
-              background: '#cc6e2e',
-              borderRadius: 12,
-              textDecoration: 'none',
-              boxShadow: '0 4px 12px rgba(204,110,46,0.28)',
-            }}
-          >
-            Book a walkthrough
-          </a>
-          {!onAuthSurface && hasSession() ? (
+        </div>
+        {/* Round 7 (2026-05-18): the 5-link header nav (Overview, Foundation,
+            Advanced, Timeline, Book a walkthrough) was stripped per the brief.
+            The 3-pill tab nav (Your Journey, Pack Catalog, Command Center)
+            now lives inside EmpireLanding and only renders on the /empire
+            index route. Sign-out affordance kept for the auth flow. */}
+        {!isMobile && !onAuthSurface && hasSession() ? (
+          <nav aria-label="Account" style={{ display: 'inline-flex' }}>
             <button
               type="button"
-              onClick={() => {
-                setMenuOpen(false)
-                handleSignOut()
-              }}
+              onClick={handleSignOut}
               style={{
-                marginTop: 4,
-                padding: '12px 12px',
-                fontSize: 14,
-                color: '#5e5d59',
+                color: 'rgb(var(--color-fg-subtle))',
                 background: 'transparent',
                 border: 'none',
-                textAlign: 'left',
+                padding: '8px 12px',
+                fontFamily: "'SF Mono', ui-monospace, Menlo, monospace",
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
                 cursor: 'pointer',
               }}
             >
               Sign out
             </button>
-          ) : null}
-        </nav>
-      ) : null}
+          </nav>
+        ) : null}
+      </header>
 
-      <main className="flex-1">
+      {/* Round 7 (2026-05-18): the mobile drawer for the legacy 4-tab nav was
+          stripped. Tab nav now lives inside EmpireLanding and is mobile-aware
+          via flex-wrap on the pill row. */}
+
+      <main id="empire-main-content" className="flex-1">
         <Outlet />
       </main>
+
+      {/* MASTER_PLAN v2 S3: level-up celebration overlay. Watches activated
+          pack count across every /empire route and fires once per threshold
+          cross (1, 3, 5, 9, 16, 24, 36 packs). Honors prefers-reduced-motion. */}
+      <LevelUpOverlay />
 
       <footer
         className="px-[6vw] py-10 border-t flex flex-col md:flex-row md:justify-between md:items-end items-start flex-wrap gap-6"
@@ -345,6 +238,7 @@ export function EmpireLayout() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Eugeen Bernan on LinkedIn"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

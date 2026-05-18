@@ -110,6 +110,25 @@ export function listActivated(): string[] {
 }
 
 /**
+ * Remove a slug from the activated list. Used by the per-pack "Remove" CTA
+ * on Foundation cards. Fires the same scrolophyte:activated event so any
+ * trackers re-read the new state.
+ */
+export function removeActivated(slug: string): void {
+  try {
+    const raw = localStorage.getItem('scrolophyte.activated') ?? '[]'
+    const arr: string[] = JSON.parse(raw)
+    const next = arr.filter((s) => s !== slug)
+    if (next.length !== arr.length) {
+      localStorage.setItem('scrolophyte.activated', JSON.stringify(next))
+      window.dispatchEvent(new Event('scrolophyte:activated'))
+    }
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/**
  * Subscribe to activation changes (storage event + custom event).
  * Returns an unsubscribe function.
  */
@@ -233,19 +252,19 @@ export async function activateSkill(opts: ActivateOptions): Promise<ActivationTi
   if (copied) {
     toast.success(
       mobile
-        ? 'Prompt copied. Mobile support is limited. Paste in Claude, or open this on desktop for the full pack experience.'
-        : 'Prompt copied. Paste with Cmd-V (or Ctrl-V) in the Claude tab that just opened.',
-      { duration: 7000 },
+        ? 'Locked in. The pack is on your clipboard. Paste in Claude, or hop to Desktop for the full handshake.'
+        : 'Locked in. The pack is on your clipboard. Cmd-V into the Claude tab that just opened.',
+      { id: 'pack-install' },
     )
   } else if (opened) {
     toast(
-      'Claude opened in a new tab. Copy the pack from the page below and paste it in.',
-      { duration: 7000 },
+      'Claude is open in a new tab. Copy the pack below and paste it across.',
+      { id: 'pack-install' },
     )
   } else {
     toast.error(
-      'Activation blocked. Allow popups and clipboard access, then try again.',
-      { duration: 7000 },
+      'Install blocked by the browser. Allow popups and clipboard, then try again.',
+      { id: 'pack-install' },
     )
   }
   trackFunnel('toast_shown', { slug, tier, path_taken: 'web_clipboard' })

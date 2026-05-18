@@ -52,7 +52,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { useIsMobile } from '../lib/useIsMobile'
 import {
@@ -98,6 +98,7 @@ export interface IntakeProps {
 
 export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: IntakeProps) {
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
   const [draft, setDraft] = useState<IntakeState>(() => {
     const existing = readIntake()
     if (existing && Object.keys(existing).length > 0) {
@@ -174,6 +175,17 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
     onDismiss?.()
   }, [onDismiss])
 
+  // F8 fix (S217 iter-2): Esc closes the modal so the user is never trapped
+  // by a modal they did not ask for. Only mounted for modal variant.
+  useEffect(() => {
+    if (variant !== 'modal' || !open) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') dismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [variant, open, dismiss])
+
   if (!open) return null
 
   const progress = ((step + 1) / STEP_COUNT) * 100
@@ -184,14 +196,18 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       style={{
         borderColor: 'rgb(var(--color-fg) / 0.12)',
         padding: isMobile ? '1.25rem' : '2rem',
+        maxHeight: variant === 'modal' ? 'calc(100dvh - 2rem)' : undefined,
+        overflowY: variant === 'modal' ? 'auto' : undefined,
+        WebkitOverflowScrolling: variant === 'modal' ? 'touch' : undefined,
       }}
     >
       {variant === 'modal' ? (
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Close intake"
-          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full"
+          aria-label="Close intake (Escape also works)"
+          aria-keyshortcuts="Escape"
+          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             width: 44,
             height: 44,
@@ -204,8 +220,10 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
 
       <div className="mb-5">
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em]"
+          className="font-mono text-[11px] tracking-[0.02em]"
           style={{ color: 'rgb(var(--color-accent))' }}
+          role="status"
+          aria-live="polite"
         >
           Step {step + 1} of {STEP_COUNT}
         </div>
@@ -217,9 +235,9 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
           <motion.div
             className="h-full"
             style={{ background: 'rgb(var(--color-accent))' }}
-            initial={{ width: 0 }}
+            initial={reduced ? false : { width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={reduced ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
       </div>
@@ -227,10 +245,10 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, x: 24 }}
+          initial={reduced ? false : { opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          exit={reduced ? { opacity: 1 } : { opacity: 0, x: -24 }}
+          transition={reduced ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
           {step === 0 ? (
             <StepName
@@ -275,44 +293,77 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
         className="mt-6 flex items-center justify-between gap-3"
         style={{ flexDirection: isMobile ? 'column-reverse' : 'row' }}
       >
-        <button
-          type="button"
-          onClick={goBack}
-          disabled={step === 0}
-          className="inline-flex items-center gap-2 rounded-lg border px-4 font-mono text-[11px] uppercase tracking-[0.18em] transition-opacity"
-          style={{
-            minHeight: 44,
-            width: isMobile ? '100%' : 'auto',
-            opacity: step === 0 ? 0.4 : 1,
-            borderColor: 'rgb(var(--color-fg) / 0.18)',
-            color: 'rgb(var(--color-fg))',
-            background: 'transparent',
-          }}
-        >
-          <ArrowLeft size={14} aria-hidden="true" />
-          Back
-        </button>
-
-        {step < STEP_COUNT - 1 ? (
+        {/* F10 fix (cycle-4 iter-2): Step 1 has nowhere to go Back to, and the
+            empty-state hint at the top already covers the Skip path, so we
+            hide both. Step 1 footer collapses to a single Next CTA which
+            drops decision count from 3 to 1. Back returns from Step 2 onward. */}
+        {step === 0 ? (
+          <span aria-hidden="true" />
+        ) : (
           <button
             type="button"
-            onClick={goNext}
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+            onClick={goBack}
+            aria-label={`Back to step ${step} of ${STEP_COUNT}`}
+            className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',
-              background: 'rgb(var(--color-accent))',
-              color: 'rgb(var(--color-bg))',
+              borderColor: 'rgb(var(--color-fg) / 0.18)',
+              color: 'rgb(var(--color-fg))',
+              background: 'transparent',
             }}
           >
-            Next
-            <ArrowRight size={14} aria-hidden="true" />
+            <ArrowLeft size={14} aria-hidden="true" />
+            Back
           </button>
+        )}
+
+        {step < STEP_COUNT - 1 ? (
+          <div
+            className="flex items-center gap-3"
+            style={{
+              flexDirection: isMobile ? 'column-reverse' : 'row',
+              width: isMobile ? '100%' : 'auto',
+            }}
+          >
+            {step > 0 && step < STEP_COUNT - 1 ? (
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Skip this step, the gallery still works with blanks"
+                className="rounded-lg px-3 text-xs underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+                style={{
+                  minHeight: 44,
+                  width: isMobile ? '100%' : 'auto',
+                  color: 'rgb(var(--color-fg-muted))',
+                  background: 'transparent',
+                }}
+              >
+                Skip this step
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label={`Continue to step ${step + 2} of ${STEP_COUNT}`}
+              className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                minHeight: 44,
+                width: isMobile ? '100%' : 'auto',
+                background: 'rgb(var(--color-accent))',
+                color: 'rgb(var(--color-bg))',
+              }}
+            >
+              Next
+              <ArrowRight size={14} aria-hidden="true" />
+            </button>
+          </div>
         ) : (
           <button
             type="button"
             onClick={submit}
-            className="inline-flex items-center gap-2 rounded-lg px-5 font-mono text-[11px] uppercase tracking-[0.18em]"
+            aria-label="Finish intake and build my Claude journey"
+            className="inline-flex items-center gap-2 rounded-lg px-5 text-sm font-medium tracking-[0.005em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               minHeight: 44,
               width: isMobile ? '100%' : 'auto',
@@ -337,7 +388,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
       role="dialog"
       aria-modal="true"
       aria-label="HoistOS install intake"
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
       style={{
         background: 'rgb(0 0 0 / 0.55)',
         padding: isMobile ? '1rem' : '2rem',
@@ -361,7 +412,7 @@ function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: 
     <div>
       <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Let us start with you.
       </h2>
@@ -378,9 +429,12 @@ function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: 
         style={{ gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}
       >
         <label className="block">
+          {/* F3 fix (cycle-4 iter-2): sentence-case field labels at the same
+              text-xs/font-medium tracking used elsewhere. Retires the
+              font-mono uppercase console-log treatment per R087. */}
           <span
-            className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
           >
             Name
           </span>
@@ -402,8 +456,8 @@ function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: 
 
         <label className="block">
           <span
-            className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
           >
             Division
           </span>
@@ -451,7 +505,7 @@ function StepIndustry({
     <div>
       <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         What industry are you in?
       </h2>
@@ -464,9 +518,13 @@ function StepIndustry({
       </p>
 
       <label className="block mb-4">
+        {/* iter-4-polish: R087 codemod continuing F3 from iter-2.
+            Industry / Role / Primary trade / Custom outcome labels were the
+            last four ALL-CAPS console-log treatments in this file. Drop to
+            the same sentence-case sans-serif as Name + Division. */}
         <span
-          className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+          className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+          style={{ color: 'rgb(var(--color-fg-muted))' }}
         >
           Industry
         </span>
@@ -499,8 +557,8 @@ function StepIndustry({
         >
           <label className="block">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Role
             </span>
@@ -528,8 +586,8 @@ function StepIndustry({
 
           <label className="block">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Primary trade
             </span>
@@ -567,7 +625,7 @@ function StepOutcomes({ outcomes, customOutcome, onRankChange, onCustomChange, i
     <div>
       <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Rank what you want first.
       </h2>
@@ -593,8 +651,8 @@ function StepOutcomes({ outcomes, customOutcome, onRankChange, onCustomChange, i
         {showCustomBox ? (
           <label className="block mt-2">
             <span
-              className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-              style={{ color: 'rgb(var(--color-fg-subtle))' }}
+              className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+              style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
               Custom outcome
             </span>
@@ -685,7 +743,7 @@ function StepSurfaces({ surfaces, onToggle, isMobile }: StepSurfacesProps) {
     <div>
       <h2
         className="font-display text-[1.5rem] sm:text-[1.85rem] leading-tight mb-2"
-        style={{ color: 'rgb(var(--color-fg))' }}
+        style={{ color: 'rgb(var(--color-fg))', fontWeight: 500 }}
       >
         Where do you use Claude today?
       </h2>

@@ -148,7 +148,8 @@ function PostInstallPanelInner({ ctx, onClose }: { ctx: PostInstallContext; onCl
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Close install panel"
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             position: 'absolute',
             top: 16,
@@ -158,11 +159,12 @@ function PostInstallPanelInner({ ctx, onClose }: { ctx: PostInstallContext; onCl
             color: 'rgba(20,20,19,0.5)',
             cursor: 'pointer',
             padding: 4,
+            borderRadius: 6,
             display: 'flex',
             alignItems: 'center',
           }}
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4" aria-hidden="true" />
         </button>
 
         {view === 'main' ? (
@@ -283,8 +285,7 @@ function MainView({
           margin: 0,
         }}
       >
-        Pack: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>. Here is what should
-        happen next.
+        On the way to Claude: <strong style={{ color: '#141413' }}>{ctx.packTitle}</strong>.
       </p>
       <ol
         style={{
@@ -314,6 +315,7 @@ function MainView({
         <button
           type="button"
           onClick={handleWorking}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -331,11 +333,12 @@ function MainView({
           }}
         >
           <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-          <span>Working through it now</span>
+          <span>Mark this one done</span>
         </button>
         <button
           type="button"
           onClick={() => onView('troubleshoot')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -352,11 +355,12 @@ function MainView({
           }}
         >
           <AlertCircle className="w-4 h-4" aria-hidden="true" />
-          <span>It did not open. Help me fix it.</span>
+          <span>Help me fix it</span>
         </button>
         <button
           type="button"
           onClick={() => onView('help')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -375,7 +379,7 @@ function MainView({
           }}
         >
           <HelpCircle className="w-4 h-4" aria-hidden="true" />
-          <span>I need a person to help</span>
+          <span>Walk me through it live</span>
         </button>
       </div>
     </div>
@@ -396,6 +400,8 @@ function TroubleshootView({
       <button
         type="button"
         onClick={() => onView('main')}
+        aria-label="Back to install panel"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           alignSelf: 'flex-start',
           background: 'transparent',
@@ -405,9 +411,10 @@ function TroubleshootView({
           fontWeight: 500,
           cursor: 'pointer',
           padding: 0,
+          borderRadius: 4,
         }}
       >
-        ← Back
+        <span aria-hidden="true">← </span>Back
       </button>
       <h3
         style={{
@@ -418,7 +425,7 @@ function TroubleshootView({
           fontFamily: 'Newsreader, Georgia, serif',
         }}
       >
-        Try these in order. Most fixes land in under a minute.
+        Walk these in order. Most installs unstick in under a minute.
       </h3>
       <ol
         style={{
@@ -446,6 +453,7 @@ function TroubleshootView({
             if (ctx.onRetry) ctx.onRetry()
             onView('main')
           }}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             flex: 1,
             padding: '10px 14px',
@@ -458,11 +466,12 @@ function TroubleshootView({
             fontWeight: 600,
           }}
         >
-          Try install again
+          Retry install
         </button>
         <button
           type="button"
           onClick={() => onView('help')}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
           style={{
             flex: 1,
             padding: '10px 14px',
@@ -475,7 +484,7 @@ function TroubleshootView({
             fontWeight: 500,
           }}
         >
-          Still stuck
+          Talk to a human
         </button>
       </div>
     </div>
@@ -494,6 +503,8 @@ function HelpView({
       <button
         type="button"
         onClick={() => onView('main')}
+        aria-label="Back to install panel"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           alignSelf: 'flex-start',
           background: 'transparent',
@@ -503,9 +514,10 @@ function HelpView({
           fontWeight: 500,
           cursor: 'pointer',
           padding: 0,
+          borderRadius: 4,
         }}
       >
-        ← Back
+        <span aria-hidden="true">← </span>Back
       </button>
       <h3
         style={{
@@ -516,7 +528,7 @@ function HelpView({
           fontFamily: 'Newsreader, Georgia, serif',
         }}
       >
-        We can walk you through this on the phone.
+        Email us. We will book a 15-minute walkthrough the same day.
       </h3>
       <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, color: '#141413' }}>
         Email <a href="mailto:hello@hoistos.com" style={{ color: '#cc6e2e' }}>hello@hoistos.com</a>{' '}
@@ -532,8 +544,8 @@ function HelpView({
           fontStyle: 'italic',
         }}
       >
-        We treat every install email as a chance to make this page better. If you got stuck, we
-        want to know what tripped you so the next person does not.
+        Every install email teaches us where this page trips people. Tell us where you got stuck.
+        The next visitor benefits.
       </p>
     </div>
   )
@@ -553,11 +565,11 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
         }}
       >
         <CheckCircle2 className="w-5 h-5" aria-hidden="true" />
-        <span>{ctx.packTitle} marked as in progress.</span>
+        <span>{ctx.packTitle}. Locked in.</span>
       </div>
       <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, color: '#141413' }}>
-        We saved a green check on the card so you can see your progress on this page over time.
-        Come back tomorrow morning, the check is still there.
+        Green check on the card from here on. Close the tab, come back tomorrow, it
+        still holds.
       </p>
       {ctx.nextPackTitle ? (
         <div
@@ -591,6 +603,7 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
       <button
         type="button"
         onClick={onClose}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
         style={{
           alignSelf: 'flex-end',
           padding: '8px 14px',
@@ -603,7 +616,7 @@ function SuccessView({ ctx, onClose }: { ctx: PostInstallContext; onClose: () =>
           fontWeight: 500,
         }}
       >
-        Got it
+        Back to packs
       </button>
     </div>
   )

@@ -112,7 +112,7 @@ createRoot(document.getElementById('root')!).render(
             },
           }}
         />
-        <Analytics />
+        {import.meta.env.PROD ? <Analytics mode="production" debug={false} /> : null}
         <AppRouter />
       </RootLenisProvider>
     </BrowserRouter>

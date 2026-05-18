@@ -1614,7 +1614,7 @@ function ChronoRow({
               >
                 {num}
               </span>
-              <span
+              <h3
                 style={{
                   fontSize: 16,
                   fontWeight: 500,
@@ -1622,10 +1622,12 @@ function ChronoRow({
                   lineHeight: 1.35,
                   flex: 1,
                   minWidth: 0,
+                  margin: 0,
+                  fontFamily: 'inherit',
                 }}
               >
                 {displayTitle}
-              </span>
+              </h3>
             </div>
             {!open ? (
               <span
@@ -1717,17 +1719,19 @@ function ChronoRow({
               {num}
             </span>
             <div style={{ minWidth: 0 }}>
-              <span
+              <h3
                 style={{
                   fontSize: 17,
                   fontWeight: 500,
                   color: BRAND.ink,
                   lineHeight: 1.4,
                   display: 'block',
+                  margin: 0,
+                  fontFamily: 'inherit',
                 }}
               >
                 {displayTitle}
-              </span>
+              </h3>
               {!open ? (
                 <span
                   style={{
@@ -2308,7 +2312,6 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
               fontSize: 13,
               fontWeight: 600,
               color: BRAND.signal,
-              textTransform: 'uppercase',
               letterSpacing: '0.18em',
               marginBottom: 18,
               fontFamily: '"JetBrains Mono", ui-monospace, monospace',
@@ -2388,6 +2391,21 @@ export function EmpireTimelineD({ moments, mode = 'both' }: EmpireTimelineDProps
               zIndex: 2,
             }}
           >
+            <h2
+              style={{
+                position: 'absolute',
+                width: 1,
+                height: 1,
+                padding: 0,
+                margin: -1,
+                overflow: 'hidden',
+                clip: 'rect(0,0,0,0)',
+                whiteSpace: 'nowrap',
+                border: 0,
+              }}
+            >
+              The journey, start to today
+            </h2>
             {/* Desktop-only table header. The mobile row layout above carries
                 its own inline meta (date + category + get-it pill) so this
                 column-label strip is redundant + would force a 600px-wide

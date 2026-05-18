@@ -128,31 +128,49 @@ export const SURFACE_LABELS: Record<Surface, string> = {
  * The full intake payload persisted to localStorage. Every field is optional
  * at write time so partial drafts survive a refresh, but the modal only marks
  * `completedAt` once the user clicks Submit on the final question.
+ *
+ * Round 7 (2026-05-18) added q2Pains, q2Other, q3Surfaces, intakeCompletedAt
+ * as ALIAS fields for the new 3-question InlineIntake. The aliases live
+ * alongside the legacy 4-question fields so the existing Intake.tsx + every
+ * downstream consumer (compounding ranker, customware engine) keep working
+ * with no schema rewrite. Read helpers below resolve either set.
  */
 export interface IntakeState {
-  /** Q1a: VP name. Becomes VP_NAME_SLUG for customware substitution. */
+  /** Q1a (both flows): VP name. */
   name?: string
-  /** Q1b: division. Becomes DIVISION_SLUG. */
+  /** Q1b legacy: division. Round 7 reuses the field as the free-text role
+   *  string from "What you do (e.g. COO at Perennial Empire)". */
   division?: string
-  /** Q2: industry pick. */
+  /** Q2 legacy: industry pick. */
   industry?: Industry
-  /** Q2a: construction sub-role, only if industry === 'construction'. */
+  /** Q2a legacy: construction sub-role. */
   constructionRole?: ConstructionRole
-  /** Q2b: primary trade, only if industry === 'construction'. Free text. */
+  /** Q2b legacy: primary trade. */
   primaryTrade?: PrimaryTrade
-  /** Q3: outcome rankings. Map outcome key to 1-5 priority. */
+  /** Q3 legacy: outcome rankings. Map outcome key to 1-5 priority. */
   outcomes?: Partial<Record<Outcome, number>>
-  /** Q4: surfaces the user has, multi-select. Default is ['browser']. */
+  /** Q4 legacy: surfaces. Default ['browser']. */
   surfaces?: Surface[]
-  /**
-   * Optional free text the user can type if they pick the `custom` outcome.
-   * Persisted alongside outcomes so the gallery can surface it as a label.
-   */
+  /** Legacy custom outcome free text. */
   customOutcome?: string
   /** ISO timestamp when the user submitted the final question. */
   completedAt?: string
-  /** Schema version. Hard-coded to 1 today. Bump when shape changes. */
+  /** Schema version. */
   version?: 1
+  /**
+   * Round 7 InlineIntake Q2: up to 3 pain tile ids from the 8-tile grid
+   * ('emails', 'proposals', 'team', 'contracts', 'billing', 'decisions',
+   * 'meetings', 'voice'). Drives PACK_BY_PAIN lookups in SerialPackStage
+   * and the outcome-tag derivation in SegmentedTrackerBar.
+   */
+  q2Pains?: string[]
+  /** Round 7 InlineIntake Q2 free-text "Other". Alias for customOutcome. */
+  q2Other?: string
+  /** Round 7 InlineIntake Q3 surface picks (browser, desktop, code).
+   *  Alias for surfaces. */
+  q3Surfaces?: Surface[]
+  /** Round 7 ISO timestamp when InlineIntake finished. Alias for completedAt. */
+  intakeCompletedAt?: string
 }
 
 /**
@@ -255,11 +273,36 @@ export function clearIntake(): void {
 
 /**
  * True once the user submits the final question. Components gate their
- * render on this (e.g. EmpireLanding shows the intake modal until done).
+ * render on this. Round 7: accepts either the legacy completedAt field or
+ * the new intakeCompletedAt alias.
  */
 export function isIntakeComplete(state?: IntakeState): boolean {
   const s = state ?? readIntake()
-  return typeof s.completedAt === 'string' && s.completedAt.length > 0
+  if (typeof s.completedAt === 'string' && s.completedAt.length > 0) return true
+  if (typeof s.intakeCompletedAt === 'string' && s.intakeCompletedAt.length > 0) return true
+  return false
+}
+
+/**
+ * Round 7 alias resolver: returns the user's q3 surfaces with browser as
+ * the safe default. Consumers (SerialPackStage, PackInstallFlow,
+ * EmpirePacksGallery, CommandCenter) read through this helper so legacy
+ * surfaces + new q3Surfaces both work without per-component branching.
+ */
+export function readSurfaces(state?: IntakeState): Surface[] {
+  const s = state ?? readIntake()
+  if (Array.isArray(s.q3Surfaces) && s.q3Surfaces.length > 0) return s.q3Surfaces
+  if (Array.isArray(s.surfaces) && s.surfaces.length > 0) return s.surfaces
+  return ['browser']
+}
+
+/**
+ * Round 7 alias resolver: returns the user's q2 pain picks. Returns an empty
+ * array when no q2Pains have been written (e.g. legacy intake user).
+ */
+export function readPains(state?: IntakeState): string[] {
+  const s = state ?? readIntake()
+  return Array.isArray(s.q2Pains) ? s.q2Pains : []
 }
 
 /**

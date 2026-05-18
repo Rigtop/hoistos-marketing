@@ -105,7 +105,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     oneLine: 'Four Notion databases (People, Companies, Projects, Meetings) created with the relations between them already drawn, plus five example rows in each so you can see the shape before you fill it in. This is the Notion structure most operators rebuild three times before getting it right. Install once, get it right on day one, never re-architect again.',
     scope: 'The entity layer everything else snaps onto. One parent Operating Stack page, four databases, every relation already drawn, five seed rows per database for shape.',
     installMinutes: 75,
-    installDisplay: '60 to 90 min',
+    installDisplay: '60-90 min',
     artifact: 'Four Notion databases plus a parent Operating Stack page. Relations live, with five example rows in each so you can see the shape.',
     desktopHint: 'Click Open in Claude Desktop. Claude pulls the skill, walks the four database creates through your Notion connection, then reads the live state back to confirm the relations wired correctly.',
     codeHint: 'Run the one-liner. The skill walks the database creation through your Notion connection. Three questions, ninety seconds, four databases land.',
@@ -130,7 +130,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     oneLine: 'Three more Notion databases on top of the Foundation: Task Commander (your action item bus), Meeting Intelligence (transcript-to-decision capture), and Code Projects (engineering work tracking). Plus the flows that link them automatically. Paste a meeting transcript and watch the tasks, decisions, and follow-up engineering items all wire themselves to the right People and Projects with zero manual linking.',
     scope: 'The day-two operating layer. Paste a meeting transcript and watch the tasks, decisions, and follow-up Code Projects all link themselves to the right People and Projects without you touching the linking step.',
     installMinutes: 75,
-    installDisplay: '60 to 90 min',
+    installDisplay: '60-90 min',
     artifact: 'Three more databases on top of the Foundation. Plus the flow that turns a meeting transcript into linked decisions, action items, and code projects.',
     desktopHint: 'Same install pattern as the Foundation. The skill checks for the Foundation first and prompts you to install it if you skipped ahead. After the create runs, you can watch the relations land in your Notion sidebar in under two minutes.',
     codeHint: 'One-liner drops the skill. Restart your session. Trigger phrase builds the three databases and runs the three example flows.',
@@ -156,7 +156,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     oneLine: 'A search layer that lets Claude answer from your own knowledge instead of from what it was trained on. A watcher on your filesystem indexes every file you create. A daily sync pulls your Notion content into the same index. Ask any question and Claude returns a ranked list of passages from your own writing, with the file path back to the source. The first time you watch Claude answer "what did I tell Steve about the proposal" with citations from a meeting note you forgot you wrote, the upgrade pays for itself.',
     scope: 'The search layer. A watcher on your filesystem and a daily Notion sync feed the index. Claude answers from your own knowledge, not from what it was trained on.',
     installMinutes: 105,
-    installDisplay: '90 to 120 min',
+    installDisplay: '90-120 min',
     artifact: 'A search tool wired into Claude, running on your own database, indexing your files and Notion. Cites every claim with a file path.',
     desktopHint: 'The watcher itself runs on Code, not on Claude Desktop. Open the markdown in Claude Desktop to read the pattern, then install for real on your Code laptop.',
     codeHint: 'The blueprint asks for three API keys. Everything else picks sensible defaults. The first index runs while you read the README.',
@@ -209,7 +209,7 @@ const BLUEPRINTS: BonusBlueprint[] = [
     oneLine: 'The day-one terminal setup most blueprints assume you already have. Installs Claude Code on your laptop, walks you through the login flow, wires your first connector (Notion or your filesystem), drops your first hook (the em-dash blocker so banned characters cannot ship from your CLI). Verifies the install with one prompt at the end so you know it worked before you close the tab.',
     scope: 'The base layer under everything else. Most blueprints assume Code is installed. This pack installs Code, walks you through login, and shows you the basic patterns.',
     installMinutes: 35,
-    installDisplay: '30 to 45 min',
+    installDisplay: '30-45 min',
     artifact: 'A working claude command in your terminal, your first cold-start file, the Notion connector wired up, and an em-dash blocker hook running.',
     desktopHint: 'Skip if you only use Claude Desktop. The CLI is for users who want a terminal-first workflow alongside Claude Desktop. If you want both, install this.',
     codeHint: 'Run the one-liner. The skill walks you through it: install command, login flow, first connector, first hook. Verify with one prompt at the end.',
@@ -303,7 +303,7 @@ async function fetchBonusMarkdown(b: BonusBlueprint): Promise<string> {
     BONUS_CACHE.set(b.id, text)
     return text
   } catch {
-    return `# ${b.title}\n\nUnable to load this blueprint right now. Try again in a moment.`
+    return `# ${b.title}\n\nThe blueprint did not load this time. Refresh the page and click again.`
   }
 }
 
@@ -459,7 +459,7 @@ function browserFallbackInstall(b: BonusBlueprint): void {
     // install modal which surfaces an explicit Copy button + launch links
     // so the user can complete the flow in two isolated gestures.
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
-    toast(`Loading ${b.title}, opening copy panel...`, { duration: 2500 })
+    toast(`Fetching ${b.title}. Copy panel opens next.`, { duration: 2500 })
     return
   }
   // Open the new tab first while user-gesture trust is fresh, then write the
@@ -518,7 +518,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     // Async fetch first to populate cache, then re-fire. Pattern mirrors
     // browserFallbackInstall to preserve user-gesture trust.
     fetchBonusMarkdown(b).then(() => desktopAppInstall(b))
-    toast(`Loading ${b.title}, opening Claude Desktop in a moment...`, { duration: 2500 })
+    toast(`Fetching ${b.title}. Claude Desktop opens next.`, { duration: 2500 })
     return
   }
   // Fire claude:// URL scheme FIRST while user-gesture trust is fresh,
@@ -528,7 +528,7 @@ function desktopAppInstall(b: BonusBlueprint): void {
     navigator.clipboard.writeText(cached).then(
       () => {
         toast.success(
-          `${b.title} copied. Claude Desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude Desktop is not installed, use the browser button instead - the pack is still on your clipboard.`,
+          `${b.title} copied. Claude Desktop opening now. Press Cmd+V (Ctrl+V on Windows) in the chat composer and hit Return. If Claude Desktop is not installed, use the browser button instead. The pack is still on your clipboard.`,
           { duration: 10000 },
         )
       },
@@ -560,7 +560,7 @@ void desktopAppInstall
 function _openInstallModal(b: BonusBlueprint): void {
   const cached = BONUS_CACHE.get(b.id)
   if (!cached) {
-    toast('Loading blueprint...', { duration: 1500 })
+    toast('Fetching blueprint', { duration: 1500 })
     fetchBonusMarkdown(b).then((text) => renderInstallModal(b, text))
     return
   }
@@ -857,15 +857,22 @@ export function EmpireBonusExtras() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-6 flex items-center justify-center gap-3 flex-wrap"
+          className="text-xs tracking-[0.04em] font-medium mb-3 flex items-center justify-center gap-3 flex-wrap"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           <span>HoistOS</span>
           <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
           <span>Advanced</span>
-          <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
-          <span>For operators who installed the Foundation</span>
         </motion.div>
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="text-sm mb-6 text-center"
+          style={{ color: 'rgb(var(--color-fg-subtle))' }}
+        >
+          For operators who installed the Foundation.
+        </motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -919,7 +926,7 @@ export function EmpireBonusExtras() {
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <span
             id="bridge-blueprints-heading"
-            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="font-mono text-[10px] tracking-[0.04em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             Works with your Bridge setup
@@ -957,13 +964,13 @@ export function EmpireBonusExtras() {
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <span
             id="advanced-blueprints-heading"
-            className="font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="font-mono text-[10px] tracking-[0.22em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
             After Code CLI is installed
           </span>
           <span
-            className="font-mono text-[10px] uppercase tracking-[0.14em] rounded-full px-2.5 py-1"
+            className="font-mono text-[10px] tracking-[0.14em] rounded-full px-2.5 py-1"
             style={{ background: 'rgba(20,20,19,0.08)', color: 'rgb(var(--color-fg))', fontWeight: 600 }}
           >
             Claude Code CLI required
@@ -1005,7 +1012,7 @@ export function EmpireBonusExtras() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
+          className="font-mono text-[11px] tracking-[0.22em] mb-5"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Install order matters less than starting
@@ -1020,14 +1027,15 @@ export function EmpireBonusExtras() {
 
         <Link
           to="/empireworksreconstruction/timeline"
-          className="inline-flex items-center gap-3 rounded-2xl px-8 py-4 text-base md:text-lg font-medium transition-all duration-300"
+          aria-label="Back to the install timeline"
+          className="inline-flex items-center gap-3 rounded-2xl px-8 py-4 text-base md:text-lg font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{
             background: 'transparent',
             color: 'rgb(var(--color-accent))',
             border: '1px solid rgb(var(--color-accent) / 0.4)',
           }}
         >
-          <span>Back to the timeline</span>
+          <span>Back to the install timeline</span>
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </section>
@@ -1040,13 +1048,13 @@ export function EmpireBonusExtras() {
 
       <section className="mt-24 max-w-3xl mx-auto">
         <p
-          className="font-mono text-xs uppercase tracking-[0.22em] mb-4"
+          className="text-xs tracking-[0.04em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
-          Confidential
+          Confidential to EmpireWorks
         </p>
         <p className="text-base leading-relaxed" style={{ color: 'rgb(var(--color-fg-muted))' }}>
-          For people inside EmpireWorks Reconstruction only. Please don&apos;t share outside the team.
+          This page is for people inside EmpireWorks Reconstruction. Keep it inside the team.
         </p>
       </section>
     </div>
@@ -1098,7 +1106,7 @@ function ClaudeCodeCLIHeroBreak() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.5 }}
-          className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+          className="text-xs tracking-[0.04em] font-medium mb-4"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           The 10x move
@@ -1233,7 +1241,7 @@ function ClaudeCodeCLIHeroBreak() {
           house."
         </p>
         <footer
-          className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.22em]"
+          className="flex items-center gap-3 font-mono text-[11px] tracking-[0.04em]"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           <span
@@ -1259,7 +1267,7 @@ function ClaudeCodeCLIHeroBreak() {
         }}
       >
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          className="font-mono text-[10px] tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-accent))' }}
         >
           What you unlock the day CLI lands
@@ -1334,7 +1342,7 @@ function TellSteveCTA() {
         />
         <div className="relative">
           <div
-            className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+            className="text-xs tracking-[0.04em] font-medium mb-4"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             Loved this?
@@ -1401,10 +1409,10 @@ function TellSteveCTA() {
             </a>
           </div>
           <p
-            className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em]"
+            className="mt-6 font-mono text-[10px] tracking-[0.22em]"
             style={{ color: 'rgb(var(--color-fg-subtle))' }}
           >
-            Edit the email before sending. Tell Steve which packs you want.
+            Edit before you hit send. Name the three packs you want first.
           </p>
         </div>
       </div>
@@ -1530,7 +1538,7 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
             Desktop" + codeHint as the primary install path. */}
         {blueprint.isCodeOnramp ? (
           <span
-            className="font-mono text-[10px] uppercase tracking-[0.18em] rounded-md px-2 py-1"
+            className="font-mono text-[10px] tracking-[0.18em] rounded-md px-2 py-1"
             style={{
               color: '#fbfaf3',
               background: 'rgb(var(--color-accent))',
@@ -1628,14 +1636,22 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
             if (tier === 'desktop') onPostInstall(blueprint, 'desktop')
             else if (tier === 'code') onPostInstall(blueprint, 'clipboard-curl')
           }}
-          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200"
           style={{
             background: 'rgb(var(--color-accent))',
             color: 'rgb(var(--color-bg))',
             border: 'none',
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgb(var(--color-accent) / 0.32)',
+            minHeight: 44,
           }}
+          aria-label={
+            tier === 'desktop'
+              ? `Install ${blueprint.title} in Claude Desktop`
+              : tier === 'code'
+              ? `Copy install command for ${blueprint.title}`
+              : `Install ${blueprint.title} in my Claude`
+          }
           title={
             tier === 'desktop'
               ? 'Copies the full blueprint to your clipboard, opens the Claude Desktop app. Paste with Cmd+V in the chat composer and hit Return.'
@@ -1664,13 +1680,15 @@ function BlueprintCard({ blueprint, index, tier, completed, onPostInstall }: Car
         <button
           type="button"
           onClick={() => downloadBonusMarkdown(blueprint)}
-          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200"
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200"
           style={{
             background: 'transparent',
             color: 'rgb(var(--color-fg-muted))',
             border: '1px solid rgba(20,20,19,0.18)',
             cursor: 'pointer',
+            minHeight: 44,
           }}
+          aria-label={`Download ${blueprint.title} markdown`}
           title="Downloads the .md file via JS Blob, bypasses any browser inline-display behavior"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
@@ -1745,7 +1763,7 @@ function BrowserFallbackPanel({
         }}
       >
         <div
-          className="font-mono text-[10px] uppercase tracking-[0.22em] mb-3"
+          className="font-mono text-[10px] tracking-[0.22em] mb-3"
           style={{ color: 'rgb(var(--color-fg-subtle))' }}
         >
           Linux, Chromebook, or no desktop app

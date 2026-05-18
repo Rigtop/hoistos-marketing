@@ -159,7 +159,7 @@ export const FOUNDATION_CARDS: FoundationCard[] = [
     claudeStateDelta:
       'Canonical names lock for people, companies, GCs, and projects. Claude answers from the Registry instead of training. Missing roles get flagged, not invented.',
     compoundingPartnerIds: [
-      'foundation-03-cold-start',
+      'foundation-03-cold-start-protocol',
       'foundation-04-decision-log',
       'foundation-08-source-sweep',
     ],
@@ -172,7 +172,7 @@ export const FOUNDATION_CARDS: FoundationCard[] = [
     ],
   },
   {
-    packId: 'foundation-03-cold-start',
+    packId: 'foundation-03-cold-start-protocol',
     badge: 'F-03',
     title: 'Cold Start Protocol',
     purpose: 'Every chat opens warm, with your role, top projects, and last session loaded.',

@@ -18,12 +18,12 @@
  * R067: mobile-first. 320/375/768 viewports verified pre-ship.
  */
 
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react'
-import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Copy, Sparkles } from 'lucide-react'
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { ArrowRight, Check, Copy, Sparkles, X } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
-import { activateSkill, listActivated } from '../lib/activate'
+import { activateSkill, listActivated, onActivatedChange, removeActivated } from '../lib/activate'
 
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
@@ -86,30 +86,72 @@ function isInstalled(installed: string[], packId: string): boolean {
 }
 
 export function EmpireFoundationGrid() {
+  // F2 fix (cycle-4 iter-2): hero copy keys off install-state so a first-touch
+  // user landing here from /empire never sees "Already in your Claude" while
+  // the global tracker reads 0 / 11. Three states: pre-install, partial, and
+  // bridge-mass-install (every Foundation pack already activated).
+  const [installedCount, setInstalledCount] = useState<number>(() => listActivated().length)
+  useEffect(() => onActivatedChange(() => setInstalledCount(listActivated().length)), [])
+  const total = FOUNDATION_CARDS.length
+  const heroState: HeroState =
+    installedCount === 0 ? 'pre' : installedCount >= total ? 'all' : 'partial'
+
+  // F7 fix (cycle-4 iter-2): pack and bonus-extras links honor the prefix the
+  // user arrived through so the address bar does not swap mid-funnel.
+  const { pathname } = useLocation()
+  const routePrefix =
+    pathname.startsWith('/empire/') || pathname === '/empire'
+      ? '/empire'
+      : '/empireworksreconstruction'
+
   return (
     <div
       className="px-[6vw] pt-16 pb-32"
       style={{ background: '#f5f4ed', color: '#141413' }}
     >
-      <HeroBlock />
+      <HeroBlock state={heroState} installedCount={installedCount} total={total} />
       <VerifyCTA />
-      <Grid />
-      <BottomCTA />
+      <Grid routePrefix={routePrefix} />
+      <BottomCTA routePrefix={routePrefix} />
     </div>
   )
 }
 
-function HeroBlock() {
+type HeroState = 'pre' | 'partial' | 'all'
+
+function HeroBlock({
+  state,
+  installedCount,
+  total,
+}: {
+  state: HeroState
+  installedCount: number
+  total: number
+}) {
+  const eyebrow =
+    state === 'pre'
+      ? 'Your operating system in eleven packs'
+      : state === 'all'
+        ? 'Your installed system'
+        : `Installing your system (${installedCount} of ${total})`
+
+  const body =
+    state === 'pre'
+      ? 'Each card shows what one pack does, what to type to invoke it, and what Claude returns. Install the verify pack first, then any pack you want to try.'
+      : state === 'all'
+        ? 'The Bridge already wired these in. Each card shows what one pack does, what to type, and what Claude returns.'
+        : 'Each card shows what one pack does. Installed cards carry a green check; open any for the full body.'
+
   return (
     <header className="max-w-3xl mx-auto text-center">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        className="font-mono text-[11px] uppercase tracking-[0.22em] mb-5"
+        className="text-sm font-medium mb-5"
         style={{ color: 'rgb(var(--color-accent))' }}
       >
-        Your installed system
+        {eyebrow}
       </motion.div>
 
       <motion.h1
@@ -118,11 +160,18 @@ function HeroBlock() {
         transition={{ duration: 0.65, delay: 0.05 }}
         className="font-display text-[clamp(2.25rem,5.5vw,4rem)] leading-[1.05] mb-5"
       >
-        Eleven packs.
-        <br />
-        Five operating layers.
-        <br />
-        <span style={{ color: 'rgb(var(--color-accent))' }}>Already in your Claude.</span>
+        {/* F6 fix (cycle-4 iter-2): wrap each sentence in a block span so the
+            accessible-name computation returns sentence-separated text instead
+            of the br-concatenated string screen readers stumble on. */}
+        <span style={{ display: 'block' }}>Eleven packs.</span>
+        <span style={{ display: 'block' }}>Five operating layers.</span>
+        <span style={{ display: 'block', color: 'rgb(var(--color-accent))' }}>
+          {state === 'pre'
+            ? 'Pick one to start.'
+            : state === 'all'
+              ? 'Already in your Claude.'
+              : 'Keep going.'}
+        </span>
       </motion.h1>
 
       <motion.p
@@ -132,8 +181,7 @@ function HeroBlock() {
         className="text-base md:text-lg leading-relaxed mb-3"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
       >
-        The Bridge dropped these onto your machine in one paste. Each card below shows
-        what one pack does, what to type to invoke it, and what Claude returns.
+        {body}
       </motion.p>
 
       <motion.p
@@ -143,8 +191,9 @@ function HeroBlock() {
         className="text-sm leading-relaxed max-w-xl mx-auto"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        Click any card for the full pack preview. Verify the install first with the
-        prompt below, then come back to walk through what landed.
+        {state === 'pre'
+          ? 'Run the verify prompt below after your first install to confirm what landed.'
+          : 'Run the verify prompt below to confirm what landed. Then open any card for the full pack.'}
       </motion.p>
     </header>
   )
@@ -157,7 +206,7 @@ function VerifyCTA() {
     try {
       await navigator.clipboard.writeText(VERIFY_PROMPT)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
+      window.setTimeout(() => setCopied(false), 1200)
     } catch {
       setCopied(false)
     }
@@ -180,27 +229,27 @@ function VerifyCTA() {
         <div className="flex items-start gap-4 flex-col sm:flex-row">
           <div className="flex-1 min-w-0">
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.22em] mb-2"
+              className="text-xs font-medium mb-2"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Step zero: verify it landed
+              Verify Foundation landed first
             </div>
             <h2 className="font-display text-xl sm:text-2xl leading-tight mb-2">
-              Paste this into your Claude Project first
+              Paste this into your Claude Project
             </h2>
             <p
               className="text-sm leading-relaxed m-0"
               style={{ color: 'rgb(var(--color-fg-muted))' }}
             >
-              Claude reads the manifest, confirms Foundation is installed, lists every
-              pack, and tells you what to ask next. If anything is off, it says so on
-              the same line.
+              Claude reads the manifest, confirms what landed, and tells you what to ask
+              next. If anything is off, it says so on the same line.
             </p>
           </div>
           <button
             type="button"
             onClick={copy}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11"
+            aria-label={copied ? 'Verify prompt copied to clipboard' : 'Copy verify prompt to clipboard'}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition self-start sm:self-auto min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               background: copied ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -211,7 +260,7 @@ function VerifyCTA() {
             }}
           >
             {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
-            {copied ? 'Copied' : 'Copy verify prompt'}
+            {copied ? 'Copied' : 'Copy prompt'}
           </button>
         </div>
         <pre
@@ -230,18 +279,27 @@ function VerifyCTA() {
   )
 }
 
-function Grid() {
+function Grid({ routePrefix }: { routePrefix: string }) {
   return (
     <section className="mt-8 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
       {FOUNDATION_CARDS.map((card, i) => (
-        <FoundationCardTile key={card.packId} card={card} index={i} />
+        <FoundationCardTile key={card.packId} card={card} index={i} routePrefix={routePrefix} />
       ))}
     </section>
   )
 }
 
-function FoundationCardTile({ card, index }: { card: FoundationCard; index: number }) {
+function FoundationCardTile({
+  card,
+  index,
+  routePrefix,
+}: {
+  card: FoundationCard
+  index: number
+  routePrefix: string
+}) {
   const ref = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion() ?? false
   const mx = useMotionValue(0)
   const my = useMotionValue(0)
   const rotX = useSpring(useTransform(my, [-1, 1], [4, -4]), { stiffness: 200, damping: 24 })
@@ -262,6 +320,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   )
 
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (reduceMotion) return
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
@@ -275,23 +334,24 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
     my.set(0)
   }
 
-  // Primary action: open the mini-form. If the form is already open and the
-  // user clicks Install, we kick activateSkill with the customware answers.
+  // F2 fix (cycle-4 iter-6): "Install" verb fires the install. Click "Install"
+  // on the default card-state and activateSkill kicks immediately with empty
+  // VP_NAME_SLUG + DIVISION_SLUG (the customware substitution template handles
+  // empty case fine, mirrors handleSkipPersonalization). Users who want to
+  // fill the personalization fields tap "Customize first" to open the form;
+  // primary button then reads "Confirm install" and uses the entered values.
+  // Resolves the cycle-4 verb-action mismatch where "Install" opened a form.
   async function handleInstall(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
     e.stopPropagation()
-    if (!showForm) {
-      setShowForm(true)
-      return
-    }
     setInstalling(true)
     try {
       await activateSkill({
         slug: card.packId,
         packUrl: packUrlFor(card.packId),
         customwareAnswers: {
-          VP_NAME_SLUG: slugify(vpName),
-          DIVISION_SLUG: slugify(division),
+          VP_NAME_SLUG: showForm ? slugify(vpName) : '',
+          DIVISION_SLUG: showForm ? slugify(division) : '',
         },
       })
       setInstalled(true)
@@ -302,16 +362,66 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
     }
   }
 
+  function handleOpenCustomize(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowForm(true)
+  }
+
+  // F3 fix (S217 iter-2): explicit "skip personalization" path so the user
+  // does not get the worst-of-both-worlds case where a click on the same
+  // button silently installs with empty fields.
+  async function handleSkipPersonalization(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    setInstalling(true)
+    try {
+      await activateSkill({
+        slug: card.packId,
+        packUrl: packUrlFor(card.packId),
+        customwareAnswers: {
+          VP_NAME_SLUG: '',
+          DIVISION_SLUG: '',
+        },
+      })
+      setInstalled(true)
+    } catch {
+      /* activateSkill surfaces its own error toast */
+    } finally {
+      setInstalling(false)
+    }
+  }
+
+  // F9 fix (S217 iter-2): a Remove button on the installed-state card so
+  // the user can roll back an install without opening DevTools. Drops the
+  // pack id from the activated list and flips the card back to the
+  // pre-install presentation.
+  function handleRemove(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    removeActivated(card.packId)
+    setInstalled(false)
+    setShowForm(false)
+  }
+
   return (
     <motion.div
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      style={
+        reduceMotion
+          ? { transformPerspective: 1200 }
+          : { rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }
+      }
+      initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { duration: 0.55, delay: 0.06 * (index % 6), ease: [0.22, 1, 0.36, 1] }
+      }
       className="group relative rounded-3xl overflow-hidden"
     >
       <div
@@ -345,7 +455,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
 
         <div className="relative flex items-start justify-between gap-3 mb-4">
           <span
-            className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+            className="inline-flex items-center gap-2 text-[11px] font-medium rounded-full px-2.5 py-1"
             style={{ background: 'rgba(20,20,19,0.05)', color: '#141413' }}
           >
             <span style={{ color: 'rgb(var(--color-accent))', fontWeight: 700 }}>{card.badge}</span>
@@ -355,7 +465,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             </span>
           </span>
           <span
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] rounded-full px-2.5 py-1"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium rounded-full px-2.5 py-1"
             style={{ background: tone.bg, color: tone.color }}
           >
             <span
@@ -386,7 +496,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
           }}
         >
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+            className="text-xs font-medium mb-2"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             You type
@@ -405,7 +515,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
 
         <div className="relative mt-3">
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+            className="text-xs font-medium mb-2"
             style={{ color: 'rgb(var(--color-accent))' }}
           >
             Claude returns
@@ -431,10 +541,10 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             }}
           >
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.18em] mb-3"
+              className="text-xs font-medium mb-3"
               style={{ color: 'rgb(var(--color-accent))' }}
             >
-              Customize before install
+              Personalize this pack
             </div>
             <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1 text-xs">
@@ -473,21 +583,34 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                 className="text-xs m-0"
                 style={{ color: '#5e5d59' }}
               >
-                These swap into the pack body before it hits your clipboard.
-                Leave blank if you want plain placeholders.
+                Both optional. We swap them in before copy.
               </p>
             </div>
           </div>
         ) : null}
 
-        {/* S210: primary CTA (install) and secondary link (view pack detail).
-            Stacks single-column on mobile per R051. 44px min-height per R067. */}
+        {/* S210 + S217 iter-2: primary CTA + secondary actions. Stacks
+            single-column on mobile per R051. 44px min-height per R067.
+            F2: button label visibly changes per state (Personalize → Confirm
+            → Installed). F3: a Skip personalization secondary appears once
+            the form is open so the user has a deliberate path forward
+            instead of a silent empty-fields install. F9: a Remove secondary
+            appears once installed so the user can roll back. */}
         <div className="relative mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             type="button"
             onClick={handleInstall}
             disabled={installing}
-            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition"
+            aria-label={
+              installed
+                ? `${card.title} is installed`
+                : installing
+                  ? `Installing ${card.title}`
+                  : showForm
+                    ? `Confirm install of ${card.title}`
+                    : `Install ${card.title}`
+            }
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               background: installed ? 'rgb(18, 128, 82)' : 'rgb(var(--color-accent))',
               color: '#fbfaf3',
@@ -508,30 +631,79 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             ) : installing ? (
               <>
                 <Copy className="w-4 h-4" aria-hidden="true" />
-                Copying to clipboard...
+                Copying pack
               </>
             ) : showForm ? (
               <>
-                <Copy className="w-4 h-4" aria-hidden="true" />
-                Install on my Claude
+                <Check className="w-4 h-4" aria-hidden="true" />
+                Confirm install
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Install on my Claude
+                Install
               </>
             )}
           </button>
+          {!installed && !showForm && !installing ? (
+            <button
+              type="button"
+              onClick={handleOpenCustomize}
+              aria-label={`Personalize ${card.title} before installing`}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+            >
+              Personalize first
+            </button>
+          ) : null}
+          {!installed && showForm && !installing ? (
+            <button
+              type="button"
+              onClick={handleSkipPersonalization}
+              aria-label={`Install ${card.title} with placeholders, skip personalization`}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+            >
+              Skip and install
+            </button>
+          ) : null}
+          {installed ? (
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
+              style={{
+                background: 'transparent',
+                color: 'rgb(var(--color-fg-muted))',
+                border: '1px solid rgba(20,20,19,0.18)',
+                minHeight: 44,
+              }}
+              aria-label={`Remove ${card.title} from installed packs`}
+            >
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              Remove
+            </button>
+          ) : null}
           <Link
-            to={`/empireworksreconstruction/pack/${card.packId}`}
-            className="inline-flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] px-4 py-2"
+            to={`${routePrefix}/pack/${card.packId}`}
+            className="inline-flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
             style={{
               color: 'rgb(var(--color-accent))',
               textDecoration: 'none',
               minHeight: 44,
             }}
           >
-            View pack details
+            See what it does
             <ArrowRight
               className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"
               aria-hidden="true"
@@ -543,7 +715,10 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   )
 }
 
-function BottomCTA() {
+function BottomCTA({ routePrefix }: { routePrefix: string }) {
+  // iter-4-polish: respect prefers-reduced-motion on the hover-lift so the
+  // VOiceOver-on-Mac VP with motion-reduced doesn't get a juddery transform.
+  const reduceMotion = useReducedMotion() ?? false
   return (
     <motion.section
       initial={{ opacity: 0, y: 16 }}
@@ -553,10 +728,10 @@ function BottomCTA() {
       className="mt-20 max-w-3xl mx-auto text-center"
     >
       <p
-        className="font-mono text-[11px] uppercase tracking-[0.22em] mb-4"
+        className="text-sm font-medium mb-4"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        What is next
+        What's next
       </p>
       <h2 className="font-display text-[clamp(1.6rem,3.5vw,2.4rem)] leading-tight mb-4">
         Foundation is the floor. Advanced packs go on top.
@@ -565,23 +740,24 @@ function BottomCTA() {
         className="text-base leading-relaxed mb-8 max-w-2xl mx-auto"
         style={{ color: '#5e5d59' }}
       >
-        Once Foundation is rolling, the advanced packs (proposal builder, RFI flow,
-        skill-builder, the rest) layer onto the same Bridge. You will not reinstall.
-        You will just ask for more.
+        Proposal builder, RFI flow, skill builder, the rest. They layer onto the
+        same Bridge once Foundation is rolling. No reinstall. Just ask.
       </p>
       <Link
-        to="/empireworksreconstruction/bonus-extras"
-        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition"
+        to={`${routePrefix}/bonus-extras`}
+        className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(204,110,46)]"
         style={{
           background: 'rgb(var(--color-accent))',
           color: '#fbfaf3',
           boxShadow: '0 12px 30px rgba(204,110,46,0.28)',
         }}
         onMouseEnter={(e) => {
+          if (reduceMotion) return
           e.currentTarget.style.transform = 'translateY(-2px)'
           e.currentTarget.style.boxShadow = '0 16px 36px rgba(204,110,46,0.42)'
         }}
         onMouseLeave={(e) => {
+          if (reduceMotion) return
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = '0 12px 30px rgba(204,110,46,0.28)'
         }}
