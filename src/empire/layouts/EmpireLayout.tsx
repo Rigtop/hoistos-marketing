@@ -96,33 +96,47 @@ export function EmpireLayout() {
         className="px-[6vw] py-4 md:py-6 flex items-center justify-between border-b gap-3"
         style={{ borderColor: 'rgb(var(--color-border))', background: '#f5f4ed' }}
       >
-        <Link
-          to="/empire"
-          className="flex items-center gap-3 md:gap-5 group min-w-0"
-          style={{ paddingLeft: 4, paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
+        {/* F8 fix (cycle-4 iter-2): split the HoistOS lockup out of the
+            EmpireWorks Link so a click on the HoistOS H-mark does not navigate
+            to /empire (a tap on HoistOS now does nothing visually-misleading;
+            it is rendered as a static sibling). The brand framing reads
+            "EmpireWorks Reconstruction on HoistOS" so the click affordance
+            now matches the words. */}
+        <div
+          className="flex items-center gap-3 md:gap-5 min-w-0"
+          style={{ paddingTop: 4, paddingBottom: 4, overflow: 'visible' }}
         >
-          {/* EmpireWorks lockup. PNG with 25% transparent margin renders
-              directly on the header bg (no pill wrapper). The transparent
-              margin gives the breathing room. S205 2026-05-13: removed the
-              rgba off-cream pill that visually clipped RECONSTRUCTION. */}
-          <img
-            src="/brand/empireworks-lockup-v3.png"
-            alt="EmpireWorks Reconstruction"
-            style={{
-              height: isMobile ? 40 : 56,
-              width: 'auto',
-              display: 'block',
-              objectFit: 'contain',
-              objectPosition: 'left center',
-              flexShrink: 0,
-            }}
-          />
+          <Link
+            to="/empire"
+            className="group flex items-center min-w-0"
+            style={{ paddingLeft: 4 }}
+            aria-label="EmpireWorks Reconstruction overview"
+          >
+            {/* EmpireWorks lockup. PNG with 25% transparent margin renders
+                directly on the header bg (no pill wrapper). The transparent
+                margin gives the breathing room. S205 2026-05-13: removed the
+                rgba off-cream pill that visually clipped RECONSTRUCTION. */}
+            <img
+              src="/brand/empireworks-lockup-v3.png"
+              alt="EmpireWorks Reconstruction"
+              style={{
+                height: isMobile ? 40 : 56,
+                width: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+                objectPosition: 'left center',
+                flexShrink: 0,
+              }}
+            />
+          </Link>
           {/* "on HoistOS" sub-mark renders only at lg+ (>= 1024). Below 1024
               the desktop nav already crowds the header at 768-1023 (iPad
               portrait, Surface laptop minor), and the badge overprints the
               first nav link "Overview" at that range. The HoistOS brand is
               repeated in the mobile menu drawer for the mobile (<768) path
-              and stays visible at every tap-target laptop width (>= 1024). */}
+              and stays visible at every tap-target laptop width (>= 1024).
+              F8: this lives outside the Link so it is no longer a clickable
+              area pretending to go somewhere. */}
           {!isMobile ? (
             <span className="hidden lg:contents">
               <span
@@ -150,7 +164,7 @@ export function EmpireLayout() {
               </span>
             </span>
           ) : null}
-        </Link>
+        </div>
         {isMobile ? (
           <nav aria-label="Primary" style={{ display: 'inline-flex' }}>
           <button

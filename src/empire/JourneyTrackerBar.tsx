@@ -101,11 +101,10 @@ export function JourneyTrackerBar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           <span
             style={{
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-              fontSize: 10,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgb(var(--color-fg-subtle))',
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: '0.01em',
+              color: 'rgb(var(--color-fg-muted))',
               whiteSpace: 'nowrap',
             }}
           >
@@ -203,10 +202,9 @@ export function JourneyTrackerBar() {
                 <span
                   className="hidden sm:inline"
                   style={{
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                    fontSize: 9,
-                    letterSpacing: '0.16em',
-                    textTransform: 'uppercase',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: '0.005em',
                     color: lit
                       ? 'rgb(var(--color-fg))'
                       : 'rgb(var(--color-fg-subtle))',
@@ -240,11 +238,10 @@ export function JourneyTrackerBar() {
                   : { type: 'spring', stiffness: 360, damping: 22, mass: 0.5 }
               }
               style={{
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'rgb(var(--color-fg-subtle))',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.01em',
+                color: 'rgb(var(--color-fg-muted))',
                 display: 'inline-block',
               }}
             >

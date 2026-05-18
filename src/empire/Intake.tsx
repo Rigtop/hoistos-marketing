@@ -293,24 +293,30 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
         className="mt-6 flex items-center justify-between gap-3"
         style={{ flexDirection: isMobile ? 'column-reverse' : 'row' }}
       >
-        <button
-          type="button"
-          onClick={goBack}
-          disabled={step === 0}
-          aria-label={step === 0 ? 'Back (disabled on first step)' : `Back to step ${step} of ${STEP_COUNT}`}
-          className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          style={{
-            minHeight: 44,
-            width: isMobile ? '100%' : 'auto',
-            opacity: step === 0 ? 0.4 : 1,
-            borderColor: 'rgb(var(--color-fg) / 0.18)',
-            color: 'rgb(var(--color-fg))',
-            background: 'transparent',
-          }}
-        >
-          <ArrowLeft size={14} aria-hidden="true" />
-          Back
-        </button>
+        {/* F10 fix (cycle-4 iter-2): Step 1 has nowhere to go Back to, and the
+            empty-state hint at the top already covers the Skip path, so we
+            hide both. Step 1 footer collapses to a single Next CTA which
+            drops decision count from 3 to 1. Back returns from Step 2 onward. */}
+        {step === 0 ? (
+          <span aria-hidden="true" />
+        ) : (
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label={`Back to step ${step} of ${STEP_COUNT}`}
+            className="inline-flex items-center gap-2 rounded-lg border px-4 text-sm font-medium tracking-[0.005em] transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={{
+              minHeight: 44,
+              width: isMobile ? '100%' : 'auto',
+              borderColor: 'rgb(var(--color-fg) / 0.18)',
+              color: 'rgb(var(--color-fg))',
+              background: 'transparent',
+            }}
+          >
+            <ArrowLeft size={14} aria-hidden="true" />
+            Back
+          </button>
+        )}
 
         {step < STEP_COUNT - 1 ? (
           <div
@@ -320,7 +326,7 @@ export function Intake({ variant = 'modal', onComplete, forceOpen, onDismiss }: 
               width: isMobile ? '100%' : 'auto',
             }}
           >
-            {step === 0 && !draft.name?.trim() && !draft.division?.trim() ? (
+            {step > 0 && step < STEP_COUNT - 1 ? (
               <button
                 type="button"
                 onClick={goNext}
@@ -423,9 +429,12 @@ function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: 
         style={{ gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}
       >
         <label className="block">
+          {/* F3 fix (cycle-4 iter-2): sentence-case field labels at the same
+              text-xs/font-medium tracking used elsewhere. Retires the
+              font-mono uppercase console-log treatment per R087. */}
           <span
-            className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
           >
             Name
           </span>
@@ -447,8 +456,8 @@ function StepName({ name, division, onNameChange, onDivisionChange, isMobile }: 
 
         <label className="block">
           <span
-            className="block font-mono text-[10px] uppercase tracking-[0.18em] mb-1.5"
-            style={{ color: 'rgb(var(--color-fg-subtle))' }}
+            className="block text-xs font-medium tracking-[0.005em] mb-1.5"
+            style={{ color: 'rgb(var(--color-fg-muted))' }}
           >
             Division
           </span>

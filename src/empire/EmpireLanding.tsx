@@ -21,7 +21,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
   Check,
@@ -155,6 +155,14 @@ export function EmpireLanding() {
   const intakeGate = useIntakeGate()
   const isMobile = useIsMobile()
   const reduced = useReducedMotion()
+  // F7 fix (cycle-4 iter-2): keep the URL prefix the user arrived through.
+  // /empire entries land on /empire/foundation; /empireworksreconstruction
+  // entries stay on the canonical prefix. Eliminates the mid-funnel prefix
+  // swap the address bar used to show.
+  const { pathname } = useLocation()
+  const routePrefix = pathname.startsWith('/empire/') || pathname === '/empire'
+    ? '/empire'
+    : '/empireworksreconstruction'
 
   function scrollToCards(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
@@ -218,19 +226,23 @@ export function EmpireLanding() {
           className="max-w-4xl mx-auto text-center relative"
           style={isMobile ? undefined : { flex: '1 1 0%', minWidth: 0 }}
         >
+        {/* F9 fix (cycle-4 iter-2): retire the font-mono console-log
+            treatment on the brand eyebrow. Sans-serif small-caps at the same
+            signal-orange hue reads as a branded eyebrow instead of terminal
+            output. Stripe + Linear pattern for above-the-hero eyebrows. */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="font-mono text-xs tracking-[0.22em] mb-6 flex items-center justify-center gap-3 flex-wrap"
-          style={{ color: 'rgb(var(--color-accent))' }}
+          className="text-xs uppercase tracking-[0.14em] mb-6 flex items-center justify-center gap-3 flex-wrap"
+          style={{ color: 'rgb(var(--color-accent))', fontWeight: 600 }}
         >
           <span>HoistOS</span>
           <span style={{ color: 'rgb(var(--color-fg-subtle))' }}>·</span>
           <span>
             {audience === 'empireworks'
-              ? 'Built for Steve, Spencer, Jay and the EmpireWorks VPs'
-              : 'Built for EmpireWorks Reconstruction'}
+              ? 'For Steve, Spencer, Jay and the EmpireWorks VPs'
+              : 'For EmpireWorks Reconstruction'}
           </span>
         </motion.div>
 
@@ -486,7 +498,7 @@ export function EmpireLanding() {
           className="flex justify-center"
         >
           <Link
-            to="/empireworksreconstruction/foundation"
+            to={`${routePrefix}/foundation`}
             className="group relative inline-flex items-center gap-3 rounded-2xl px-10 py-5 text-lg md:text-xl font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               background: 'rgb(var(--color-accent))',

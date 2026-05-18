@@ -19,11 +19,11 @@
  */
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react'
-import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, Check, Copy, Sparkles, X } from 'lucide-react'
 import { FOUNDATION_CARDS, LAYER_TOKENS, type FoundationCard } from './content/foundation-cards'
-import { activateSkill, listActivated, removeActivated } from '../lib/activate'
+import { activateSkill, listActivated, onActivatedChange, removeActivated } from '../lib/activate'
 
 const VERIFY_PROMPT =
   'Check my EmpireWorks Bridge setup. Confirm Foundation is installed, list the installed packs, and tell me what I can ask you to do now.'
@@ -86,20 +86,62 @@ function isInstalled(installed: string[], packId: string): boolean {
 }
 
 export function EmpireFoundationGrid() {
+  // F2 fix (cycle-4 iter-2): hero copy keys off install-state so a first-touch
+  // user landing here from /empire never sees "Already in your Claude" while
+  // the global tracker reads 0 / 11. Three states: pre-install, partial, and
+  // bridge-mass-install (every Foundation pack already activated).
+  const [installedCount, setInstalledCount] = useState<number>(() => listActivated().length)
+  useEffect(() => onActivatedChange(() => setInstalledCount(listActivated().length)), [])
+  const total = FOUNDATION_CARDS.length
+  const heroState: HeroState =
+    installedCount === 0 ? 'pre' : installedCount >= total ? 'all' : 'partial'
+
+  // F7 fix (cycle-4 iter-2): pack and bonus-extras links honor the prefix the
+  // user arrived through so the address bar does not swap mid-funnel.
+  const { pathname } = useLocation()
+  const routePrefix =
+    pathname.startsWith('/empire/') || pathname === '/empire'
+      ? '/empire'
+      : '/empireworksreconstruction'
+
   return (
     <div
       className="px-[6vw] pt-16 pb-32"
       style={{ background: '#f5f4ed', color: '#141413' }}
     >
-      <HeroBlock />
+      <HeroBlock state={heroState} installedCount={installedCount} total={total} />
       <VerifyCTA />
-      <Grid />
-      <BottomCTA />
+      <Grid routePrefix={routePrefix} />
+      <BottomCTA routePrefix={routePrefix} />
     </div>
   )
 }
 
-function HeroBlock() {
+type HeroState = 'pre' | 'partial' | 'all'
+
+function HeroBlock({
+  state,
+  installedCount,
+  total,
+}: {
+  state: HeroState
+  installedCount: number
+  total: number
+}) {
+  const eyebrow =
+    state === 'pre'
+      ? 'Your operating system in eleven packs'
+      : state === 'all'
+        ? 'Your installed system'
+        : `Installing your system (${installedCount} of ${total})`
+
+  const body =
+    state === 'pre'
+      ? 'Each card below shows what one pack does, what to type to invoke it, and what Claude returns. Install the verify pack first, then any pack you want to try.'
+      : state === 'all'
+        ? 'The Bridge wired these onto your machine. Each card below shows what one pack does, what to type to invoke it, and what Claude returns.'
+        : 'Each card below shows what one pack does. Installed cards carry a green check; open any card for the full pack body.'
+
   return (
     <header className="max-w-3xl mx-auto text-center">
       <motion.div
@@ -109,7 +151,7 @@ function HeroBlock() {
         className="text-sm font-medium mb-5"
         style={{ color: 'rgb(var(--color-accent))' }}
       >
-        Your installed system
+        {eyebrow}
       </motion.div>
 
       <motion.h1
@@ -118,11 +160,18 @@ function HeroBlock() {
         transition={{ duration: 0.65, delay: 0.05 }}
         className="font-display text-[clamp(2.25rem,5.5vw,4rem)] leading-[1.05] mb-5"
       >
-        Eleven packs.
-        <br />
-        Five operating layers.
-        <br />
-        <span style={{ color: 'rgb(var(--color-accent))' }}>Already in your Claude.</span>
+        {/* F6 fix (cycle-4 iter-2): wrap each sentence in a block span so the
+            accessible-name computation returns sentence-separated text instead
+            of the br-concatenated string screen readers stumble on. */}
+        <span style={{ display: 'block' }}>Eleven packs.</span>
+        <span style={{ display: 'block' }}>Five operating layers.</span>
+        <span style={{ display: 'block', color: 'rgb(var(--color-accent))' }}>
+          {state === 'pre'
+            ? 'Pick one to start.'
+            : state === 'all'
+              ? 'Already in your Claude.'
+              : 'Keep going.'}
+        </span>
       </motion.h1>
 
       <motion.p
@@ -132,8 +181,7 @@ function HeroBlock() {
         className="text-base md:text-lg leading-relaxed mb-3"
         style={{ color: 'rgb(var(--color-fg-muted))' }}
       >
-        The Bridge wired these onto your machine. Each card below shows what one pack
-        does, what to type to invoke it, and what Claude returns.
+        {body}
       </motion.p>
 
       <motion.p
@@ -143,8 +191,9 @@ function HeroBlock() {
         className="text-sm leading-relaxed max-w-xl mx-auto"
         style={{ color: 'rgb(var(--color-fg-subtle))' }}
       >
-        Run the verify prompt below first to confirm what landed. Then open any card
-        for the full pack.
+        {state === 'pre'
+          ? 'Run the verify prompt below after your first install to confirm what landed.'
+          : 'Run the verify prompt below to confirm what landed. Then open any card for the full pack.'}
       </motion.p>
     </header>
   )
@@ -231,17 +280,25 @@ function VerifyCTA() {
   )
 }
 
-function Grid() {
+function Grid({ routePrefix }: { routePrefix: string }) {
   return (
     <section className="mt-8 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
       {FOUNDATION_CARDS.map((card, i) => (
-        <FoundationCardTile key={card.packId} card={card} index={i} />
+        <FoundationCardTile key={card.packId} card={card} index={i} routePrefix={routePrefix} />
       ))}
     </section>
   )
 }
 
-function FoundationCardTile({ card, index }: { card: FoundationCard; index: number }) {
+function FoundationCardTile({
+  card,
+  index,
+  routePrefix,
+}: {
+  card: FoundationCard
+  index: number
+  routePrefix: string
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion() ?? false
   const mx = useMotionValue(0)
@@ -548,7 +605,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
                   ? `Installing ${card.title}`
                   : showForm
                     ? `Confirm install of ${card.title}`
-                    : `Personalize ${card.title} before install`
+                    : `Install ${card.title}`
             }
             className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
@@ -581,7 +638,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             ) : (
               <>
                 <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Personalize
+                Install
               </>
             )}
           </button>
@@ -619,7 +676,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
             </button>
           ) : null}
           <Link
-            to={`/empireworksreconstruction/pack/${card.packId}`}
+            to={`${routePrefix}/pack/${card.packId}`}
             className="inline-flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               color: 'rgb(var(--color-accent))',
@@ -639,7 +696,7 @@ function FoundationCardTile({ card, index }: { card: FoundationCard; index: numb
   )
 }
 
-function BottomCTA() {
+function BottomCTA({ routePrefix }: { routePrefix: string }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 16 }}
@@ -665,7 +722,7 @@ function BottomCTA() {
         same Bridge once Foundation is rolling. No reinstall. Ask, and they layer on.
       </p>
       <Link
-        to="/empireworksreconstruction/bonus-extras"
+        to={`${routePrefix}/bonus-extras`}
         className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         style={{
           background: 'rgb(var(--color-accent))',
