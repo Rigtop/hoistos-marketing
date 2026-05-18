@@ -1,23 +1,35 @@
 /**
- * /api/track. Round 8 (2026-05-18) Phase E telemetry intake endpoint.
+ * /api/track. Round 11 Phase 6 (2026-05-18) PostHog telemetry intake.
  *
  * Vercel Edge function that accepts a POST { event, ts, sessionId, packId?,
- * surface?, meta? } and writes the event to the Notion Insights DB.
+ * surface?, meta? } and forwards the event to PostHog Cloud via posthog-node.
  *
- * Env vars required (set in Vercel project):
- *   - NOTION_API_KEY: Notion integration token
- *   - NOTION_INSIGHTS_DS_ID: data source id for the Insights DB
+ * Round 8 originally wrote to a Notion Insights DB. Switched to PostHog
+ * because Notion's 3 req/sec API limit and lack of native funnel / cohort
+ * surfaces are the wrong shape for high-volume product analytics. PostHog
+ * is purpose-built for this and a Vercel marketplace integration auto-wires
+ * the env vars below.
  *
- * If env vars are missing, the endpoint accepts the event and logs it
- * but does not persist (so client telemetry queue still flushes without
- * piling up). This lets the round 8 ship even before the Notion bits are
- * configured; configure the env vars later to start persisting.
+ * Env vars (set in Vercel project via PostHog marketplace integration):
+ *   - POSTHOG_API_KEY: PostHog project API key
+ *   - POSTHOG_HOST: PostHog host (defaults to https://app.posthog.com)
+ *
+ * If env vars are missing, the endpoint accepts the event and returns
+ * { ok: true, persisted: false } so the client queue still flushes. This
+ * lets the endpoint ship before the marketplace install is finished;
+ * persistence flips to true on the next request after env vars land.
  *
  * Anti-flood guard: rate-limit per sessionId at 5 events / second.
  * Beyond the limit, return 200 but drop the event.
  *
  * Hard Rule #11: no em dashes.
  */
+
+import { PostHog } from 'posthog-node'
+
+export const config = {
+  runtime: 'edge',
+}
 
 interface TelemetryPayload {
   event: string
@@ -26,10 +38,6 @@ interface TelemetryPayload {
   packId?: string
   surface?: string
   meta?: Record<string, string | number | boolean>
-}
-
-export const config = {
-  runtime: 'edge',
 }
 
 const rateBuckets = new Map<string, { count: number; reset: number }>()
@@ -69,47 +77,32 @@ export default async function handler(req: Request): Promise<Response> {
     })
   }
 
-  const apiKey = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    ?.process?.env?.NOTION_API_KEY
-  const dsId = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    ?.process?.env?.NOTION_INSIGHTS_DS_ID
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } })?.process
+    ?.env
+  const apiKey = env?.POSTHOG_API_KEY
+  const host = env?.POSTHOG_HOST ?? 'https://app.posthog.com'
 
-  if (!apiKey || !dsId) {
-    // env not configured: accept the event so the client queue flushes.
+  if (!apiKey) {
     return new Response(JSON.stringify({ ok: true, persisted: false }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
     })
   }
 
+  const ph = new PostHog(apiKey, { host, flushAt: 1, flushInterval: 0 })
   try {
-    const notionRes = await fetch('https://api.notion.com/v1/pages', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Notion-Version': '2022-06-28',
-        'content-type': 'application/json',
+    ph.capture({
+      distinctId: payload.sessionId,
+      event: payload.event,
+      properties: {
+        packId: payload.packId,
+        surface: payload.surface,
+        source: '/empire',
+        ts: payload.ts,
+        ...payload.meta,
       },
-      body: JSON.stringify({
-        parent: { type: 'data_source_id', data_source_id: dsId },
-        properties: {
-          Name: { title: [{ text: { content: `${payload.event}${payload.packId ? `: ${payload.packId}` : ''}` } }] },
-          Event: { rich_text: [{ text: { content: payload.event } }] },
-          SessionId: { rich_text: [{ text: { content: payload.sessionId } }] },
-          PackId: payload.packId ? { rich_text: [{ text: { content: payload.packId } }] } : undefined,
-          Surface: payload.surface ? { rich_text: [{ text: { content: payload.surface } }] } : undefined,
-          Timestamp: { date: { start: payload.ts } },
-          Source: { rich_text: [{ text: { content: '/empire' } }] },
-        },
-      }),
     })
-    if (!notionRes.ok) {
-      const text = await notionRes.text()
-      return new Response(JSON.stringify({ ok: false, error: text.slice(0, 200) }), {
-        status: 502,
-        headers: { 'content-type': 'application/json' },
-      })
-    }
+    await ph.shutdown()
     return new Response(JSON.stringify({ ok: true, persisted: true }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
